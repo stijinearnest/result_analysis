@@ -1,0 +1,9 @@
+<h2>Student Login</h2>
+<form method="post">
+  {% csrf_token %}
+  <label>Registration No:</label>
+  <input type="text" name="reg_no"><br>
+  <label>Date of Birth (YYYY-MM-DD):</label>
+  <input type="text" name="dob"><br>
+  <button type="submit">Login</button>
+</form>

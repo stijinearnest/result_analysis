@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{%load static%}
+{% block content%}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+           
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #4a6fc7;
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+        
+        .header h2 {
+            font-weight: 600;
+            font-size: 28px;
+        }
+        
+        .header p {
+            margin-top: 8px;
+            opacity: 0.9;
+        }
+        
+        .form-body {
+            padding: 30px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -15px 20px;
+        }
+        
+        .form-group {
+            flex: 1 0 300px;
+            padding: 0 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #4a6fc7;
+            box-shadow: 0 0 0 3px rgba(74, 111, 199, 0.2);
+        }
+        
+        .photo-upload {
+            border: 2px dashed #ddd;
+            border-radius: 6px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .photo-upload:hover {
+            border-color: #4a6fc7;
+        }
+        
+        .photo-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 15px auto;
+            display: none;
+            border: 3px solid #4a6fc7;
+        }
+        
+        .upload-icon {
+            font-size: 40px;
+            color: #4a6fc7;
+            margin-bottom: 10px;
+        }
+        
+        .btn-submit {
+            background: #4a6fc7;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn-submit:hover {
+            background: #3b5cad;
+        }
+        
+        .required::after {
+            content: " *";
+            color: #e22;
+        }
+        
+        @media (max-width: 768px) {
+            .form-group {
+                flex: 1 0 100%;
+            }
+            
+            .form-body {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Student Registration</h2>
+            <p>Please fill in all required fields to register a new student</p>
+        </div>
+        
+        <div class="form-body">
+            <form id="studentForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="reg_no">Registration Number<span class="required"></span></label>
+                        <input type="text" class="form-control" id="reg_no" name="reg_no" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="name">Full Name<span class="required"></span></label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="dob">Date of Birth<span class="required"></span></label>
+                        <input type="date" class="form-control" id="dob" name="dob" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="course">Course<span class="required"></span></label>
+                        <select class="form-control" id="course" name="course" required>
+                            <option value="">Select Course</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Business Administration">Business Administration</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Medicine">Medicine</option>
+                            <option value="Law">Law</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="semester">Semester<span class="required"></span></label>
+                        <select class="form-control" id="semester" name="semester" required>
+                            <option value="">Select Semester</option>
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5">Semester 5</option>
+                            <option value="6">Semester 6</option>
+                            <option value="7">Semester 7</option>
+                            <option value="8">Semester 8</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="academic_year">Academic Year<span class="required"></span></label>
+                        <select class="form-control" id="academic_year" name="academic_year" required>
+                            <option value="">Select Academic Year</option>
+                            <option value="2023-2024">2023-2024</option>
+                            <option value="2022-2023">2022-2023</option>
+                            <option value="2021-2022">2021-2022</option>
+                            <option value="2020-2021">2020-2021</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Student Photo</label>
+                        <div class="photo-upload" id="photoUpload">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <p>Click to upload a student photo</p>
+                            <p class="small">(JPEG, PNG, max 5MB)</p>
+                            <img id="photoPreview" class="photo-preview" src="" alt="Preview">
+                        </div>
+                        <input type="file" id="photo" name="photo" accept="image/*" style="display: none;">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-user-plus"></i> Register Student
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Photo upload functionality
+        const photoUpload = document.getElementById('photoUpload');
+        const photoInput = document.getElementById('photo');
+        const photoPreview = document.getElementById('photoPreview');
+        
+        photoUpload.addEventListener('click', () => {
+            photoInput.click();
+        });
+        
+        photoInput.addEventListener('change', () => {
+            const file = photoInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    photoPreview.src = e.target.result;
+                    photoPreview.style.display = 'block';
+                    photoUpload.querySelector('p').style.display = 'none';
+                    photoUpload.querySelector('.small').style.display = 'none';
+                    photoUpload.querySelector('.upload-icon').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Form submission
+        document.getElementById('studentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Student registration submitted successfully!');
+            // In a real application, this would submit to your Django backend
+        });
+    </script>
+</body>
+</html>
+{% endblock %}

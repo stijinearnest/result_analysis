@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width: 500px; margin: auto; padding: 20px;">
+  <h2>Add Marks</h2>
+
+  {% if messages %}
+    <ul style="color:red;">
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <div style="margin-bottom:12px;">
+      <label for="reg_no">Registration Number:</label><br>
+      <input type="text" name="reg_no" id="reg_no" placeholder="Enter Reg No" required>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label for="student_name">Student Name:</label><br>
+      <input type="text" id="student_name" readonly>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label for="semester">Semester:</label><br>
+      <select name="semester" id="semester" required>
+        <option value="">-- Select Semester --</option>
+        {% for i in "123456" %}
+          <option value="{{ i }}">{{ i }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit">Proceed to Add Marks</button>
+  </form>
+</div>
+
+<script>
+const regNoInput = document.getElementById('reg_no');
+const studentNameInput = document.getElementById('student_name');
+
+regNoInput.addEventListener('input', () => {
+    const reg_no = regNoInput.value;
+    if (reg_no.length > 0) {
+        fetch(`/teacher/get-student-name/?reg_no=${reg_no}`)
+        .then(res => res.json())
+        .then(data => {
+            studentNameInput.value = data.name;
+        });
+    } else {
+        studentNameInput.value = '';
+    }
+});
+</script>
+{% endblock %}

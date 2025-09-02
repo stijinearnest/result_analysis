@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content%}
+
+<link rel="stylesheet" href="{% static 'css/student_dashboard.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="dash-wrap">
+  <!-- Two-column grid -->
+  <div class="grid">
+    <!-- LEFT COLUMN -->
+    <div class="left-col">
+      <!-- Student card -->
+      <!-- Student card -->
+<section class="card student-card">
+  <div class="student-info">
+    <div class="avatar">
+      {% if student.photo %}
+        <img src="{{ student.photo.url }}" alt="profile">
+      {% else %}
+        <div class="avatar-fallback">{{ student.name|slice:":1" }}</div>
+      {% endif %}
+    </div>
+    <div class="student-meta">
+      <h2 class="hello">Hello {{ student.name }}!</h2>
+    </div>
+  </div>
+
+  <div class="student-details">
+    <div class="subtext">Reg No: <strong>{{ student.reg_no }}</strong></div>
+    <div class="subtext">{{ student.course }}</div>
+
+    <div class="meta-row">
+      <div class="meta-item">
+        <div class="meta-label">Current Semester:</div>
+        <div class="meta-value">{{ student.semester }}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Academic Year</div>
+        <div class="meta-value">{{ student.academic_year }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+      <!-- SGPA Analysis -->
+      <section class="card sgpa-card">
+        <h3 class="card-title">SGPA Analysis</h3>
+        <div class="chart-box">
+          <canvas id="sgpaChart"></canvas>
+        </div>
+      </section>
+
+      <!-- Summary -->
+      <section class="card summary-card">
+        <h3 class="card-title">Summary</h3>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <div class="summary-number">{{ total_papers }}</div>
+            <div class="summary-label">Total Papers</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-number">{{ passed }}</div>
+            <div class="summary-label">Papers Passed</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-number">{{ failed }}</div>
+            <div class="summary-label">Papers Failed</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+      <!-- CGPA -->
+      <section class="card cgpa-card">
+        <div class="cgpa-title">Overall CGPA:</div>
+        <div class="cgpa-value">{{ cgpa }}</div>
+        <div class="cgpa-hr"></div>
+      </section>
+
+      <!-- Subject marks -->
+      <section class="card subject-card">
+        <div class="subject-head">
+          <div class="subject-left">
+            <div class="small-label">select semester</div>
+          </div>
+          <div class="subject-right">
+            <form method="get">
+              <select name="semester" class="sem-select" onchange="this.form.submit()">
+                {% for sem in semesters %}
+                  <option value="{{ sem }}" {% if sem == selected_semester %}selected{% endif %}>
+                    Semester {{ sem }}
+                  </option>
+                {% endfor %}
+              </select>
+            </form>
+          </div>
+        </div>
+
+        <div class="dial-grid">
+          {% for m in marks %}
+            <div class="dial">
+              <canvas id="dial{{ forloop.counter }}"></canvas>
+              <div class="dial-subject">{{ m.subject.name }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Helpers ---------- */
+
+// center text plugin for doughnut charts
+const centerText = {
+  id: 'centerText',
+  afterDraw(chart, args, options) {
+    if (!options || !options.text) return;
+    const {ctx} = chart;
+    const meta = chart.getDatasetMeta(0);
+    if (!meta || !meta.data || !meta.data[0]) return;
+
+    const x = meta.data[0].x;
+    const y = meta.data[0].y;
+
+    ctx.save();
+    ctx.font = 'bold 14px Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial';
+    ctx.fillStyle = '#1A1A1A';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(options.text, x, y);
+    ctx.restore();
+  }
+};
+
+/* ---------- SGPA Area Line Chart ---------- */
+(function(){
+  const ctx = document.getElementById('sgpaChart').getContext('2d');
+
+  // gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, 200);
+  grad.addColorStop(0, 'rgba(45, 99, 255, 0.25)');
+  grad.addColorStop(1, 'rgba(45, 99, 255, 0.02)');
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: {{ sgpa_labels|safe }},
+      datasets: [{
+        label: 'SGPA',
+        data: {{ sgpa_values|safe }},
+        borderColor: '#2D63FF',
+        backgroundColor: grad,
+        borderWidth: 2,
+        fill: true,
+        pointRadius: 2,
+        tension: 0.35
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          grid: { color: 'rgba(0,0,0,0.04)' },
+          ticks: { color: '#6B7280' }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(0,0,0,0.06)' },
+          ticks: { color: '#6B7280' }
+        }
+      }
+    }
+  });
+})();
+
+/* ---------- Subject Doughnut Dials (6 items grid) ---------- */
+(function(){
+  const passRatio = 0.5; // make red if < 50% like Figma emphasis
+  {% for m in marks %}
+    (function(){
+      const obtained = {{ m.marks_obtained|default:0 }};
+      const maxm = {{ m.max_marks|default:0 }};
+      const remain = (maxm - obtained);
+      const ratio = maxm ? obtained / maxm : 0;
+      const color = ratio < passRatio ? '#E74C3C' : '#2D63FF';
+
+      const el = document.getElementById('dial{{ forloop.counter }}').getContext('2d');
+      new Chart(el, {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            data: [obtained, remain],
+            backgroundColor: [color, '#E8EAF1'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          cutout: '72%',
+          plugins: {
+            legend: { display: false },
+            centerText: { text: obtained + '/' + maxm }
+          }
+        },
+        plugins: [centerText]
+      });
+    })();
+  {% endfor %}
+})();
+</script>
+{% endblock %}
