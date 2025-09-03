@@ -1,35 +1,222 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="card" style="max-width: 500px; margin:auto; padding:20px;">
-  <h2>Select Student & Semester</h2>
 
-  <form id="select_student_form" method="GET" action="{% url 'add_marks_single' %}">
-    {% csrf_token %}
-    
-    <div style="margin-bottom:10px;">
-      <label>Registration Number:</label><br>
-      <input type="text" id="reg_no" name="reg_no" placeholder="Enter Reg No" required>
-      <input type="hidden" id="student_id" name="student_id">
+<div class="container">
+    <div class="selection-card">
+        <div class="card-header">
+            <div class="header-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h2>Select Student & Semester</h2>
+            <p>Enter student registration number and select semester to add marks</p>
+        </div>
+
+        <form id="select_student_form" method="GET" action="{% url 'add_marks_single' %}">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <div class="form-group">
+                    <label class="form-label" for="reg_no">Registration Number<span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <input type="text" id="reg_no" name="reg_no" class="form-control" placeholder="Enter student registration number" required>
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    <input type="hidden" id="student_id" name="student_id">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="student_name">Student Name</label>
+                    <div class="input-with-icon">
+                        <input type="text" id="student_name" class="form-control" readonly>
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="semester">Semester<span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <select name="semester" id="semester" class="form-control" required>
+                            <option value="">-- Select Semester --</option>
+                            {% for i in "123456" %}
+                                <option value="{{ i }}">Semester {{ i }}</option>
+                            {% endfor %}
+                        </select>
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-arrow-right"></i> Proceed to Add Marks
+                </button>
+            </div>
+        </form>
     </div>
-
-    <div style="margin-bottom:10px;">
-      <label>Student Name:</label><br>
-      <input type="text" id="student_name" readonly>
-    </div>
-
-    <div style="margin-bottom:10px;">
-      <label>Semester:</label><br>
-      <select name="semester" id="semester" required>
-        <option value="">--Select Semester--</option>
-        {% for i in "123456" %}
-          <option value="{{ i }}">{{ i }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <button type="submit">Proceed to Add Marks</button>
-  </form>
 </div>
+
+<style>
+    /* Base styles */
+    :root {
+        --primary: #4361ee;
+        --primary-dark: #3a56d4;
+        --secondary: #6c757d;
+        --success: #28a745;
+        --light: #f8f9fa;
+        --dark: #343a40;
+        --border: #dee2e6;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.1);
+        --radius: 12px;
+        --transition: all 0.3s ease;
+    }
+    
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f7fb;
+        color: #333;
+        line-height: 1.6;
+    }
+    
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+    }
+    
+    .selection-card {
+        background: white;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        width: 100%;
+        max-width: 500px;
+        overflow: hidden;
+    }
+    
+    /* Header styles */
+    .card-header {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: 25px;
+        text-align: center;
+    }
+    
+    .header-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    
+    .card-header h2 {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+    
+    .card-header p {
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+    
+    /* Form body */
+    .form-section {
+        padding: 25px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--dark);
+    }
+    
+    .required {
+        color: #e74c3c;
+    }
+    
+    /* Form controls */
+    .input-with-icon {
+        position: relative;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px 15px 12px 40px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: var(--transition);
+        background-color: var(--light);
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    }
+    
+    select.form-control {
+        appearance: none;
+    }
+    
+    .input-with-icon i {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        color: var(--secondary);
+    }
+    
+    /* Submit button */
+    .form-actions {
+        padding: 0 25px 25px;
+        text-align: center;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        box-shadow: var(--shadow);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .btn-submit:hover {
+        box-shadow: var(--shadow-hover);
+        transform: translateY(-2px);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
+        .selection-card {
+            max-width: 100%;
+        }
+        
+        .card-header, .form-section, .form-actions {
+            padding: 20px;
+        }
+    }
+</style>
 
 <script>
 const regInput = document.getElementById('reg_no');
