@@ -1,78 +1,51 @@
-
-  <form id="marks_form" method="POST">
-    {% extends "base.html" %}
-    {% block content %}
-    {% if already_exists %}
-    <div class="alert alert-warning">
-        Marks for <strong>{{ student.name }}</strong> in Semester {{ semester }} are already entered.
-        <br>
-        <a href="{% url 'edit_marks' 1 %}">Go to Edit Marks</a> <!-- replace 1 with proper logic later -->
-    </div>
+{% if already_exists %}
+<p>Marks for this semester already exist. You cannot add again.</p>
+<a href="{% url 'teacher_dashboard' %}">Back to Dashboard</a>
 {% else %}
-    <!-- Your form to add marks goes here -->
-{% endif %}
+<form id="marksForm">
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Subject Code</th>
+            <th>Subject Name</th>
+            <th>Marks Obtained</th>
+            <th>Max Marks</th>
+        </tr>
+        {% for subject in subjects %}
+        <tr>
+            <td>{{ subject.code }}</td>
+            <td>{{ subject.name }}</td>
+            <td>
+                <input type="number" name="marks_{{ subject.id }}" min="0" max="40" step="0.5" required>
+            </td>
+            <td>
+                <input type="number" name="max_{{ subject.id }}" min="1" value="40" required>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <input type="hidden" name="student_id" value="{{ student.id }}">
+    <input type="hidden" name="semester" value="{{ semester }}">
+    <button type="submit">Save Marks</button>
+</form>
 
-    <div class="card" style="max-width: 700px; margin: auto; padding: 20px;">
-      <h2>Add Marks for Student</h2>
-    
-      <form id="marks_form" method="POST">
-        {% csrf_token %}
-        <input type="hidden" name="student_id" id="student_id" value="{{ student_id }}">
-        <input type="hidden" name="semester" id="semester" value="{{ semester }}">
-    
-        <div id="subjects_container"></div>
-    
-        <button type="submit" style="margin-top:10px;">Save Marks</button>
-      </form>
-    </div>
-    
-    <script>
-    const marksForm = document.getElementById('marks_form');
-    const subjectsContainer = document.getElementById('subjects_container');
-    const studentId = document.getElementById('student_id').value;
-    const semester = document.getElementById('semester').value;
-    
-    // Fetch subjects dynamically for the selected semester
-    fetch(`/teacher/get-subjects/?semester=${semester}`)
+<script>
+document.getElementById('marksForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const formData = new FormData(this);
+
+    fetch("", {
+        method: "POST",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        body: formData
+    })
     .then(res => res.json())
     .then(data => {
-        if(data.subjects.length === 0){
-            subjectsContainer.innerHTML = "<p>No subjects found for this semester.</p>";
-        }
-        data.subjects.forEach(sub => {
-            const div = document.createElement('div');
-            div.style.marginBottom = "12px";
-            div.innerHTML = `
-                <label>${sub.name} (${sub.code}):</label><br>
-                <input type="number" name="subject_${sub.id}_obtained" placeholder="Marks Obtained" step="0.5" min="0" required>
-                <input type="number" name="subject_${sub.id}_max" placeholder="Max Marks" step="0.5" min="1" value="40" required>
-            `;
-            subjectsContainer.appendChild(div);
-        });
-    });
-    
-    // Submit marks via AJAX
-    marksForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const formData = new FormData(marksForm);
-    
-        fetch("{% url 'add_marks_single' %}", {
-            method: "POST",
-            headers: {'X-CSRFToken': '{{ csrf_token }}'},
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                marksForm.reset();
-                subjectsContainer.innerHTML = '';
-                window.location.href = "{% url 'teacher_dashboard' %}";
-            } else {
-                alert("Error: " + (data.message || JSON.stringify(data.errors)));
-            }
-        });
-    });
-    </script>
-    {% endblock %}
-    
+        alert(data.message || "Done!");
+        if(data.success) location.reload();
+    })
+    .catch(err => console.log(err));
+});
+</script>
+{% endif %}

@@ -44,7 +44,6 @@ class Student(models.Model):
         return {"total": total, "passed": passed, "failed": failed}
 
 
-
 # Semester
 class Semester(models.Model):
     number = models.IntegerField()
@@ -57,21 +56,32 @@ class Semester(models.Model):
         marks = self.marks.all()
         if not marks:
             return 0
-        total = sum(m.marks_obtained for m in marks)
-        max_total = sum(m.max_marks for m in marks)
-        return round((total / max_total) * 10, 2)   # scale to 10
-
+        total_weighted_score = 0
+        total_credits = 0
+        for mark in marks:
+            credit = mark.subject.credits
+            total_weighted_score += (mark.marks_obtained / mark.max_marks) * credit
+            total_credits += credit
+        return round((total_weighted_score / total_credits) * 10, 2) if total_credits else 0
 
 
 class Subject(models.Model):
+    COURSE_CHOICES = [
+        ("Computer Science", "Computer Science"),
+        ("Business Administration", "Business Administration"),
+        ("Engineering", "Engineering"),
+        ("Medicine", "Medicine"),
+        ("Law", "Law"),
+    ]
+
+    course = models.CharField(max_length=50, choices=COURSE_CHOICES)
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=20)
-    semester_number = models.IntegerField(default=1)  # <--- add this
+    semester_number = models.IntegerField(default=1)
+    credits = models.FloatField(default=3.0)
 
     def __str__(self):
-        return f"Sem {self.semester_number} | {self.code} - {self.name}"
-  
-
+        return f"{self.course} | Sem {self.semester_number} | {self.code} - {self.name}"
 
 
 

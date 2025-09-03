@@ -8,7 +8,7 @@ from django.db.models import Avg
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .models import Student, Mark,Teacher,Subject,Semester
-from .forms import StudentForm, MarkForm,MarksEntryForm
+from .forms import StudentForm, MarkForm,MarksEntryForm,SubjectForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 
 # -------------------------------
@@ -288,70 +288,57 @@ def get_student_name_by_regno(request):
         data = {"name": "", "id": ""}
     return JsonResponse(data)
 
-
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_marks_single_page(request):
     student_id = request.GET.get("student_id")
     sem_number = request.GET.get("semester")
 
-    if student_id and sem_number:
-        student = get_object_or_404(Student, id=student_id)
-        semester, _ = Semester.objects.get_or_create(student=student, number=sem_number)
+    if not student_id or not sem_number:
+        return redirect("teacher_dashboard")
 
-        # 🔎 Check if marks already exist for this semester
-        existing_marks = Mark.objects.filter(semester=semester).exists()
-        if existing_marks:
-            return render(request, "add_marks_single.html", {
-                "student": student,
-                "semester": sem_number,
-                "already_exists": True
-            })
+    student = get_object_or_404(Student, id=student_id)
+    semester, _ = Semester.objects.get_or_create(student=student, number=sem_number)
 
-    # Handle saving via AJAX
+    # Subjects for this semester & course
+    subjects = Subject.objects.filter(course=student.course, semester_number=semester.number)
+
+    # Check if marks already exist
+    existing_marks = Mark.objects.filter(semester=semester).exists()
+    if existing_marks:
+        return render(request, "add_marks_single.html", {
+            "student": student,
+            "semester": sem_number,
+            "already_exists": True
+        })
+
+    # Handle AJAX form submission
     if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
-        student_id = request.POST.get("student_id")
-        sem_number = request.POST.get("semester")
-
-        if not student_id or not sem_number:
-            return JsonResponse({"success": False, "message": "Student or semester not provided"})
-
-        student = get_object_or_404(Student, id=student_id)
-        semester, _ = Semester.objects.get_or_create(student=student, number=sem_number)
-
         errors = {}
-        for key, value in request.POST.items():
-            if key.startswith("subject_") and "_obtained" in key:
-                try:
-                    subject_id = int(key.split("_")[1])
-                    marks_obtained = float(value)
-                    max_key = f"subject_{subject_id}_max"
-                    max_marks = float(request.POST.get(max_key, 40))
-
-                    subject = get_object_or_404(Subject, id=subject_id)
-
-                    # Save or update marks
-                    Mark.objects.update_or_create(
-                        semester=semester,
-                        subject=subject,
-                        defaults={"marks_obtained": marks_obtained, "max_marks": max_marks},
-                    )
-                except Exception as e:
-                    errors[key] = str(e)
+        for subject in subjects:
+            try:
+                marks_obtained = float(request.POST.get(f"marks_{subject.id}", 0))
+                max_marks = float(request.POST.get(f"max_{subject.id}", 40))
+                Mark.objects.update_or_create(
+                    semester=semester,
+                    subject=subject,
+                    defaults={"marks_obtained": marks_obtained, "max_marks": max_marks}
+                )
+            except Exception as e:
+                errors[subject.name] = str(e)
 
         if errors:
-            return JsonResponse({"success": False, "message": "Failed to save some marks", "errors": errors})
+            return JsonResponse({"success": False, "errors": errors})
         else:
             return JsonResponse({"success": True, "message": f"Marks for {student.name} saved successfully!"})
 
+    # Render template
     return render(request, "add_marks_single.html", {
-        "student_id": student_id,
+        "student": student,
         "semester": sem_number,
+        "subjects": subjects,
         "already_exists": False
     })
-
-
-
 
 
 
@@ -366,4 +353,53 @@ def get_subjects_for_semester(request):
     else:
         data = []
     return JsonResponse({"subjects": data})
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def get_subjects_for_semester(request):
+    sem_number = request.GET.get("semester")
+    subjects = Subject.objects.filter(semester_number=sem_number) if sem_number else []
+    data = [{"id": s.id, "name": s.name, "code": s.code, "credits": s.credits} for s in subjects]
+    return JsonResponse({"subjects": data})
+
+# Manage Subjects page
+from .forms import SubjectForm
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def manage_subjects(request):
+    subjects = Subject.objects.all().order_by("course", "semester_number")
+
+    if request.method == "POST":
+        form = SubjectForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("manage_subjects")
+    else:
+        form = SubjectForm()
+
+    return render(request, "manage_subjects.html", {"subjects": subjects, "form": form})
+
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def edit_subject(request, subject_id):
+    subject = get_object_or_404(Subject, id=subject_id)
+    if request.method == "POST":
+        form = SubjectForm(request.POST, instance=subject)
+        if form.is_valid():
+            form.save()
+            return redirect("manage_subjects")
+    else:
+        form = SubjectForm(instance=subject)
+    return render(request, "edit_subject.html", {"form": form, "subject": subject})
+
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def delete_subject(request, subject_id):
+    subject = get_object_or_404(Subject, id=subject_id)
+    subject.delete()
+    return redirect("manage_subjects")
+
 
