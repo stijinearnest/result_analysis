@@ -26,10 +26,11 @@ urlpatterns = [
     path("teacher/student-detail/", views.student_detail, name="student_detail"),
 
     # AJAX endpoint for reg_no search
-     path("teacher/get-student-name/", views.get_student_name_by_regno, name="get_student_name_by_regno"),
+    path("teacher/get-student-name-by-regno/", views.get_student_name_by_regno, name="get_student_name_by_regno"),
 
-    path("teacher/get-student-by-regno/", views.get_student_name_by_regno, name="get_student_by_regno"),
-
-    path("teacher/add-marks-single/", views.add_marks_single_page, name="add_marks_single"),
+    # AJAX endpoint for subjects by semester
     path("teacher/get-subjects/", views.get_subjects_for_semester, name="get_subjects_for_semester"),
+
+    # Add marks single page
+    path("teacher/add-marks-single/", views.add_marks_single_page, name="add_marks_single"),
 ]

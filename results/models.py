@@ -70,6 +70,8 @@ class Subject(models.Model):
 
     def __str__(self):
         return f"Sem {self.semester_number} | {self.code} - {self.name}"
+  
+
 
 
 

@@ -1,33 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="card" style="max-width: 500px; margin: auto; padding: 20px;">
-  <h2>Add Marks</h2>
+<div class="card" style="max-width: 500px; margin:auto; padding:20px;">
+  <h2>Select Student & Semester</h2>
 
-  {% if messages %}
-    <ul style="color:red;">
-      {% for message in messages %}
-        <li>{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-
-  <form method="POST">
+  <form id="select_student_form" method="GET" action="{% url 'add_marks_single' %}">
     {% csrf_token %}
-
-    <div style="margin-bottom:12px;">
-      <label for="reg_no">Registration Number:</label><br>
-      <input type="text" name="reg_no" id="reg_no" placeholder="Enter Reg No" required>
+    
+    <div style="margin-bottom:10px;">
+      <label>Registration Number:</label><br>
+      <input type="text" id="reg_no" name="reg_no" placeholder="Enter Reg No" required>
+      <input type="hidden" id="student_id" name="student_id">
     </div>
 
-    <div style="margin-bottom:12px;">
-      <label for="student_name">Student Name:</label><br>
+    <div style="margin-bottom:10px;">
+      <label>Student Name:</label><br>
       <input type="text" id="student_name" readonly>
     </div>
 
-    <div style="margin-bottom:12px;">
-      <label for="semester">Semester:</label><br>
+    <div style="margin-bottom:10px;">
+      <label>Semester:</label><br>
       <select name="semester" id="semester" required>
-        <option value="">-- Select Semester --</option>
+        <option value="">--Select Semester--</option>
         {% for i in "123456" %}
           <option value="{{ i }}">{{ i }}</option>
         {% endfor %}
@@ -39,20 +32,30 @@
 </div>
 
 <script>
-const regNoInput = document.getElementById('reg_no');
-const studentNameInput = document.getElementById('student_name');
+const regInput = document.getElementById('reg_no');
+const nameInput = document.getElementById('student_name');
+const studentIdInput = document.getElementById('student_id');
 
-regNoInput.addEventListener('input', () => {
-    const reg_no = regNoInput.value;
-    if (reg_no.length > 0) {
-        fetch(`/teacher/get-student-name/?reg_no=${reg_no}`)
-        .then(res => res.json())
-        .then(data => {
-            studentNameInput.value = data.name;
-        });
-    } else {
-        studentNameInput.value = '';
+regInput.addEventListener('input', () => {
+    const reg_no = regInput.value.trim();
+    if (!reg_no) {
+        nameInput.value = '';
+        studentIdInput.value = '';
+        return;
     }
+
+    // Correct URL to fetch student name and ID
+    fetch(`/teacher/get-student-name-by-regno/?reg_no=${reg_no}`)
+    .then(res => res.json())
+    .then(data => {
+        nameInput.value = data.name || '';
+        studentIdInput.value = data.id || '';
+    })
+    .catch(err => {
+        console.error('Error fetching student:', err);
+        nameInput.value = '';
+        studentIdInput.value = '';
+    });
 });
 </script>
 {% endblock %}

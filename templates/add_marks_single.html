@@ -1,108 +1,68 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="card" style="max-width: 600px; margin: auto; padding: 20px;">
-  <h2>Add Marks</h2>
-  
-  <div style="margin-bottom: 12px;">
-    <label for="reg_no">Registration Number:</label><br>
-    <input type="text" id="reg_no" placeholder="Enter Reg No">
-  </div>
 
-  <div style="margin-bottom: 12px;">
-    <label for="student_name">Student Name:</label><br>
-    <input type="text" id="student_name" readonly>
-  </div>
-
-  <div style="margin-bottom: 12px;">
-    <label for="semester">Semester:</label><br>
-    <select id="semester">
-      <option value="">-- Select Semester --</option>
-      {% for i in "123456" %}
-        <option value="{{ i }}">{{ i }}</option>
-      {% endfor %}
-    </select>
-  </div>
-
-  <form id="marks_form">
-    <input type="hidden" name="student_id" id="student_id">
-    <div id="subjects_container"></div>
-    <button type="submit" style="margin-top: 10px;">Save Marks</button>
-  </form>
-</div>
-
-<script>
-const regNoInput = document.getElementById('reg_no');
-const studentNameInput = document.getElementById('student_name');
-const studentIdInput = document.getElementById('student_id');
-const semesterSelect = document.getElementById('semester');
-const subjectsContainer = document.getElementById('subjects_container');
-const marksForm = document.getElementById('marks_form');
-
-// Fetch student by reg_no
-regNoInput.addEventListener('input', () => {
-    const reg_no = regNoInput.value;
-    if (reg_no.length > 0) {
-        fetch(`/teacher/get-student-by-regno/?reg_no=${reg_no}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) {
-                studentNameInput.value = '';
-                studentIdInput.value = '';
-            } else {
-                studentNameInput.value = data.name;
-                studentIdInput.value = data.id;
-            }
-        });
-    } else {
-        studentNameInput.value = '';
-        studentIdInput.value = '';
-    }
-});
-
-// Fetch subjects on semester change
-semesterSelect.addEventListener('change', () => {
-    const sem = semesterSelect.value;
-    subjectsContainer.innerHTML = '';
-    if (sem) {
-        fetch(`/teacher/get-subjects/?semester=${sem}`)
-        .then(res => res.json())
-        .then(data => {
-            data.subjects.forEach(sub => {
-                const div = document.createElement('div');
-                div.style.marginBottom = "10px";
-                div.innerHTML = `
-                    <label>${sub.name} (${sub.code}):</label><br>
-                    <input type="number" name="subject_${sub.id}" step="0.5" min="0" max="40" required>
-                `;
-                subjectsContainer.appendChild(div);
-            });
-        });
-    }
-});
-
-// Submit marks via AJAX
-marksForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const formData = new FormData(marksForm);
-    formData.append('semester', semesterSelect.value);
-
-    fetch("", {
-        method: "POST",
-        headers: {'X-CSRFToken': '{{ csrf_token }}'},
-        body: formData
-    })
+  <form id="marks_form" method="POST">
+    {% extends "base.html" %}
+    {% block content %}
+    <div class="card" style="max-width: 700px; margin: auto; padding: 20px;">
+      <h2>Add Marks for Student</h2>
+    
+      <form id="marks_form" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="student_id" id="student_id" value="{{ student_id }}">
+        <input type="hidden" name="semester" id="semester" value="{{ semester }}">
+    
+        <div id="subjects_container"></div>
+    
+        <button type="submit" style="margin-top:10px;">Save Marks</button>
+      </form>
+    </div>
+    
+    <script>
+    const marksForm = document.getElementById('marks_form');
+    const subjectsContainer = document.getElementById('subjects_container');
+    const studentId = document.getElementById('student_id').value;
+    const semester = document.getElementById('semester').value;
+    
+    // Fetch subjects dynamically for the selected semester
+    fetch(`/teacher/get-subjects/?semester=${semester}`)
     .then(res => res.json())
     .then(data => {
-        if (data.success) {
-            alert(data.message);
-            marksForm.reset();
-            subjectsContainer.innerHTML = '';
-            studentNameInput.value = '';
-            studentIdInput.value = '';
-        } else {
-            alert("Error: " + JSON.stringify(data.errors));
+        if(data.subjects.length === 0){
+            subjectsContainer.innerHTML = "<p>No subjects found for this semester.</p>";
         }
+        data.subjects.forEach(sub => {
+            const div = document.createElement('div');
+            div.style.marginBottom = "12px";
+            div.innerHTML = `
+                <label>${sub.name} (${sub.code}):</label><br>
+                <input type="number" name="subject_${sub.id}_obtained" placeholder="Marks Obtained" step="0.5" min="0" required>
+                <input type="number" name="subject_${sub.id}_max" placeholder="Max Marks" step="0.5" min="1" value="40" required>
+            `;
+            subjectsContainer.appendChild(div);
+        });
     });
-});
-</script>
-{% endblock %}
+    
+    // Submit marks via AJAX
+    marksForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(marksForm);
+    
+        fetch("{% url 'add_marks_single' %}", {
+            method: "POST",
+            headers: {'X-CSRFToken': '{{ csrf_token }}'},
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                marksForm.reset();
+                subjectsContainer.innerHTML = '';
+                window.location.href = "{% url 'teacher_dashboard' %}";
+            } else {
+                alert("Error: " + (data.message || JSON.stringify(data.errors)));
+            }
+        });
+    });
+    </script>
+    {% endblock %}
+    

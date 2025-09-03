@@ -127,17 +127,31 @@ def user_logout(request):
 # -------------------------------
 # Teacher: Add Student
 # -------------------------------
+from datetime import date
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_student(request):
     if request.method == "POST":
         form = StudentForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            student = form.save(commit=False)
+
+            # Automatically calculate semester based on academic year
+            # Example logic: 1 academic year = 2 semesters
+            # Assuming academic_year format is "YYYY-YYYY"
+            start_year = int(student.academic_year.split("-")[0])
+            current_year = date.today().year
+            years_passed = current_year - start_year
+            student.semester = (years_passed * 2) + 1  # +1 for first semester of current year
+
+            student.save()  # Save to DB
+
             return redirect("teacher_dashboard")
     else:
         form = StudentForm()
     return render(request, "add_student.html", {"form": form})
+
 
 
 # -------------------------------
@@ -184,29 +198,23 @@ def add_marks(request, student_id, sem_number):
     student = get_object_or_404(Student, id=student_id)
     semester, created = Semester.objects.get_or_create(student=student, number=sem_number)
 
-    if request.method == "POST":
+    if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
         form = MarksEntryForm(request.POST, semester=semester)
         if form.is_valid():
             for field_name, value in form.cleaned_data.items():
                 if field_name.startswith("subject_"):
                     subject_id = int(field_name.split("_")[1])
                     subject = Subject.objects.get(id=subject_id)
-
-                    # Save or update mark
                     Mark.objects.update_or_create(
                         semester=semester,
                         subject=subject,
                         defaults={"marks_obtained": value, "max_marks": 40},
                     )
-            return redirect("teacher_dashboard")
-    else:
-        form = MarksEntryForm(semester=semester)
+            return JsonResponse({"success": True, "message": "Marks saved successfully!"})
+        else:
+            return JsonResponse({"success": False, "errors": form.errors})
+    return JsonResponse({"error": "Invalid request"})
 
-    return render(request, "add_marks.html", {
-        "form": form,
-        "student": student,
-        "semester": semester,
-    })
 
 
 # -------------------------------
@@ -270,37 +278,69 @@ def get_student_name_by_regno(request):
     if reg_no:
         try:
             student = Student.objects.get(reg_no__iexact=reg_no)
-            data = {"name": student.name}
+            data = {
+                "name": student.name,
+                "id": student.id   # <-- include student id
+            }
         except Student.DoesNotExist:
-            data = {"name": ""}
+            data = {"name": "", "id": ""}
     else:
-        data = {"name": ""}
+        data = {"name": "", "id": ""}
     return JsonResponse(data)
 
 
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_marks_single_page(request):
+    # Get student_id and semester from GET if present
+    student_id = request.GET.get("student_id") or request.POST.get("student_id")
+    semester_number = request.GET.get("semester") or request.POST.get("semester")
+
+    if not student_id or not semester_number:
+        messages.error(request, "Student or semester not provided")
+        return redirect("select_student_semester")
+
+    student = get_object_or_404(Student, id=student_id)
+    semester, _ = Semester.objects.get_or_create(student=student, number=semester_number)
+
     if request.method == "POST":
-        student_id = request.POST.get("student_id")
-        sem_number = request.POST.get("semester")
-        student = get_object_or_404(Student, id=student_id)
-        semester, created = Semester.objects.get_or_create(student=student, number=sem_number)
-        form = MarksEntryForm(request.POST, semester=semester)
-        if form.is_valid():
-            for field_name, value in form.cleaned_data.items():
-                if field_name.startswith("subject_"):
-                    subject_id = int(field_name.split("_")[1])
-                    subject = Subject.objects.get(id=subject_id)
+        errors = {}
+        for key, value in request.POST.items():
+            if key.startswith("subject_") and "_obtained" in key:
+                subject_id = int(key.split("_")[1])
+                marks_obtained = value
+                max_key = f"subject_{subject_id}_max"
+                max_marks = request.POST.get(max_key, 40)
+                try:
+                    marks_obtained = float(marks_obtained)
+                    max_marks = float(max_marks)
+                    subject = get_object_or_404(Subject, id=subject_id)
                     Mark.objects.update_or_create(
                         semester=semester,
                         subject=subject,
-                        defaults={"marks_obtained": value, "max_marks": 40},
+                        defaults={
+                            "marks_obtained": marks_obtained,
+                            "max_marks": max_marks
+                        }
                     )
-            return JsonResponse({"success": True, "message": "Marks saved successfully!"})
+                except Exception as e:
+                    errors[key] = str(e)
+        if errors:
+            return JsonResponse({"success": False, "message": "Some marks could not be saved", "errors": errors})
         else:
-            return JsonResponse({"success": False, "errors": form.errors})
-    return render(request, "add_marks_single.html")
+            return JsonResponse({"success": True, "message": f"Marks for {student.name} saved successfully!"})
+
+    # GET request – load page
+    return render(request, "add_marks_single.html", {
+        "student_id": student.id,
+        "semester": semester.number
+    })
+
+
+
+
+
+
 
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
@@ -312,3 +352,4 @@ def get_subjects_for_semester(request):
     else:
         data = []
     return JsonResponse({"subjects": data})
+
