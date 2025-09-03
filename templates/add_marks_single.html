@@ -2,6 +2,16 @@
   <form id="marks_form" method="POST">
     {% extends "base.html" %}
     {% block content %}
+    {% if already_exists %}
+    <div class="alert alert-warning">
+        Marks for <strong>{{ student.name }}</strong> in Semester {{ semester }} are already entered.
+        <br>
+        <a href="{% url 'edit_marks' 1 %}">Go to Edit Marks</a> <!-- replace 1 with proper logic later -->
+    </div>
+{% else %}
+    <!-- Your form to add marks goes here -->
+{% endif %}
+
     <div class="card" style="max-width: 700px; margin: auto; padding: 20px;">
       <h2>Add Marks for Student</h2>
     

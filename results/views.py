@@ -292,48 +292,62 @@ def get_student_name_by_regno(request):
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_marks_single_page(request):
-    # Get student_id and semester from GET if present
-    student_id = request.GET.get("student_id") or request.POST.get("student_id")
-    semester_number = request.GET.get("semester") or request.POST.get("semester")
+    student_id = request.GET.get("student_id")
+    sem_number = request.GET.get("semester")
 
-    if not student_id or not semester_number:
-        messages.error(request, "Student or semester not provided")
-        return redirect("select_student_semester")
+    if student_id and sem_number:
+        student = get_object_or_404(Student, id=student_id)
+        semester, _ = Semester.objects.get_or_create(student=student, number=sem_number)
 
-    student = get_object_or_404(Student, id=student_id)
-    semester, _ = Semester.objects.get_or_create(student=student, number=semester_number)
+        # 🔎 Check if marks already exist for this semester
+        existing_marks = Mark.objects.filter(semester=semester).exists()
+        if existing_marks:
+            return render(request, "add_marks_single.html", {
+                "student": student,
+                "semester": sem_number,
+                "already_exists": True
+            })
 
-    if request.method == "POST":
+    # Handle saving via AJAX
+    if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
+        student_id = request.POST.get("student_id")
+        sem_number = request.POST.get("semester")
+
+        if not student_id or not sem_number:
+            return JsonResponse({"success": False, "message": "Student or semester not provided"})
+
+        student = get_object_or_404(Student, id=student_id)
+        semester, _ = Semester.objects.get_or_create(student=student, number=sem_number)
+
         errors = {}
         for key, value in request.POST.items():
             if key.startswith("subject_") and "_obtained" in key:
-                subject_id = int(key.split("_")[1])
-                marks_obtained = value
-                max_key = f"subject_{subject_id}_max"
-                max_marks = request.POST.get(max_key, 40)
                 try:
-                    marks_obtained = float(marks_obtained)
-                    max_marks = float(max_marks)
+                    subject_id = int(key.split("_")[1])
+                    marks_obtained = float(value)
+                    max_key = f"subject_{subject_id}_max"
+                    max_marks = float(request.POST.get(max_key, 40))
+
                     subject = get_object_or_404(Subject, id=subject_id)
+
+                    # Save or update marks
                     Mark.objects.update_or_create(
                         semester=semester,
                         subject=subject,
-                        defaults={
-                            "marks_obtained": marks_obtained,
-                            "max_marks": max_marks
-                        }
+                        defaults={"marks_obtained": marks_obtained, "max_marks": max_marks},
                     )
                 except Exception as e:
                     errors[key] = str(e)
+
         if errors:
-            return JsonResponse({"success": False, "message": "Some marks could not be saved", "errors": errors})
+            return JsonResponse({"success": False, "message": "Failed to save some marks", "errors": errors})
         else:
             return JsonResponse({"success": True, "message": f"Marks for {student.name} saved successfully!"})
 
-    # GET request – load page
     return render(request, "add_marks_single.html", {
-        "student_id": student.id,
-        "semester": semester.number
+        "student_id": student_id,
+        "semester": sem_number,
+        "already_exists": False
     })
 
 
