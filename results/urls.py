@@ -38,4 +38,12 @@ urlpatterns = [
      path("teacher/manage-subjects/", views.manage_subjects, name="manage_subjects"),
     path("teacher/edit-subject/<int:subject_id>/", views.edit_subject, name="edit_subject"),
     path("teacher/delete-subject/<int:subject_id>/", views.delete_subject, name="delete_subject"),
+    # Manage subjects per course
+# Step 1: Select course
+path("teacher/select-course/", views.select_course, name="select_course"),
+
+# Step 2: Manage subjects for selected course
+path("teacher/manage-subjects/<str:course>/", views.manage_subjects_by_course, name="manage_subjects_by_course"),
+
+
 ]

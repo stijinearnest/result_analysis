@@ -401,5 +401,52 @@ def delete_subject(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
     subject.delete()
     return redirect("manage_subjects")
+# Step 1: Course selection page
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def select_course(request):
+    COURSES = [
+        "Computer Science",
+        "Business Administration",
+        "Engineering",
+        "Medicine",
+        "Law",
+    ]
+    if request.method == "POST":
+        selected_course = request.POST.get("course")
+        if selected_course:
+            return redirect('manage_subjects_by_course', course=selected_course)
+    return render(request, "select_course.html", {"courses": COURSES})
+
+
+# Step 2: Manage subjects for a course
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def manage_subjects_by_course(request, course):
+    subjects = Subject.objects.filter(course=course).order_by('semester_number')
+    if request.method == "POST":
+        form = SubjectForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('manage_subjects_by_course', course=course)
+    else:
+        form = SubjectForm(initial={"course": course})
+    return render(request, "manage_subjects.html", {
+        "subjects": subjects,
+        "form": form,
+        "course": course
+    })
+
+
+# Optional: Delete subject
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def delete_subject(request, subject_id):
+    subject = get_object_or_404(Subject, id=subject_id)
+    course = subject.course
+    subject.delete()
+    return redirect('manage_subjects_by_course', course=course)
+
+
 
 

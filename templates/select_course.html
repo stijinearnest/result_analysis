@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Select Course</title>
+</head>
+<body>
+    <h1>Select Course to Manage Subjects</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <select name="course" required>
+            <option value="">-- Select Course --</option>
+            {% for c in courses %}
+                <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Proceed</button>
+    </form>
+</body>
+</html>
