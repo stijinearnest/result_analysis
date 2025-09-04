@@ -475,28 +475,24 @@ def student_search(request):
     return render(request, "student_search.html", {"students": students})
     
 
-
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def student_detail(request, student_id):
     student = get_object_or_404(Student, id=student_id)
 
-    # fetch all marks for student
-    marks = Mark.objects.filter(semester__student=student)
+    # Fetch all marks for stats calculations
+    all_marks = Mark.objects.filter(semester__student=student)
 
-    # get distinct semesters (for dropdown)
-    semesters = marks.values_list("semester__number", flat=True).distinct()
-
-    # filter by selected semester if any
-    selected_semester = request.GET.get("semester")
-    if selected_semester:
-        marks = marks.filter(semester__number=selected_semester)
-
-    # Add 'passed' dynamically AFTER filtering
-    for m in marks:
+    # Add pass/fail attribute
+    for m in all_marks:
         m.passed = m.marks_obtained >= (0.4 * m.max_marks)
 
-    # SGPA/CGPA calculations (use all semesters, not filtered)
+    total_papers = all_marks.count()
+    passed = sum(1 for m in all_marks if m.passed)
+    failed = total_papers - passed
+
+    # SGPA calculations using all marks
+    semesters = all_marks.values_list("semester__number", flat=True).distinct()
     sgpa_values = []
     sgpa_labels = []
     for sem in semesters:
@@ -508,22 +504,32 @@ def student_detail(request, student_id):
             sgpa_values.append(sgpa)
             sgpa_labels.append(f"Sem {sem}")
 
-    total_papers = marks.count()
-    passed = sum(1 for m in marks if m.passed)
-    failed = total_papers - passed
     cgpa = round(sum(sgpa_values) / len(sgpa_values), 2) if sgpa_values else 0
+
+    # Now handle semester filter only for table display
+   # Filter marks for table display
+    selected_semester = request.GET.get("semester")
+    if selected_semester:
+        marks = all_marks.filter(semester__number=selected_semester)
+    else:
+        marks = all_marks
+
+    # Add pass/fail attribute for table display
+    for m in marks:
+        m.passed = m.marks_obtained >= (0.4 * m.max_marks)
+
 
     return render(request, "student_detail.html", {
         "student": student,
-        "marks": marks,
+        "marks": marks,                  # filtered for table
         "semesters": semesters,
         "selected_semester": selected_semester,
         "sgpa_values": sgpa_values,
         "sgpa_labels": sgpa_labels,
-        "total_papers": total_papers,
+        "total_papers": total_papers,    # always total
         "passed": passed,
         "failed": failed,
-        "cgpa": cgpa,
+        "cgpa": cgpa
     })
 
 
