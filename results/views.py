@@ -76,30 +76,49 @@ def student_dashboard(request):
     student_id = request.session.get("student_id")
     student = Student.objects.get(id=student_id)
 
-    # All marks (via semester → student)
     marks = Mark.objects.filter(semester__student=student)
 
+    # Pass/fail (40% of max_marks)
+    for m in marks:
+        m.passed = m.marks_obtained >= 0.4 * m.max_marks
+
     total_papers = marks.count()
-    passed = marks.filter(marks_obtained__gte=18).count()
+    passed = sum(1 for m in marks if m.passed)
     failed = total_papers - passed
 
-    # SGPA chart
-    sgpa_data = marks.values('semester__number').annotate(avg=Avg('marks_obtained')).order_by('semester__number')
-    sgpa_labels = [f"Sem {d['semester__number']}" for d in sgpa_data]
-    sgpa_values = [round(d['avg'] / 10, 2) for d in sgpa_data]
+    # SGPA per semester (weighted by credits)
+    semesters = marks.values_list('semester__number', flat=True).distinct()
+    sgpa_values = []
+    sgpa_labels = []
 
-    # CGPA
-    cgpa = round(marks.aggregate(Avg('marks_obtained'))['marks_obtained__avg'] / 10, 2) if marks.exists() else 0
+    semester_credit_map = {}  # total credits per semester
+
+    for sem in semesters:
+        sem_marks = marks.filter(semester__number=sem)
+        total_credits = sum(m.subject.credits for m in sem_marks)
+        semester_credit_map[sem] = total_credits
+
+        if total_credits > 0:
+            weighted_sum = sum((m.marks_obtained / m.max_marks) * m.subject.credits for m in sem_marks)
+            sgpa = round((weighted_sum / total_credits) * 10, 2)
+        else:
+            sgpa = 0
+        sgpa_values.append(sgpa)
+        sgpa_labels.append(f"Sem {sem}")
+
+    # CGPA = weighted average of SGPA by semester credits
+    total_all_credits = sum(semester_credit_map.values())
+    if total_all_credits > 0:
+        cgpa = round(sum(sgpa * semester_credit_map[sem] for sem, sgpa in zip(semesters, sgpa_values)) / total_all_credits, 2)
+    else:
+        cgpa = 0
 
     # Semester filter
     selected_semester = request.GET.get("semester")
-    if not selected_semester and sgpa_data:
-        selected_semester = sgpa_data.last()['semester__number']
-    elif not selected_semester:
-        selected_semester = student.semester
-
-    marks_selected = marks.filter(semester__number=selected_semester)
-    semesters = sgpa_data.values_list("semester__number", flat=True)
+    if selected_semester:
+        marks_selected = marks.filter(semester__number=selected_semester)
+    else:
+        marks_selected = marks
 
     return render(request, "student_dashboard.html", {
         "student": student,
@@ -111,9 +130,8 @@ def student_dashboard(request):
         "sgpa_values": sgpa_values,
         "marks": marks_selected,
         "semesters": semesters,
-        "selected_semester": int(selected_semester),
+        "selected_semester": selected_semester,
     })
-
 
 # -------------------------------
 # Logout
