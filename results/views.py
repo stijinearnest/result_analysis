@@ -457,6 +457,10 @@ def student_detail(request, student_id):
     # fetch marks via semester → student
     marks = Mark.objects.filter(semester__student=student)
 
+    # add pass/fail attribute to each mark
+    for m in marks:
+        m.passed = m.marks_obtained >= (0.4 * m.max_marks)  # 40% of max_marks
+
     # get distinct semesters
     semesters = marks.values_list("semester__number", flat=True).distinct()
 
@@ -477,7 +481,7 @@ def student_detail(request, student_id):
             sgpa_labels.append(f"Sem {sem}")
 
     total_papers = marks.count()
-    passed = marks.filter(marks_obtained__gte=18).count()  # pass mark assumed 18/40
+    passed = sum(1 for m in marks if m.passed)
     failed = total_papers - passed
     cgpa = round(sum(sgpa_values) / len(sgpa_values), 2) if sgpa_values else 0
 

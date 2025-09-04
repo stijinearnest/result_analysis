@@ -1,23 +1,247 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>Search Students</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Search</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4a6cf7;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            color: #2d3748;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+        }
+        
+        .search-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #4a6cf7;
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
+        }
+        
+        .search-button {
+            background: #4a6cf7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .search-button:hover {
+            background: #3850c7;
+        }
+        
+        .results-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .results-title {
+            font-size: 20px;
+            color: #2d3748;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .student-list {
+            list-style: none;
+        }
+        
+        .student-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .student-item:last-child {
+            border-bottom: none;
+        }
+        
+        .student-info {
+            flex: 1;
+        }
+        
+        .student-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 18px;
+        }
+        
+        .student-reg {
+            color: #718096;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        
+        .view-button {
+            background: #edf2f7;
+            color: #4a6cf7;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .view-button:hover {
+            background: #e2e8f0;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 30px;
+            color: #718096;
+        }
+        
+        .no-results i {
+            font-size: 40px;
+            margin-bottom: 15px;
+            color: #cbd5e0;
+        }
+        
+        .search-hint {
+            margin-top: 15px;
+            color: #718096;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        @media (max-width: 600px) {
+            .search-form {
+                flex-direction: column;
+            }
+            
+            .search-button {
+                padding: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">University Portal</div>
+            <h1>Search Students</h1>
+            <p class="subtitle">Find student records by registration number</p>
+        </header>
+        
+        <div class="search-container">
+            <form method="get" class="search-form">
+                <input type="text" name="q" placeholder="Enter Registration Number" value="{{ request.GET.q }}" class="search-input">
+                <button type="submit" class="search-button">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
+            <p class="search-hint">You can search by registration number, name, or other student details</p>
+        </div>
+        
+        {% if students %}
+        <div class="results-container">
+            <h3 class="results-title">Search Results</h3>
+            <ul class="student-list">
+                {% for student in students %}
+                <li class="student-item">
+                    <div class="student-info">
+                        <div class="student-name">{{ student.name }}</div>
+                        <div class="student-reg">{{ student.reg_no }}</div>
+                    </div>
+                    <a href="{% url 'student_detail' student.id %}" class="view-button">View Details</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% elif request.GET.q %}
+        <div class="results-container">
+            <div class="no-results">
+                <i class="fas fa-user-slash"></i>
+                <p>No students found matching "{{ request.GET.q }}"</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
 
-<form method="get">
-    <input type="text" name="q" placeholder="Enter Registration No" value="{{ request.GET.q }}">
-    <button type="submit">Search</button>
-</form>
-
-{% if students %}
-    <h3>Results:</h3>
-    <ul>
-    {% for student in students %}
-        <li>
-            {{ student.name }} ({{ student.reg_no }})
-            <a href="{% url 'student_detail' student.id %}">View Details</a>
-        </li>
-    {% endfor %}
-    </ul>
-{% elif request.GET.q %}
-    <p>No students found.</p>
-{% endif %}
-{% endblock %}
+    <script>
+        // Add subtle animation to search input on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('.search-input');
+            searchInput.focus();
+            searchInput.style.transform = 'translateY(-5px)';
+            searchInput.style.opacity = '0';
+            
+            setTimeout(() => {
+                searchInput.style.transition = 'all 0.3s ease';
+                searchInput.style.transform = 'translateY(0)';
+                searchInput.style.opacity = '1';
+            }, 100);
+        });
+    </script>
+</body>
+</html>
