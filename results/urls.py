@@ -19,8 +19,10 @@ urlpatterns = [
 
     # Students & Marks
     path("teacher/add-student/", views.add_student, name="add_student"),
+    path('student-success/<str:student_name>/', views.student_success, name='student_success'),
+
     path("teacher/select-student-semester/", views.select_student_semester, name="select_student_semester"),
-    path("teacher/add-marks/", add_marks_redirect, name="add_marks_redirect"),
+    #path("teacher/add-marks/", add_marks_redirect, name="add_marks_redirect"),
     path("teacher/add-marks-single/", views.add_marks_single_page, name="add_marks_single"),
 
     # Edit marks

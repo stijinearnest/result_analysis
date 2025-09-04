@@ -40,23 +40,32 @@
         
         .header-content {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            gap: 1rem;   
         }
         
         .back-button {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .back-button:hover {
-            color: var(--light);
-        }
-        
+          position: absolute; /* Position relative to .form-card */
+          top: 15px;
+          right: 15px;
+          color: white;
+          text-decoration: none;
+          font-weight: 500;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: #3a56d4;
+          padding: 6px 12px;
+          border-radius: 6px;
+          transition: all 0.3s ease;
+      }
+      
+      .back-button:hover {
+          background: #2f45b0;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      }
         .student-card {
             background: white;
             border-radius: 12px;
@@ -356,17 +365,18 @@
         </div>
 
         <!-- Semester Filter -->
-        <div class="filter-form">
-            <p class="filter-label">Filter Marks by Semester:</p>
-            <select name="semester" id="semester" class="form-select" onchange="this.form.submit()">
-                <option value="">All Semesters</option>
-                {% for sem in semesters %}
-                    <option value="{{ sem }}" {% if sem|stringformat:"s" == selected_semester|stringformat:"s" %}selected{% endif %}>
-                        Semester {{ sem }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
+        <form method="get" class="filter-form">
+          <label class="filter-label" for="semester">Filter Marks by Semester:</label>
+          <select name="semester" id="semester" class="form-select" onchange="this.form.submit()">
+              <option value="">All Semesters</option>
+              {% for sem in semesters %}
+                  <option value="{{ sem }}" {% if sem|stringformat:"s" == selected_semester|stringformat:"s" %}selected{% endif %}>
+                      Semester {{ sem }}
+                  </option>
+              {% endfor %}
+          </select>
+      </form>
+      
 
         <!-- Marks Table -->
         <div class="card">

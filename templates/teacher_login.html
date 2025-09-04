@@ -15,19 +15,21 @@
         }
         
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: url("{% static 'images/bg.jpeg' %}") no-repeat center center fixed !important;
-            background-size: cover !important;
             min-height: 100vh;
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            padding: 20px;
+            justify-content: center;
+            align-items: center;
+        
+            /* Soft blue radial gradient background */
+            background: #ffffff;
+            background-image: radial-gradient(circle at top center, rgba(59, 130, 246, 0.2), transparent 70%);
+            background-repeat: no-repeat;
+            background-size: cover;
         }
+        
         
         .login-container {
             width: 100%;

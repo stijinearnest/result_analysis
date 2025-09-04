@@ -93,71 +93,80 @@ body {
     margin: 0 auto;
 }
 
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 25px;
+/* NEW: Single line menu styles */
+.menu-container {
+    display: flex;
+    justify-content: center;
     margin-bottom: 40px;
 }
 
-.feature-card {
+.single-line-menu {
+    display: flex;
     background: var(--light);
     border-radius: var(--radius);
-    padding: 25px;
-    text-align: center;
-    transition: var(--transition);
+    padding: 15px;
+    box-shadow: var(--shadow);
     border: 1px solid var(--border);
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.menu-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 100%;
+    text-align: center;
+    padding: 20px;
+    border-radius: var(--radius);
+    background: white;
+    transition: var(--transition);
+    min-width: 180px;
+    flex: 1;
+    max-width: 220px;
+    border: 1px solid transparent;
 }
 
-.feature-card:hover {
+.menu-item:hover {
     transform: translateY(-5px);
     box-shadow: var(--shadow-hover);
     border-color: var(--primary);
 }
 
-.feature-icon {
-    width: 70px;
-    height: 70px;
+.menu-icon {
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     color: white;
-    font-size: 1.8rem;
+    font-size: 1.5rem;
 }
 
-.feature-card h3 {
-    font-size: 1.3rem;
-    margin-bottom: 15px;
+.menu-item h3 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
     color: var(--dark);
 }
 
-.feature-card p {
-    color: var(--secondary);
-    margin-bottom: 20px;
-    flex-grow: 1;
-}
-
-.feature-link {
+.menu-link {
     display: inline-block;
     background: var(--primary);
     color: white;
-    padding: 10px 20px;
+    padding: 8px 15px;
     border-radius: 6px;
     text-decoration: none;
     font-weight: 500;
     transition: var(--transition);
     width: 100%;
-    text-align: center;
+    font-size: 0.9rem;
 }
 
-.feature-link:hover {
+.menu-link:hover {
     background: var(--primary-dark);
     transform: translateY(-2px);
     box-shadow: var(--shadow);
@@ -189,6 +198,17 @@ body {
 }
 
 /* Responsive adjustments */
+@media (max-width: 1024px) {
+    .single-line-menu {
+        gap: 10px;
+    }
+    
+    .menu-item {
+        min-width: 160px;
+        padding: 15px;
+    }
+}
+
 @media (max-width: 768px) {
     .dashboard-header {
         padding: 20px;
@@ -202,9 +222,15 @@ body {
         padding: 20px;
     }
     
-    .features-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
+    .single-line-menu {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .menu-item {
+        max-width: 100%;
+        width: 100%;
+        margin-bottom: 10px;
     }
     
     .welcome-section h2 {
@@ -223,14 +249,14 @@ body {
         gap: 10px;
     }
     
-    .feature-card {
-        padding: 20px;
+    .menu-item {
+        padding: 15px;
     }
     
-    .feature-icon {
-        width: 60px;
-        height: 60px;
-        font-size: 1.5rem;
+    .menu-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
     }
 }
 </style>
@@ -248,42 +274,40 @@ body {
             <p>You have full access to manage student records and academic information</p>
         </div>
         
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-user-plus"></i>
+        <!-- NEW: Single line menu -->
+        <div class="menu-container">
+            <div class="single-line-menu">
+                <div class="menu-item">
+                    <div class="menu-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h3>Add Student</h3>
+                    <a href="{% url 'add_student' %}" class="menu-link">Add Student</a>
                 </div>
-                <h3>Add Student</h3>
-                <p>Register new students to the system with their details</p>
-                <a href="{% url 'add_student' %}" class="feature-link">Add Student</a>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-chart-bar"></i>
+                
+                <div class="menu-item">
+                    <div class="menu-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h3>Add Marks</h3>
+                    <a href="{% url 'select_student_semester' %}" class="menu-link">Add Marks</a>
                 </div>
-                <h3>Add Marks</h3>
-                <p>Input and manage academic marks for your students</p>
-                <a href="{% url 'select_student_semester' %}" class="feature-link">Add Marks</a>
-            </div>
 
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-book"></i>
+                <div class="menu-item">
+                    <div class="menu-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3>Add Subject</h3>
+                    <a href="{% url 'select_course' %}" class="menu-link">Add Subject</a>
                 </div>
-                <h3>Add Subject</h3>
-                <p>Manage subjects for each course and semester</p>
-                <a href="{% url 'select_course' %}" class="feature-link">Add Subject</a>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-search"></i>
+                
+                <div class="menu-item">
+                    <div class="menu-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>View Student</h3>
+                    <a href="{% url 'student_search' %}" class="menu-link">View Students</a>
                 </div>
-                <h3>View Student</h3>
-                <p>Find student details using registration number</p>
-                <a href="{% url 'student_search' %}" class="feature-link">View Students</a>
-
             </div>
         </div>
         

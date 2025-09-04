@@ -1,17 +1,22 @@
-{% if already_exists %}
+{%extends "base.html"%}
+<main class="main-content py-4">
+<div class="container">
+{%block content%}
+{% if already_exists and not request.GET.success %}
 <div class="message-container error">
     <div class="message-icon">
         <i class="fas fa-exclamation-circle"></i>
     </div>
     <div class="message-content">
-        <h3>Marks Already Exist</h3>
-        <p>Marks for this semester already exist. You cannot add them again.</p>
+        <h3>Marks Added</h3>
+       <!-- <p>Marks for this semester already exist. You cannot add them again.</p>-->
     </div>
     <a href="{% url 'teacher_dashboard' %}" class="btn-primary">
         <i class="fas fa-arrow-left"></i> Back to Dashboard
     </a>
 </div>
 {% else %}
+
 <div class="form-container">
     <div class="form-header">
         <h2><i class="fas fa-chart-bar"></i> Enter Marks</h2>
@@ -62,72 +67,65 @@
         </div>
     </form>
 </div>
+</div>
+</main>
 
 <script>
-document.getElementById('marksForm').addEventListener('submit', function(e){
-    e.preventDefault();
-    const formData = new FormData(this);
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
+    document.getElementById('marksForm').addEventListener('submit', function(e){
+        e.preventDefault();
+        const form = this;
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
     
-    // Show loading state
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    submitBtn.disabled = true;
-
-    fetch("", {
-        method: "POST",
-        headers: {
-            "X-Requested-With": "XMLHttpRequest",
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('Marks saved successfully!', 'success');
-            setTimeout(() => {
-                location.reload();
-            }, 1500);
-        } else {
-            showNotification(data.message || 'Error saving marks', 'error');
-        }
-    })
-    .catch(err => {
-        console.log(err);
-        showNotification('An error occurred. Please try again.', 'error');
-    })
-    .finally(() => {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        submitBtn.disabled = true;
+    
+        fetch("", {
+            method: "POST",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                // disable inputs to prevent duplicate submission
+                form.querySelectorAll('input').forEach(input => input.disabled = true);
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Saved ✔';
+            } else {
+                showNotification(data.message || 'Error saving marks', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            showNotification('An error occurred. Please try again.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        });
     });
-});
-
-function showNotification(message, type) {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-        <span>${message}</span>
-    `;
     
-    // Add to page
-    document.body.appendChild(notification);
-    
-    // Show notification
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 10);
-    
-    // Hide after 3 seconds
-    setTimeout(() => {
-        notification.classList.remove('show');
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.classList.add('show'), 10);
         setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 3000);
-}
+            notification.classList.remove('show');
+            setTimeout(() => document.body.removeChild(notification), 300);
+        }, 3000);
+    }
+    
 </script>
 
 <style>
@@ -149,15 +147,24 @@ function showNotification(message, type) {
 
 /* Container for centering */
 body {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    padding: 20px;
+    margin: 0;
+    padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f5f7fb;
-    color: #333;
-    line-height: 1.6;
+}
+
+.form-container {
+    margin: 0 auto; /* center horizontally */
+}
+
+.main-content {
+    min-height: calc(100vh - 70px); /* Adjust for navbar height */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* aligns top, not vertically centered */
+    padding-top: 30px;
+    padding-bottom: 30px;
+    background-color: #f5f7fb; /* keep your existing background */
 }
 
 /* Message Container */
@@ -398,3 +405,4 @@ body {
 }
 </style>
 {% endif %}
+{%endblock%}

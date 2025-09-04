@@ -1,3 +1,6 @@
+
+from datetime import date
+
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
@@ -113,12 +116,17 @@ def student_dashboard(request):
     else:
         cgpa = 0
 
-    # Semester filter
+   # Semester filter
     selected_semester = request.GET.get("semester")
     if selected_semester:
+        selected_semester = int(selected_semester)
         marks_selected = marks.filter(semester__number=selected_semester)
     else:
-        marks_selected = marks
+        # Get the latest semester number
+        latest_sem = marks.order_by('-semester__number').first().semester.number if marks.exists() else student.semester
+        selected_semester = latest_sem
+        marks_selected = marks.filter(semester__number=latest_sem)
+
 
     return render(request, "student_dashboard.html", {
         "student": student,
@@ -147,6 +155,7 @@ def user_logout(request):
 # -------------------------------
 from datetime import date
 
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_student(request):
@@ -156,8 +165,6 @@ def add_student(request):
             student = form.save(commit=False)
 
             # Automatically calculate semester based on academic year
-            # Example logic: 1 academic year = 2 semesters
-            # Assuming academic_year format is "YYYY-YYYY"
             start_year = int(student.academic_year.split("-")[0])
             current_year = date.today().year
             years_passed = current_year - start_year
@@ -165,10 +172,12 @@ def add_student(request):
 
             student.save()  # Save to DB
 
-            return redirect("teacher_dashboard")
+            # Redirect to success page with student name
+            return redirect("student_success", student_name=student.name)
     else:
         form = StudentForm()
     return render(request, "add_student.html", {"form": form})
+
 
 
 
@@ -210,7 +219,7 @@ def select_student_semester(request):
 # -------------------------------
 # Teacher: Add Marks
 # -------------------------------
-@login_required(login_url='teacher_login')
+"""@login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_marks(request, student_id, sem_number):
     student = get_object_or_404(Student, id=student_id)
@@ -231,7 +240,7 @@ def add_marks(request, student_id, sem_number):
             return JsonResponse({"success": True, "message": "Marks saved successfully!"})
         else:
             return JsonResponse({"success": False, "errors": form.errors})
-    return JsonResponse({"error": "Invalid request"})
+    return JsonResponse({"error": "Invalid request"})"""
 
 
 
@@ -472,21 +481,22 @@ def student_search(request):
 def student_detail(request, student_id):
     student = get_object_or_404(Student, id=student_id)
 
-    # fetch marks via semester → student
+    # fetch all marks for student
     marks = Mark.objects.filter(semester__student=student)
 
-    # add pass/fail attribute to each mark
-    for m in marks:
-        m.passed = m.marks_obtained >= (0.4 * m.max_marks)  # 40% of max_marks
-
-    # get distinct semesters
+    # get distinct semesters (for dropdown)
     semesters = marks.values_list("semester__number", flat=True).distinct()
 
+    # filter by selected semester if any
     selected_semester = request.GET.get("semester")
     if selected_semester:
         marks = marks.filter(semester__number=selected_semester)
 
-    # SGPA/CGPA calculations
+    # Add 'passed' dynamically AFTER filtering
+    for m in marks:
+        m.passed = m.marks_obtained >= (0.4 * m.max_marks)
+
+    # SGPA/CGPA calculations (use all semesters, not filtered)
     sgpa_values = []
     sgpa_labels = []
     for sem in semesters:
@@ -515,3 +525,10 @@ def student_detail(request, student_id):
         "failed": failed,
         "cgpa": cgpa,
     })
+
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def student_success(request, student_name):
+    return render(request, "student_success.html", {"student_name": student_name})
+

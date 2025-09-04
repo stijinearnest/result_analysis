@@ -1,6 +1,161 @@
-<h2>Edit Marks</h2>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Update</button>
-</form>
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+    <div class="form-card">
+        <div class="form-header">
+            <h2><i class="fas fa-edit"></i> Edit Marks</h2>
+            <p>Update the student's marks below</p>
+        </div>
+
+        <div class="form-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-fields">
+                    {{ form.as_p }}
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-outline">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Container for centering */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 20px;
+    
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Card */
+.form-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 500px;
+    overflow: hidden;
+}
+
+/* Header */
+.form-header {
+    background: linear-gradient(135deg, #4361ee, #3a56d4);
+    color: #fff;
+    padding: 25px;
+    text-align: center;
+}
+
+.form-header h2 {
+    font-size: 1.6rem;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.form-header p {
+    font-size: 0.95rem;
+    opacity: 0.9;
+}
+
+/* Form Body */
+.form-body {
+    padding: 25px;
+}
+
+.form-fields p {
+    margin-bottom: 15px;
+}
+
+.form-fields label {
+    font-weight: 500;
+    color: #334155;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.form-fields input,
+.form-fields select,
+.form-fields textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-fields input:focus,
+.form-fields select:focus,
+.form-fields textarea:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Form Actions */
+.form-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    border: none;
+}
+
+.btn-primary {
+    background: #4361ee;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #3a56d4;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.btn-outline {
+    background: white;
+    color: #4361ee;
+    border: 1px solid #4361ee;
+}
+
+.btn-outline:hover {
+    background: #f0f4ff;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 576px) {
+    .form-card {
+        width: 100%;
+    }
+}
+</style>
+
+{% endblock %}
+
