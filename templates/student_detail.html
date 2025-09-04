@@ -1,131 +1,137 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Find Student by Reg No</h2>
-<form method="post">
-  {% csrf_token %}
-  <label>Enter Registration No:</label>
-  <input type="text" name="reg_no">
-  <button type="submit">Search</button>
-</form>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 
-{% if student %}
-    <div class="container mt-4">
-    <div class="row">
-      <!-- Student Info -->
-      <div class="col-md-4">
-        <div class="card shadow p-3 mb-4 rounded-3">
-          <div class="d-flex align-items-center">
+<div class="container mt-4">
+    <h2>Student Details</h2>
+    <div class="card mb-4 p-3">
+        <div class="d-flex align-items-center">
             {% if student.photo %}
-              <img src="{{ student.photo.url }}" class="rounded-circle me-3" width="60" height="60">
+                <img src="{{ student.photo.url }}" class="rounded-circle me-3" width="60" height="60">
             {% else %}
-              <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center" style="width:60px;height:60px;">
-                {{ student.name|slice:":1" }}
-              </div>
+                <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center" style="width:60px;height:60px;">
+                    {{ student.name|slice:":1" }}
+                </div>
             {% endif %}
             <div>
-              <h6>Hello {{ student.name }}!</h6>
-              <small>Reg No: {{ student.reg_no }}</small><br>
-              <small>{{ student.course }}</small><br>
-              <small>Semester: {{ student.semester }} | {{ student.academic_year }}</small>
+                <h5>{{ student.name }}</h5>
+                <p>Reg No: {{ student.reg_no }}</p>
+                <p>Course: {{ student.course }}</p>
+                <p>Current Semester: {{ student.semester }} | Academic Year: {{ student.academic_year }}</p>
             </div>
-          </div>
         </div>
-      </div>
-
-      <!-- CGPA -->
-      <div class="col-md-4">
-        <div class="card shadow p-3 mb-4 text-center rounded-3">
-          <h6>Overall CGPA:</h6>
-          <h1 class="fw-bold">{{ cgpa }}</h1>
-        </div>
-      </div>
-
-      <!-- Summary -->
-      <div class="col-md-4">
-        <div class="card shadow p-3 mb-4 text-center rounded-3">
-          <h6>Summary</h6>
-          <div class="row">
-            <div class="col">
-              <p class="fw-bold">{{ total_papers }}</p>
-              <small>Total Papers</small>
-            </div>
-            <div class="col">
-              <p class="fw-bold text-success">{{ passed }}</p>
-              <small>Passed</small>
-            </div>
-            <div class="col">
-              <p class="fw-bold text-danger">{{ failed }}</p>
-              <small>Failed</small>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- SGPA Line Chart -->
-    <div class="card shadow p-3 mb-4 rounded-3">
-      <h6>SGPA Analysis</h6>
-      <canvas id="sgpaChart"></canvas>
+    <!-- Summary cards (all semesters) -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <h6>Total Papers</h6>
+                <h3>{{ total_papers }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3 text-success">
+                <h6>Papers Passed</h6>
+                <h3>{{ passed }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3 text-danger">
+                <h6>Papers Failed</h6>
+                <h3>{{ failed }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <h6>Overall CGPA</h6>
+                <h3>{{ cgpa }}</h3>
+            </div>
+        </div>
     </div>
 
-    <!-- Subject Marks with Semester Filter -->
-    <div class="card shadow p-3 rounded-3">
-      <div class="d-flex justify-content-between align-items-center">
-        <h6>Marks by Subject</h6>
-        <form method="get">
-          <select name="semester" onchange="this.form.submit()" class="form-select w-auto">
+    <!-- Semester filter for marks table only -->
+    <form method="get" class="mb-3">
+        <label for="semester" class="form-label">Select Semester (Marks Table Only):</label>
+        <select name="semester" id="semester" class="form-select w-auto d-inline" onchange="this.form.submit()">
+            <option value="">All Semesters</option>
             {% for sem in semesters %}
-              <option value="{{ sem.number }}" {% if sem.number == selected_semester %}selected{% endif %}>
-                Semester {{ sem.number }}
-              </option>
+                <option value="{{ sem }}" {% if sem|stringformat:"s" == selected_semester|stringformat:"s" %}selected{% endif %}>
+                    Semester {{ sem }}
+                </option>
             {% endfor %}
-          </select>
-        </form>
-      </div>
-      <div class="row mt-3">
-        {% for m in marks %}
-          <div class="col-md-2 text-center">
-            <canvas id="chart{{ forloop.counter }}"></canvas>
-            <p>{{ m.subject.name }} ({{ m.marks_obtained }}/{{ m.max_marks }})</p>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-    </div>
+        </select>
+    </form>
 
-    <script>
-    // SGPA Line Chart
-    var ctx = document.getElementById('sgpaChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
+  <!-- Marks table -->
+<div class="card p-3 mb-4">
+  <h5>Marks</h5>
+  <table class="table table-bordered table-striped">
+      <thead>
+          <tr>
+              <th>Semester</th>
+              <th>Subject</th>
+              <th>Marks Obtained</th>
+              <th>Max Marks</th>
+              <th>Actions</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for m in marks %}
+              <tr {% if m.marks_obtained < 40 %}class="table-danger"{% endif %}>
+                  <td>{{ m.semester.number }}</td>
+                  <td>{{ m.subject.name }}</td>
+                  <td>{{ m.marks_obtained }}</td>
+                  <td>{{ m.max_marks }}</td>
+                  <td>
+                      <a href="{% url 'edit_marks' m.id %}" class="btn btn-sm btn-primary">
+                          <i class="fas fa-edit"></i> Edit
+                      </a>
+                  </td>
+              </tr>
+          {% empty %}
+              <tr>
+                  <td colspan="5" class="text-center">No marks available</td>
+              </tr>
+          {% endfor %}
+      </tbody>
+  </table>
+</div>
+
+
+    <!-- SGPA Chart (all semesters) -->
+    <div class="card p-3 mb-4">
+        <h5>SGPA Trend</h5>
+        <canvas id="sgpaChart"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('sgpaChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
         labels: {{ sgpa_labels|safe }},
         datasets: [{
-          label: 'SGPA',
-          data: {{ sgpa_values|safe }},
-          borderColor: 'blue',
-          fill: true,
-          backgroundColor: 'rgba(0,0,255,0.1)'
+            label: 'SGPA',
+            data: {{ sgpa_values|safe }},
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0,123,255,0.1)',
+            tension: 0.3,
+            fill: true,
+            pointRadius: 4,
+            pointBackgroundColor: '#007bff'
         }]
-      }
-    });
-
-    // Subject Circular Charts
-    {% for m in marks %}
-    var ctx{{ forloop.counter }} = document.getElementById('chart{{ forloop.counter }}').getContext('2d');
-    new Chart(ctx{{ forloop.counter }}, {
-      type: 'doughnut',
-      data: {
-        
-        datasets: [{
-          data: [{{ m.marks_obtained }}, {{ m.max_marks|add:"-m.marks_obtained" }}],
-          backgroundColor: ['#007bff', '#e0e0e0']
-        }]
-      },
-      options: { cutout: '70%' }
-    });
-    {% endfor %}
-    </script>
-    
-    {% endif %}
-    {% endblock %}
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true, max: 10 },
+            x: { ticks: { autoSkip: false } }
+        },
+        plugins: { legend: { display: false } }
+    }
+});
+</script>
+{% endblock %}

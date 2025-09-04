@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 
 
-from django.db.models import Avg
+from django.db.models import Avg,Q
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -237,18 +237,7 @@ def edit_marks(request, mark_id):
 # -------------------------------
 # Teacher: Search student details
 # -------------------------------
-@login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
-def student_detail(request):
-    student = None
-    if request.method == "POST":
-        reg_no = request.POST.get("reg_no")
-        try:
-            student = Student.objects.get(reg_no=reg_no)
-        except Student.DoesNotExist:
-            student = None
-        
-    return render(request, "student_detail.html", {"student": student})
+
 
 
 
@@ -449,4 +438,58 @@ def delete_subject(request, subject_id):
 
 
 
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def student_search(request):
+    students = []
+    query = request.GET.get("q")
+    if query:
+        students = Student.objects.filter(reg_no__icontains=query)
+    return render(request, "student_search.html", {"students": students})
+    
 
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def student_detail(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+
+    # fetch marks via semester → student
+    marks = Mark.objects.filter(semester__student=student)
+
+    # get distinct semesters
+    semesters = marks.values_list("semester__number", flat=True).distinct()
+
+    selected_semester = request.GET.get("semester")
+    if selected_semester:
+        marks = marks.filter(semester__number=selected_semester)
+
+    # SGPA/CGPA calculations
+    sgpa_values = []
+    sgpa_labels = []
+    for sem in semesters:
+        sem_marks = Mark.objects.filter(semester__student=student, semester__number=sem)
+        if sem_marks.exists():
+            total_obt = sum(m.marks_obtained for m in sem_marks)
+            total_max = sum(m.max_marks for m in sem_marks)
+            sgpa = round((total_obt / total_max) * 10, 2) if total_max > 0 else 0
+            sgpa_values.append(sgpa)
+            sgpa_labels.append(f"Sem {sem}")
+
+    total_papers = marks.count()
+    passed = marks.filter(marks_obtained__gte=18).count()  # pass mark assumed 18/40
+    failed = total_papers - passed
+    cgpa = round(sum(sgpa_values) / len(sgpa_values), 2) if sgpa_values else 0
+
+    return render(request, "student_detail.html", {
+        "student": student,
+        "marks": marks,
+        "semesters": semesters,
+        "selected_semester": selected_semester,
+        "sgpa_values": sgpa_values,
+        "sgpa_labels": sgpa_labels,
+        "total_papers": total_papers,
+        "passed": passed,
+        "failed": failed,
+        "cgpa": cgpa,
+    })

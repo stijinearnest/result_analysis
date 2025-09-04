@@ -6,209 +6,352 @@
 <title>Manage Subjects</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
+    :root {
+        --primary: #4a6fc7;
+        --primary-dark: #3b5cad;
+        --secondary: #6a11cb;
+        --accent: #f39c12;
+        --danger: #e74c3c;
+        --light-bg: #f8f9fa;
+        --border: #e1e5eb;
+        --text: #333;
+        --text-light: #6c757d;
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --radius: 10px;
+    }
+    
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        margin: 0;
+        color: var(--text);
+        line-height: 1.6;
         padding: 20px;
+        min-height: 100vh;
     }
-
+    
     .container {
-        max-width: 1100px;
-        margin: auto;
+        max-width: 1200px;
+        margin: 0 auto;
         background: white;
         padding: 30px;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
     }
-
-    h1 {
-        text-align: center;
-        color: #4a6fc7;
-        margin-bottom: 20px;
-    }
-
-    .subjects-table {
-        width: 100%;
-        border-collapse: collapse;
+    
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border);
     }
-
-    .subjects-table th, .subjects-table td {
-        border: 1px solid #ddd;
-        padding: 12px;
-        text-align: center;
+    
+    h1 {
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 28px;
     }
-
-    .subjects-table th {
-        background: #4a6fc7;
-        color: white;
-    }
-
-    .form-section {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 12px;
-        border-left: 4px solid #4a6fc7;
-    }
-
-    .form-section h2 {
-        margin-bottom: 15px;
-        color: #4a6fc7;
-    }
-
-    .form-section form {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-    }
-
-    .form-section label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: 500;
-        color: #333;
-    }
-
-    .form-section input, .form-section select {
-        padding: 10px;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-        font-size: 14px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .form-section button {
-        grid-column: 1 / -1;
-        padding: 12px;
-        background: #4a6fc7;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: background 0.3s ease;
-    }
-
-    .form-section button:hover {
-        background: #3b5cad;
-    }
-
+    
     .back-btn {
-        display: inline-block;
-        margin-bottom: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
         padding: 10px 20px;
-        background: #6a11cb;
+        background: var(--secondary);
         color: white;
         text-decoration: none;
         border-radius: 6px;
-        transition: background 0.3s ease;
+        transition: all 0.3s ease;
+        font-weight: 500;
     }
-
+    
     .back-btn:hover {
-        background: #4a6fc7;
+        background: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
     }
-
+    
+    /* Table Styles */
+    .table-container {
+        background: white;
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        margin-bottom: 30px;
+    }
+    
+    .subjects-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .subjects-table th {
+        background: var(--primary);
+        color: white;
+        padding: 16px;
+        text-align: left;
+        font-weight: 600;
+    }
+    
+    .subjects-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .subjects-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .subjects-table tr:hover {
+        background-color: #f8fafd;
+    }
+    
+    .action-cell {
+        display: flex;
+        gap: 10px;
+    }
+    
     .action-btn {
-        margin: 0 2px;
-        padding: 6px 10px;
+        padding: 8px 12px;
         border: none;
         border-radius: 5px;
         cursor: pointer;
         font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
     }
-
+    
     .edit-btn {
-        background: #f39c12;
+        background: var(--accent);
         color: white;
     }
-
+    
     .edit-btn:hover {
         background: #d78b10;
+        transform: translateY(-1px);
     }
-
+    
     .delete-btn {
-        background: #e74c3c;
+        background: var(--danger);
         color: white;
     }
-
+    
     .delete-btn:hover {
         background: #c0392b;
+        transform: translateY(-1px);
+    }
+    
+    /* Form Styles */
+    .form-section {
+        background: var(--light-bg);
+        padding: 25px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+    }
+    
+    .form-section h2 {
+        margin-bottom: 20px;
+        color: var(--primary);
+        font-size: 22px;
+        font-weight: 600;
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 0;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--text);
+    }
+    
+    .form-group input, 
+    .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 15px;
+        transition: border 0.3s ease;
+    }
+    
+    .form-group input:focus, 
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(74, 111, 199, 0.1);
+    }
+    
+    .submit-btn {
+        grid-column: 1 / -1;
+        padding: 14px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    
+    .submit-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-light);
+    }
+    
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        color: #ced4da;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .container {
+            padding: 20px;
+        }
+        
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-cell {
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .subjects-table {
+            display: block;
+            overflow-x: auto;
+        }
     }
 </style>
 </head>
 <body>
 
 <div class="container">
-    <a href="{% url 'teacher_dashboard' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
-
-    <h1>Manage Subjects</h1>
+    <div class="page-header">
+        <h1>Manage Subjects</h1>
+        <a href="{% url 'teacher_dashboard' %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
 
     <!-- Existing Subjects Table -->
-    <table>
-        <thead>
-            <tr>
-                <th>Semester</th>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Credits</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for subject in subjects %}
-            <tr>
-                <td>{{ subject.semester_number }}</td>
-                <td>{{ subject.code }}</td>
-                <td>{{ subject.name }}</td>
-                <td>{{ subject.credits }}</td>
-                <td>
-                    <a href="{% url 'edit_subject' subject.id %}">Edit</a> |
-                    <a href="{% url 'delete_subject' subject.id %}">Delete</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5">No subjects added for this course.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    
+    <div class="table-container">
+        <table class="subjects-table">
+            <thead>
+                <tr>
+                    <th>Semester</th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Credits</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subjects %}
+                <tr>
+                    <td>{{ subject.semester_number }}</td>
+                    <td>{{ subject.code }}</td>
+                    <td>{{ subject.name }}</td>
+                    <td>{{ subject.credits }}</td>
+                    <td class="action-cell">
+                        <a href="{% url 'edit_subject' subject.id %}" class="action-btn edit-btn">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a href="{% url 'delete_subject' subject.id %}" class="action-btn delete-btn">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i class="fas fa-book-open"></i>
+                            <p>No subjects added for this course yet.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     <!-- Add New Subject Form -->
     <div class="form-section">
         <h2>Add New Subject</h2>
         <form method="POST">
             {% csrf_token %}
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="id_course">Course</label>
+                    {{ form.course }}
+                </div>
 
-            <div>
-                <label for="id_course">Course</label>
-                {{ form.course }}
+                <div class="form-group">
+                    <label for="id_name">Subject Name</label>
+                    {{ form.name }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_code">Subject Code</label>
+                    {{ form.code }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_semester_number">Semester Number</label>
+                    {{ form.semester_number }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_credits">Credits</label>
+                    {{ form.credits }}
+                </div>
             </div>
 
-            <div>
-                <label for="id_name">Subject Name</label>
-                {{ form.name }}
-            </div>
-
-            <div>
-                <label for="id_code">Subject Code</label>
-                {{ form.code }}
-            </div>
-
-            <div>
-                <label for="id_semester_number">Semester Number</label>
-                {{ form.semester_number }}
-            </div>
-
-            <div>
-                <label for="id_credits">Credits</label>
-                {{ form.credits }}
-            </div>
-
-            <button type="submit"><i class="fas fa-plus"></i> Add Subject</button>
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-plus"></i> Add Subject
+            </button>
         </form>
     </div>
 </div>

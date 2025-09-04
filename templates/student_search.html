@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Search Students</h2>
+
+<form method="get">
+    <input type="text" name="q" placeholder="Enter Registration No" value="{{ request.GET.q }}">
+    <button type="submit">Search</button>
+</form>
+
+{% if students %}
+    <h3>Results:</h3>
+    <ul>
+    {% for student in students %}
+        <li>
+            {{ student.name }} ({{ student.reg_no }})
+            <a href="{% url 'student_detail' student.id %}">View Details</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% elif request.GET.q %}
+    <p>No students found.</p>
+{% endif %}
+{% endblock %}

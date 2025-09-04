@@ -27,7 +27,7 @@ urlpatterns = [
     path("teacher/edit-marks/<int:mark_id>/", views.edit_marks, name="edit_marks"),
 
     # Student detail
-    path("teacher/student-detail/", views.student_detail, name="student_detail"),
+    #path("teacher/student-detail/", views.student_detail, name="student_detail"),
 
     # AJAX
     path("teacher/get-student-name-by-regno/", views.get_student_name_by_regno, name="get_student_name_by_regno"),
@@ -44,6 +44,12 @@ path("teacher/select-course/", views.select_course, name="select_course"),
 
 # Step 2: Manage subjects for selected course
 path("teacher/manage-subjects/<str:course>/", views.manage_subjects_by_course, name="manage_subjects_by_course"),
+# Search + Detail
+path("teacher/student-search/", views.student_search, name="student_search"),
+path("teacher/student-detail/<int:student_id>/", views.student_detail, name="student_detail"),
+
+
+
 
 
 ]
