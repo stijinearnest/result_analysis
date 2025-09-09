@@ -1,0 +1,239 @@
+:root {
+    --primary: #4a6cf7;
+    --primary-light: #eef2ff;
+    --secondary: #6c757d;
+    --success: #198754;
+    --danger: #dc3545;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --border: #dee2e6;
+}
+
+body {
+    background-color: #f5f7fa;
+    color: #333;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+/* Header */
+.header {
+    background: linear-gradient(135deg, var(--primary) 0%, #3b5bdb 100%);
+    color: white;
+    padding: 1.5rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 12px 12px;
+}
+.header-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+.back-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #3a56d4;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+.back-button:hover {
+    background: #2f45b0;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Student Card */
+.student-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+.student-profile {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+.student-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 1.5rem;
+    border: 4px solid var(--primary-light);
+}
+.avatar-placeholder {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-right: 1.5rem;
+    border: 4px solid var(--primary-light);
+}
+.student-info h2 {
+    margin: 0 0 0.5rem 0;
+    color: var(--dark);
+}
+
+/* Student Details */
+.student-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+}
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+.detail-label {
+    font-size: 0.85rem;
+    color: var(--secondary);
+    margin-bottom: 0.25rem;
+}
+.detail-value {
+    font-weight: 500;
+    color: var(--dark);
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+.stat-card h3 {
+    font-size: 2.5rem;
+    margin: 0;
+    font-weight: 700;
+}
+.stat-card.passed h3 { color: var(--success); }
+.stat-card.failed h3 { color: var(--danger); }
+.stat-card.cgpa h3 { color: var(--primary); }
+.stat-card p {
+    margin: 0.5rem 0 0 0;
+    color: var(--secondary);
+    font-weight: 500;
+}
+
+/* Table Card */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+}
+.card-header {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 1.5rem;
+    font-weight: 600;
+    color: var(--dark);
+    border-radius: 12px 12px 0 0 !important;
+}
+.table { margin: 0; }
+.table th {
+    background-color: var(--primary-light);
+    color: var(--primary);
+    font-weight: 600;
+    border-top: none;
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(74, 108, 247, 0.05);
+}
+.badge-passed {
+    background-color: rgba(25, 135, 84, 0.15);
+    color: var(--success);
+    padding: 0.35rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+.badge-failed {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: var(--danger);
+    padding: 0.35rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+.btn-edit {
+    background-color: var(--primary-light);
+    color: var(--primary);
+    border: none;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+.btn-edit:hover {
+    background-color: var(--primary);
+    color: white;
+}
+
+/* Chart Container */
+.chart-container {
+    padding: 1.5rem;
+    height: 300px;
+}
+
+/* Filter Form */
+.filter-form {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+}
+.filter-label {
+    margin: 0;
+    font-weight: 500;
+    color: var(--dark);
+    white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .student-profile { flex-direction: column; text-align: center; }
+    .student-avatar, .avatar-placeholder { margin-right: 0; margin-bottom: 1rem; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+}
+@media (max-width: 576px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .student-details { grid-template-columns: 1fr; }
+}

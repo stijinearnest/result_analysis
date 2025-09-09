@@ -1,282 +1,288 @@
-/* Page background */
-body {
-    background: #E6E6E6;
-  }
-  
-  /* Wrapper centers content like the Figma frame */
-  .dash-wrap {
-    max-width: 1400px;   /* close to MacBook Air artboard width in your screenshot */
-    margin: 36px auto;
-  }
-  
-  /* Two column grid: left wider, right slimmer */
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-gap: 10px;
-    margin: 20px;
-    align-items: stretch;  /* Keep both columns equal height */
-  }
-  
-  /* Reusable card */
-  .card {
-    background: rgba(255, 255, 255, 0.15); /* semi-transparent white */
-    border-radius: 18px;
-    padding: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); /* softer shadows for glass effect */
-    backdrop-filter: blur(10px);  /* blur background behind card */
-    -webkit-backdrop-filter: blur(10px); /* for Safari */
-    border: 1px solid rgba(255, 255, 255, 0.3); /* subtle border for glass */
-    transition: all 0.3s ease;
-  }
-  
-  .card:hover {
-    background: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-    transform: translateY(-4px);
-  }
-  
-  
-  /* ---------- Student Card ---------- */
-/* ---------- Student Card ---------- */
-.student-card {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .student-info {
-    display: flex;
-    align-items: center;
-    gap: 16px; /* spacing between avatar and hello text */
-  }
-  
-  .student-info .hello {
-    font-size: 20px;
-    font-weight: 700;
-    color: #111827;
-  }
-  
-  .avatar img {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-  
-  .avatar-fallback {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    background: #2D63FF;
-    color: #fff;
-    font-weight: 700;
-    font-size: 28px;
-    display: grid;
-    place-items: center;
-  }
-  
-  .student-details {
-    padding-left: 4px;
-  }
-  
-  .student-meta .subtext,
-  .student-details .subtext {
-    color: #4B5563;
-    font-size: 13.5px;
-    line-height: 1.35rem;
-  }
-  
-  .meta-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    margin-top: 10px;
-    gap: 10px;
-  }
-  
-  .meta-item .meta-label {
-    font-size: 12px;
-    color: #6B7280;
-  }
-  
-  .meta-item .meta-value {
-    font-size: 16px;
-    font-weight: 700;
-    color: #111827;
-  }
-  
-  
-  /* ---------- SGPA Analysis ---------- */
-  .sgpa-card .card-title {
-    font-size: 16px;
-    font-weight: 700;
-    margin: 2px 0 10px;
-    color: #111827;
-  }
-  .sgpa-card {
-    flex: 1; /* allow it to grow */
-    min-height: 280px;   /* bigger box */
-    overflow: hidden;    /* fix chart going out */
-  }
-  .sgpa-card canvas {
-    width: 100% !important;
-    height: 200px !important;
-    display: block;
-  }
-  
-  .chart-box {
-    height: 220px;       /* gives Chart.js a stable height like Figma */
-  }
-  
-  /* ---------- Summary ---------- */
-  .summary-card {
-    flex: 0 0 auto;
-    min-height: 150px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-  }
-  .summary-card .card-title {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    
-    color: #111827;
-    position: relative;
-    left: -280px;
-  }
-  
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-  }
-  
-  .summary-item {
-    text-align: center;
-    
-    
-  }
-  
-  .summary-number {
-    font-weight: 800;
-    font-size: 50px;
-    color: #111827;
-    line-height: 1;
-    margin-bottom: 2px;
-    gap: 10px;
-  }
-  
-  .summary-label {
-    font-size: 12.5px;
-    color: #6B7280;
-    display: flex;
-    gap: 30px;
-  }
-  
-  /* ---------- Right Column ---------- */
-  .cgpa-card {
-    text-align: center;
-    min-height: 120px;
-    display: grid;
-    align-content: center;
-    gap: 4px;
-  }
-  
-  .cgpa-title {
-    font-weight: 700;
-    color: #111827;
-    font-size: 18px;
-  }
-  
-  .cgpa-value {
-    font-size: 54px;     /* big number like Figma */
-    font-weight: 800;
-    color: #111827;
-    line-height: 1;
-  }
-  
-  .cgpa-hr {
-    width: 52%;
-    height: 2px;
-    margin: 4px auto 0;
-    background: #E5E7EB;
-    border-radius: 2px;
-  }
-  
-  /* ---------- Subject Section ---------- */
-  .subject-card { padding: 16px 16px 18px; }
-  
-  .subject-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 4px 12px;
-  }
-  
-  .small-label {
-    font-size: 12px;
-    text-transform: lowercase;
-    color: #6B7280;
-    position:absolute;
-    right: 130px;
-    top: 30px;
-    
-  }
-  
-  .sem-select {
-    appearance: none;
-    background: #F3F4F6;
-    border: 1px solid #E5E7EB;
-    border-radius: 10px;
-    padding: 6px 10px;
-    font-size: 13px;
-    color: #111827;
-  }
-  
-  /* 2 columns x 3 rows grid just like screenshot */
-  .dial-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px 12px;
-    padding: 2px 6px 6px;
-  }
-  
-  .dial {
-    display: grid;
-    justify-items: center;
-    padding: 6px 0 10px;
-  }
-  
-  .dial canvas {
-    width: 112px !important;   /* ~like the Figma donut size */
-    height: 112px !important;
-  }
-  
-  .dial-subject {
-    margin-top: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #374151;
-    letter-spacing: .3px;
-    text-transform: uppercase;
-  }
-  
-  /* Add spacing between cards in each column */
-.left-col > .card,
-.right-col > .card {
-  margin-bottom: 10px;   /* same as your grid gap */
-}
+/* ------------------------------
+   Student Dashboard Styles
+   ------------------------------ */
 
-/* Make columns full height so bottom cards align */
+/* Grid layout */
 .grid {
-  align-items: stretch;   /* stretch columns equally */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-/* Each column uses flexbox to push last card down */
-.left-col,
-.right-col {
+/* Card Styles */
+.card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Student Card */
+.student-card {
   display: flex;
   flex-direction: column;
-  gap: 22px; /* same spacing for both sides */
+}
+.student-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 16px;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-weight: bold;
+  font-size: 24px;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.student-meta h2.hello {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 4px 0;
+}
+.student-details {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 16px;
+}
+.subtext {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+.subtext strong {
+  color: #334155;
+}
+.meta-row {
+  display: flex;
+  gap: 24px;
+  margin-top: 16px;
+}
+.meta-item {
+  flex: 1;
+}
+.meta-label {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+.meta-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+}
+
+/* SGPA Card */
+.sgpa-card {
+  height: fit-content;
+}
+.chart-box {
+  height: 250px;
+  position: relative;
+}
+
+/* Summary Card */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.summary-item {
+  text-align: center;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+.summary-number {
+  font-size: 24px;
+  font-weight: 700;
+  color: #4f46e5;
+  margin-bottom: 4px;
+}
+.summary-label {
+  font-size: 12px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* CGPA Card */
+.cgpa-card {
+  text-align: center;
+  padding: 32px 24px;
+  margin-bottom: 24px;
+}
+.cgpa-title {
+  font-size: 16px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+.cgpa-value {
+  font-size: 48px;
+  font-weight: 700;
+  color: #4f46e5;
+  line-height: 1;
+  margin-bottom: 16px;
+}
+.cgpa-hr {
+  height: 4px;
+  width: 60px;
+  background: linear-gradient(to right, #c7d2fe, #4f46e5, #c7d2fe);
+  margin: 0 auto;
+  border-radius: 2px;
+}
+
+/* Subject Card */
+.subject-card {
+  margin-bottom: 0;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  top: -25px;
+}
+.subject-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.subject-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.small-label {
+  font-size: 12px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.sem-select-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.sem-select {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  color: #334155;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+.sem-select:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Dial Grid */
+.dial-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  flex: 1;
+}
+.dial {
+  text-align: center;
+  position: relative;
+}
+.dial canvas {
+  max-width: 100%;
+  margin: 0 auto;
+}
+.dial-subject {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Layout */
+.left-col, .right-col {
+  display: flex;
+  flex-direction: column;
+}
+.right-col {
+  justify-content: space-between;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+  .grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+  }
+  .meta-row {
+      flex-direction: column;
+      gap: 12px;
+  }
+  .summary-grid,
+  .dial-grid {
+      grid-template-columns: repeat(2, 1fr);
+  }
+  .right-col {
+      justify-content: flex-start;
+  }
+  .subject-card {
+      min-height: auto;
+  }
+}
+@media (max-width: 640px) {
+  .summary-grid,
+  .dial-grid {
+      grid-template-columns: 1fr;
+  }
+  .subject-head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+  }
+  .sem-select-container {
+      align-items: flex-start;
+      width: 100%;
+  }
+  .sem-select {
+      width: 100%;
+  }
 }

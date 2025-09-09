@@ -1,0 +1,239 @@
+:root {
+  --primary: #4361ee;
+  --primary-dark: #3a56d4;
+  --secondary: #6c757d;
+  --success: #28a745;
+  --danger: #dc3545;
+  --border: #dee2e6;
+  --shadow: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-hover: 0 8px 15px rgba(0,0,0,0.1);
+  --radius: 8px;
+  --transition: all 0.3s ease;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f7fb;
+}
+
+.form-container {
+  margin: 0 auto;
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 30px;
+  width: 100%;
+  max-width: 700px;
+}
+
+.form-header {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  padding: 20px 25px;
+}
+
+.form-header h2 {
+  font-size: 1.5rem;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.form-header p {
+  opacity: 0.9;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  padding: 0 10px;
+}
+
+.marks-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+.marks-table th {
+  background-color: #f8f9fa;
+  padding: 15px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #343a40;
+  border-bottom: 2px solid var(--border);
+}
+
+.marks-table td {
+  padding: 15px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon input {
+  width: 100%;
+  padding: 10px 15px 10px 35px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: var(--transition);
+}
+
+.input-with-icon input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(67,97,238,0.15);
+}
+
+.input-with-icon i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--secondary);
+}
+
+.btn-primary, .btn-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover, .btn-submit:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.form-actions {
+  padding: 20px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+/* Message container */
+.message-container {
+  background: white;
+  border-radius: var(--radius);
+  padding: 25px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.message-container.error {
+  border-top: 4px solid var(--danger);
+}
+
+.message-icon {
+  font-size: 3rem;
+  color: var(--danger);
+}
+
+.message-content h3 {
+  color: #343a40;
+  margin-bottom: 10px;
+}
+
+.message-content p {
+  color: var(--secondary);
+}
+
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 20px;
+  border-radius: var(--radius);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: var(--transition);
+  box-shadow: var(--shadow);
+}
+
+.notification.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.notification.success {
+  background: var(--success);
+}
+
+.notification.error {
+  background: var(--danger);
+}
+
+@media (max-width: 768px) {
+  .form-container {
+      max-width: 100%;
+  }
+
+  .marks-table {
+      font-size: 0.9rem;
+  }
+
+  .marks-table th,
+  .marks-table td {
+      padding: 10px 8px;
+  }
+
+  .input-with-icon input {
+      padding: 8px 10px 8px 30px;
+  }
+
+  .form-header {
+      padding: 15px 20px;
+  }
+
+  .message-container {
+      padding: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .marks-table {
+      font-size: 0.85rem;
+  }
+
+  .marks-table th:nth-child(1),
+  .marks-table td:nth-child(1) {
+      display: none;
+  }
+
+  .form-header h2 {
+      font-size: 1.3rem;
+  }
+}
