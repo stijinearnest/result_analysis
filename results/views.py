@@ -1,29 +1,22 @@
 
 from datetime import date
-
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-
-
-
 from django.db.models import Avg,Q
-
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .models import Student, Mark,Teacher,Subject,Semester
 from .forms import StudentForm, MarkForm,MarksEntryForm,SubjectForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 
-# -------------------------------
+
 # Home (landing page)
-# -------------------------------
 def home(request):
     return render(request, "home.html")
 
 
-# -------------------------------
+
 # Teacher login
-# -------------------------------
 def teacher_login(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -31,16 +24,14 @@ def teacher_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None and (user.is_staff or user.is_superuser):
             login(request, user)
-           # teacher=Teacher.objects.get(name=username)
             return redirect("teacher_dashboard")
         else:
             messages.error(request, "Invalid username or password or unauthorized access")
     return render(request, "teacher_login.html")
 
 
-# -------------------------------
+
 # Student login
-# -------------------------------
 def student_login(request):
     if request.method == "POST":
         reg_no = request.POST.get("reg_no")
@@ -54,26 +45,25 @@ def student_login(request):
     return render(request, "student_login.html")
 
 
-# -------------------------------
+
 # Teacher Dashboard
-# -------------------------------
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def teacher_dashboard(request):
     return render(request, "teacher_dashboard.html")
 
 
-# -------------------------------
-# Student Dashboard
-# -------------------------------
+
+# Student Decorator
 def student_required(view_func):
-    """Decorator to ensure a student is logged in via session."""
+    #Decorator to ensure a student is logged in via session.
     def wrapper(request, *args, **kwargs):
         if not request.session.get("student_id"):
             return redirect("student_login")  # Corrected
         return view_func(request, *args, **kwargs)
     return wrapper
 
+#student Dashboard
 @student_required
 def student_dashboard(request):
     student_id = request.session.get("student_id")
@@ -141,21 +131,16 @@ def student_dashboard(request):
         "selected_semester": selected_semester,
     })
 
-# -------------------------------
+
 # Logout
-# -------------------------------
 @login_required
 def user_logout(request):
     logout(request)
     return redirect("home")
 
 
-# -------------------------------
+
 # Teacher: Add Student
-# -------------------------------
-from datetime import date
-
-
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_student(request):
@@ -180,14 +165,7 @@ def add_student(request):
 
 
 
-
-# -------------------------------
-# Teacher: Add Marks
-# -------------------------------
-
-# -------------------------------
-# Teacher: Select Student
-# -------------------------------
+# Teacher: Select Student by sem
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def select_student_semester(request):
@@ -216,37 +194,7 @@ def select_student_semester(request):
     })
 
 
-# -------------------------------
-# Teacher: Add Marks
-# -------------------------------
-"""@login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
-def add_marks(request, student_id, sem_number):
-    student = get_object_or_404(Student, id=student_id)
-    semester, created = Semester.objects.get_or_create(student=student, number=sem_number)
-
-    if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
-        form = MarksEntryForm(request.POST, semester=semester)
-        if form.is_valid():
-            for field_name, value in form.cleaned_data.items():
-                if field_name.startswith("subject_"):
-                    subject_id = int(field_name.split("_")[1])
-                    subject = Subject.objects.get(id=subject_id)
-                    Mark.objects.update_or_create(
-                        semester=semester,
-                        subject=subject,
-                        defaults={"marks_obtained": value, "max_marks": 40},
-                    )
-            return JsonResponse({"success": True, "message": "Marks saved successfully!"})
-        else:
-            return JsonResponse({"success": False, "errors": form.errors})
-    return JsonResponse({"error": "Invalid request"})"""
-
-
-
-# -------------------------------
 # Teacher: Edit Marks
-# -------------------------------
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def edit_marks(request, mark_id):
@@ -261,13 +209,7 @@ def edit_marks(request, mark_id):
     return render(request, "edit_marks.html", {"form": form})
 
 
-# -------------------------------
-# Teacher: Search student details
-# -------------------------------
-
-
-
-
+#searching students
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def select_student_semester(request):
@@ -286,7 +228,7 @@ def select_student_semester(request):
     return render(request, "select_student_semester.html")
 
 
-
+#student name by reg_no
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def get_student_name_by_regno(request):
@@ -304,6 +246,8 @@ def get_student_name_by_regno(request):
         data = {"name": "", "id": ""}
     return JsonResponse(data)
 
+
+#add marks
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_marks_single_page(request):
@@ -357,8 +301,7 @@ def add_marks_single_page(request):
     })
 
 
-
-
+#filtering subjects by sem
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def get_subjects_for_semester(request):
@@ -370,17 +313,9 @@ def get_subjects_for_semester(request):
         data = []
     return JsonResponse({"subjects": data})
 
-@login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
-def get_subjects_for_semester(request):
-    sem_number = request.GET.get("semester")
-    subjects = Subject.objects.filter(semester_number=sem_number) if sem_number else []
-    data = [{"id": s.id, "name": s.name, "code": s.code, "credits": s.credits} for s in subjects]
-    return JsonResponse({"subjects": data})
+
 
 # Manage Subjects page
-from .forms import SubjectForm
-
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def manage_subjects(request):
@@ -397,6 +332,7 @@ def manage_subjects(request):
     return render(request, "manage_subjects.html", {"subjects": subjects, "form": form})
 
 
+#edit subject
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def edit_subject(request, subject_id):
@@ -411,13 +347,17 @@ def edit_subject(request, subject_id):
     return render(request, "edit_subject.html", {"form": form, "subject": subject})
 
 
+
+#delete sub
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def delete_subject(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
     subject.delete()
     return redirect("manage_subjects")
-# Step 1: Course selection page
+
+
+# Course selection page for sub
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def select_course(request):
@@ -435,7 +375,7 @@ def select_course(request):
     return render(request, "select_course.html", {"courses": COURSES})
 
 
-# Step 2: Manage subjects for a course
+# Manage subjects for a course
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def manage_subjects_by_course(request, course):
@@ -452,16 +392,6 @@ def manage_subjects_by_course(request, course):
         "form": form,
         "course": course
     })
-
-
-# Optional: Delete subject
-@login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
-def delete_subject(request, subject_id):
-    subject = get_object_or_404(Subject, id=subject_id)
-    course = subject.course
-    subject.delete()
-    return redirect('manage_subjects_by_course', course=course)
 
 
 

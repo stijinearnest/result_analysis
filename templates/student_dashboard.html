@@ -1,339 +1,14 @@
 {% extends "base.html" %}
 {% load static %}
-{% block content%}
+{% block content %}
 
+<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style>
-    /* Enhanced CSS with clean aesthetic */
-   
-    
-    .grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 24px;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    
-    /* Card Styles */
-    .card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-        padding: 24px;
-        margin-bottom: 24px;
-        border: 1px solid #e2e8f0;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-    }
-    
-    .card-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #1e293b;
-        margin-bottom: 20px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid #f1f5f9;
-    }
-    
-    /* Student Card */
-    .student-card {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .student-info {
-        display: flex;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-    
-    .avatar {
-        width: 64px;
-        height: 64px;
-        border-radius: 50%;
-        overflow: hidden;
-        margin-right: 16px;
-        background: #e2e8f0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #64748b;
-        font-weight: bold;
-        font-size: 24px;
-    }
-    
-    .avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    .avatar-fallback {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .student-meta h2.hello {
-        font-size: 20px;
-        font-weight: 600;
-        color: #1e293b;
-        margin: 0 0 4px 0;
-    }
-    
-    .student-details {
-        border-top: 1px solid #f1f5f9;
-        padding-top: 16px;
-    }
-    
-    .subtext {
-        font-size: 14px;
-        color: #64748b;
-        margin-bottom: 8px;
-    }
-    
-    .subtext strong {
-        color: #334155;
-    }
-    
-    .meta-row {
-        display: flex;
-        gap: 24px;
-        margin-top: 16px;
-    }
-    
-    .meta-item {
-        flex: 1;
-    }
-    
-    .meta-label {
-        font-size: 12px;
-        color: #94a3b8;
-        margin-bottom: 4px;
-    }
-    
-    .meta-value {
-        font-size: 14px;
-        font-weight: 500;
-        color: #475569;
-    }
-    
-    /* SGPA Card */
-    .sgpa-card {
-        height: fit-content;
-    }
-    
-    .chart-box {
-        height: 250px;
-        position: relative;
-    }
-    
-    /* Summary Card */
-    .summary-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-    }
-    
-    .summary-item {
-        text-align: center;
-        padding: 16px;
-        background: #f8fafc;
-        border-radius: 12px;
-    }
-    
-    .summary-number {
-        font-size: 24px;
-        font-weight: 700;
-        color: #4f46e5;
-        margin-bottom: 4px;
-    }
-    
-    .summary-label {
-        font-size: 12px;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    /* CGPA Card */
-    .cgpa-card {
-        text-align: center;
-        padding: 32px 24px;
-        margin-bottom: 24px;
-    }
-    
-    .cgpa-title {
-        font-size: 16px;
-        color: #64748b;
-        margin-bottom: 12px;
-    }
-    
-    .cgpa-value {
-        font-size: 48px;
-        font-weight: 700;
-        color: #4f46e5;
-        line-height: 1;
-        margin-bottom: 16px;
-    }
-    
-    .cgpa-hr {
-        height: 4px;
-        width: 60px;
-        background: linear-gradient(to right, #c7d2fe, #4f46e5, #c7d2fe);
-        margin: 0 auto;
-        border-radius: 2px;
-    }
-    
-    /* Subject Card - Increased height */
-    .subject-card {
-        margin-bottom: 0;
-        min-height: 600px; /* Increased height */
-        display: flex;
-        flex-direction: column;
-        position:relative;
-        top:-25px;
-    }
-    
-    .subject-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .subject-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-    }
-    
-    .small-label {
-        font-size: 12px;
-        color: #94a3b8;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 4px;
-    }
-    
-    .sem-select-container {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-    }
-    
-    .sem-select {
-        padding: 8px 12px;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        background: white;
-        font-size: 14px;
-        color: #334155;
-        cursor: pointer;
-        transition: border-color 0.2s ease;
-    }
-    
-    .sem-select:focus {
-        outline: none;
-        border-color: #4f46e5;
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-    }
-    
-    /* Dial Grid */
-    .dial-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        flex: 1;
-    }
-    
-    .dial {
-        text-align: center;
-        position: relative;
-    }
-    
-    .dial canvas {
-        max-width: 100%;
-        margin: 0 auto;
-    }
-    
-    .dial-subject {
-        margin-top: 12px;
-        font-size: 13px;
-        color: #475569;
-        font-weight: 500;
-        line-height: 1.4;
-    }
-    
-    /* New layout adjustments */
-    .left-col, .right-col {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .right-col {
-        justify-content: space-between;
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 968px) {
-        .grid {
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-        
-        .meta-row {
-            flex-direction: column;
-            gap: 12px;
-        }
-        
-        .summary-grid,
-        .dial-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-        
-        .right-col {
-            justify-content: flex-start;
-        }
-        
-        .subject-card {
-            min-height: auto;
-        }
-    }
-    
-    @media (max-width: 640px) {
-        .summary-grid,
-        .dial-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .subject-head {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 12px;
-        }
-        
-        .sem-select-container {
-            align-items: flex-start;
-            width: 100%;
-        }
-        
-        .sem-select {
-            width: 100%;
-        }
-    }
-</style>
+<!-- External CSS -->
+<link rel="stylesheet" href="{% static 'css/student_dashboard.css' %}">
 
 <div class="dash-wrap">
-  <!-- Two-column grid -->
   <div class="grid">
     <!-- LEFT COLUMN -->
     <div class="left-col">
@@ -376,7 +51,7 @@
         </div>
       </section>
       
-      <!-- Summary - Moved to bottom of left column -->
+      <!-- Summary -->
       <section class="card summary-card">
         <h3 class="card-title">Summary</h3>
         <div class="summary-grid">
@@ -405,7 +80,7 @@
         <div class="cgpa-hr"></div>
       </section>
 
-      <!-- Subject marks - Increased height -->
+      <!-- Subject marks -->
       <section class="card subject-card">
         <div class="subject-content">
           <div class="subject-head">
@@ -417,9 +92,8 @@
                 <select name="semester" class="sem-select" onchange="this.form.submit()">
                   {% for sem in semesters %}
                   <option value="{{ sem }}" {% if sem|stringformat:"s" == selected_semester|stringformat:"s" %}selected{% endif %}>
-
                       Semester {{ sem }}
-                    </option>
+                  </option>
                   {% endfor %}
                 </select>
               </form>
@@ -439,126 +113,18 @@
     </div>
   </div>
 </div>
-
 <script>
-/* ---------- Helpers ---------- */
-
-// center text plugin for doughnut charts
-const centerText = {
-  id: 'centerText',
-  afterDraw(chart, args, options) {
-    if (!options || !options.text) return;
-    const {ctx} = chart;
-    const meta = chart.getDatasetMeta(0);
-    if (!meta || !meta.data || !meta.data[0]) return;
-
-    const x = meta.data[0].x;
-    const y = meta.data[0].y;
-
-    ctx.save();
-    ctx.font = 'bold 14px Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial';
-    ctx.fillStyle = '#1A1A1A';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(options.text, x, y);
-    ctx.restore();
-  }
-};
-
-/* ---------- SGPA Area Line Chart ---------- */
-(function(){
-  const ctx = document.getElementById('sgpaChart').getContext('2d');
-
-  // gradient fill
-  const grad = ctx.createLinearGradient(0, 0, 0, 200);
-  grad.addColorStop(0, 'rgba(79, 70, 229, 0.25)');
-  grad.addColorStop(1, 'rgba(79, 70, 229, 0.02)');
-
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: {{ sgpa_labels|safe }},
-      datasets: [{
-        label: 'SGPA',
-        data: {{ sgpa_values|safe }},
-        borderColor: '#4f46e5',
-        backgroundColor: grad,
-        borderWidth: 3,
-        fill: true,
-        pointRadius: 4,
-        pointBackgroundColor: '#4f46e5',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointHoverRadius: 6,
-        tension: 0.35
-      }]
-    },
-    options: {
-      plugins: { 
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: 'rgba(15, 23, 42, 0.9)',
-          titleFont: { size: 14 },
-          bodyFont: { size: 14 },
-          padding: 12,
-          cornerRadius: 8
-        }
-      },
-      scales: {
-        x: {
-          grid: { color: 'rgba(0,0,0,0.04)' },
-          ticks: { color: '#64748b' }
-        },
-        y: {
-          beginAtZero: true,
-          grid: { color: 'rgba(0,0,0,0.06)' },
-          ticks: { color: '#64748b' }
-        }
-      },
-      maintainAspectRatio: false
-    }
-  });
-})();
-
-/* ---------- Subject Doughnut Dials ---------- */
-(function(){
-  const passRatio = 0.5;
-  {% for m in marks %}
-    (function(){
-      const obtained = {{ m.marks_obtained|default:0 }};
-      const maxm = {{ m.max_marks|default:0 }};
-      const remain = (maxm - obtained);
-      const ratio = maxm ? obtained / maxm : 0;
-      const color = ratio < passRatio ? '#ef4444' : '#4f46e5';
-
-      const el = document.getElementById('dial{{ forloop.counter }}').getContext('2d');
-      new Chart(el, {
-        type: 'doughnut',
-        data: {
-          datasets: [{
-            data: [obtained, remain],
-            backgroundColor: [color, '#f1f5f9'],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          cutout: '72%',
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(15, 23, 42, 0.9)',
-              padding: 10,
-              cornerRadius: 6
-            },
-            centerText: { text: obtained + '/' + maxm }
-          }
-        },
-        plugins: [centerText]
-      });
-    })();
-  {% endfor %}
-})();
+  window.sgpaLabels = {{ sgpa_labels|safe }};
+  window.sgpaValues = {{ sgpa_values|safe }};
+  window.marksData = [
+    {% for m in marks %}
+      { marks_obtained: {{ m.marks_obtained|default:0 }}, max_marks: {{ m.max_marks|default:0 }} },
+    {% endfor %}
+  ];
 </script>
+
+<script src="{% static 'js/student_dashboard.js' %}"></script>
+
+
+
 {% endblock %}

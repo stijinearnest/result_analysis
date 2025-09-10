@@ -1,4 +1,4 @@
-{%load static%}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,157 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        
-            /* Soft blue radial gradient background */
-            background: #ffffff;
-            background-image: radial-gradient(circle at top center, rgba(59, 130, 246, 0.2), transparent 70%);
-            background-repeat: no-repeat;
-            background-size: cover;
-        }
-        
-        
-        .login-container {
-            width: 100%;
-            max-width: 450px;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
-        
-        .login-header {
-            background: #4a6fc7;
-            padding: 30px 20px;
-            text-align: center;
-            color: white;
-        }
-        
-        .login-header h2 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .login-header h2 i {
-            margin-right: 10px;
-        }
-        
-        .login-header p {
-            opacity: 0.9;
-            font-size: 16px;
-        }
-        
-        .login-form {
-            padding: 30px;
-        }
-        
-        .form-group {
-            margin-bottom: 25px;
-            position: relative;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #444;
-            font-size: 16px;
-        }
-        
-        .input-with-icon {
-            position: relative;
-        }
-        
-        .input-with-icon i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #777;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 14px 14px 14px 45px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-        
-        .form-group input:focus {
-            border-color: #4a6fc7;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(74, 111, 199, 0.2);
-        }
-        
-        .login-btn {
-            width: 100%;
-            padding: 15px;
-            background: #4a6fc7;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 10px;
-        }
-        
-        .login-btn:hover {
-            background: #3b5cad;
-        }
-        
-        .login-footer {
-            text-align: center;
-            margin-top: 25px;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .login-footer a {
-            color: #4a6fc7;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .login-footer a:hover {
-            text-decoration: underline;
-        }
-        
-        @media (max-width: 480px) {
-            .login-container {
-                border-radius: 12px;
-            }
-            
-            .login-header {
-                padding: 25px 15px;
-            }
-            
-            .login-form {
-                padding: 25px 20px;
-            }
-        }
-    </style>
+    <!-- External CSS -->
+    <link rel="stylesheet" href="{% static 'css/teacher_login.css' %}">
 </head>
 <body>
     <div class="login-container">
@@ -185,11 +36,9 @@
             </div>
             
             <button type="submit" class="login-btn">Login</button>
-            
-            <!--<div class="login-footer">
-                <a href="#">Forgot Password?</a> | <a href="#">Contact Administrator</a>
-            </div>-->
         </form>
     </div>
+
+                                                                                                                                                                                                                                                                                        
 </body>
 </html>

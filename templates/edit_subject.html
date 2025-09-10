@@ -1,26 +1,11 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Edit Subject</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; padding: 20px; }
-    .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-    h1 { color: #4a6fc7; text-align: center; margin-bottom: 20px; }
-    form { display: grid; gap: 15px; }
-    label { font-weight: 500; }
-    input, select { padding: 10px; border-radius: 6px; border: 1px solid #ccc; width: 100%; }
-    button { padding: 12px; background: #4a6fc7; color: white; border: none; border-radius: 8px; cursor: pointer; }
-    button:hover { background: #3b5cad; }
-    .back-btn { display: inline-block; margin-bottom: 20px; padding: 10px 20px; background: #6a11cb; color: white; text-decoration: none; border-radius: 6px; }
-</style>
-</head>
-<body>
 <div class="container">
-    <a href="{% url 'manage_subjects' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+    <a href="{% url 'manage_subjects' %}" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
     <h1>Edit Subject</h1>
     <form method="POST">
         {% csrf_token %}
@@ -32,5 +17,9 @@
         <button type="submit"><i class="fas fa-save"></i> Save Changes</button>
     </form>
 </div>
-</body>
-</html>
+
+<!-- External CSS & JS -->
+<link rel="stylesheet" href="{% static 'css/edit_subject.css' %}">
+
+
+{% endblock %}

@@ -4,13 +4,17 @@
   --secondary: #6c757d;
   --success: #28a745;
   --danger: #dc3545;
+  --warning: #ffc107;
+  --light: #f8f9fa;
+  --dark: #343a40;
   --border: #dee2e6;
-  --shadow: 0 4px 6px rgba(0,0,0,0.1);
-  --shadow-hover: 0 8px 15px rgba(0,0,0,0.1);
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.1);
   --radius: 8px;
   --transition: all 0.3s ease;
 }
 
+/* Container for centering */
 body {
   margin: 0;
   padding: 0;
@@ -19,14 +23,61 @@ body {
 }
 
 .form-container {
-  margin: 0 auto;
+  margin: 0 auto; /* center horizontally */
+}
+
+.main-content {
+  min-height: calc(100vh - 70px); /* Adjust for navbar height */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* aligns top, not vertically centered */
+  padding-top: 30px;
+  padding-bottom: 30px;
+  background-color: #f5f7fb; /* keep your existing background */
+}
+
+/* Message Container */
+.message-container {
+  background: white;
+  border-radius: var(--radius);
+  padding: 25px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.message-container.error {
+  border-top: 4px solid var(--danger);
+}
+
+.message-icon {
+  font-size: 3rem;
+  color: var(--danger);
+}
+
+.message-content h3 {
+  color: var(--dark);
+  margin-bottom: 10px;
+}
+
+.message-content p {
+  color: var(--secondary);
+}
+
+/* Form Container - Reduced Width */
+.form-container {
   background: white;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
   margin-bottom: 30px;
   width: 100%;
-  max-width: 700px;
+  max-width: 700px; /* Reduced from full width */
 }
 
 .form-header {
@@ -47,6 +98,7 @@ body {
   opacity: 0.9;
 }
 
+/* Table Styles */
 .table-responsive {
   overflow-x: auto;
   padding: 0 10px;
@@ -63,7 +115,7 @@ body {
   padding: 15px 12px;
   text-align: left;
   font-weight: 600;
-  color: #343a40;
+  color: var(--dark);
   border-bottom: 2px solid var(--border);
 }
 
@@ -73,6 +125,15 @@ body {
   vertical-align: middle;
 }
 
+.marks-table tr:last-child td {
+  border-bottom: none;
+}
+
+.marks-table tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Input Styles */
 .input-with-icon {
   position: relative;
 }
@@ -89,7 +150,7 @@ body {
 .input-with-icon input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(67,97,238,0.15);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
 }
 
 .input-with-icon i {
@@ -100,6 +161,7 @@ body {
   color: var(--secondary);
 }
 
+/* Button Styles */
 .btn-primary, .btn-submit {
   display: inline-flex;
   align-items: center;
@@ -133,39 +195,7 @@ body {
   border-top: 1px solid var(--border);
 }
 
-/* Message container */
-.message-container {
-  background: white;
-  border-radius: var(--radius);
-  padding: 25px;
-  box-shadow: var(--shadow);
-  text-align: center;
-  max-width: 500px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-
-.message-container.error {
-  border-top: 4px solid var(--danger);
-}
-
-.message-icon {
-  font-size: 3rem;
-  color: var(--danger);
-}
-
-.message-content h3 {
-  color: #343a40;
-  margin-bottom: 10px;
-}
-
-.message-content p {
-  color: var(--secondary);
-}
-
+/* Notification Styles */
 .notification {
   position: fixed;
   top: 20px;
@@ -196,28 +226,33 @@ body {
   background: var(--danger);
 }
 
+/* Responsive Design */
 @media (max-width: 768px) {
+  body {
+      padding: 15px;
+  }
+  
   .form-container {
       max-width: 100%;
   }
-
+  
   .marks-table {
       font-size: 0.9rem;
   }
-
+  
   .marks-table th,
   .marks-table td {
       padding: 10px 8px;
   }
-
+  
   .input-with-icon input {
       padding: 8px 10px 8px 30px;
   }
-
+  
   .form-header {
       padding: 15px 20px;
   }
-
+  
   .message-container {
       padding: 20px;
   }
@@ -227,12 +262,12 @@ body {
   .marks-table {
       font-size: 0.85rem;
   }
-
+  
   .marks-table th:nth-child(1),
   .marks-table td:nth-child(1) {
       display: none;
   }
-
+  
   .form-header h2 {
       font-size: 1.3rem;
   }

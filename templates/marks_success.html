@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{%load static%}
+{% block content %}
+<main class="main-content py-4">
+  <div class="container">
+    <div class="message-container success">
+      <div class="message-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div class="message-content">
+        <h3>Marks Added Successfully</h3>
+        <p>
+          Marks for <strong>{{ student.name }}</strong>  
+          (Semester {{ semester.number }}) have been saved.
+        </p>
+      </div>
+      <div class="actions">
+        <a href="{% url 'add_marks_single_page' %}?student_id={{ student.id }}&semester={{ semester.number }}" 
+           class="btn-primary">
+          <i class="fas fa-plus-circle"></i> Add More Marks
+        </a>
+        <a href="{% url 'teacher_dashboard' %}" class="btn-primary">
+          <i class="fas fa-home"></i> Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<style>
+.message-container.success {
+    border-top: 4px solid var(--success);
+}
+.message-icon {
+    font-size: 3rem;
+    color: var(--success);
+}
+.actions {
+    display: flex;
+    gap: 15px;
+}
+</style>
+{% endblock %}
