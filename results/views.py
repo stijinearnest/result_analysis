@@ -50,7 +50,8 @@ def student_login(request):
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def teacher_dashboard(request):
-    return render(request, "teacher_dashboard.html")
+    teacher_name = request.user.first_name or request.user.username
+    return render(request, "teacher_dashboard.html",{"teacher_name": teacher_name})
 
 
 
