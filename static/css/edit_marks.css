@@ -1,4 +1,4 @@
-/* Container for centering */
+
 .container {
     display: flex;
     justify-content: center;
@@ -8,7 +8,7 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Card */
+
 .form-card {
     background: #fff;
     border-radius: 12px;
@@ -18,7 +18,7 @@
     overflow: hidden;
 }
 
-/* Header */
+
 .form-header {
     background: linear-gradient(135deg, #4361ee, #3a56d4);
     color: #fff;
@@ -40,7 +40,7 @@
     opacity: 0.9;
 }
 
-/* Form Body */
+
 .form-body {
     padding: 25px;
 }
@@ -75,7 +75,7 @@
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
-/* Form Actions */
+
 .form-actions {
     margin-top: 20px;
     display: flex;
