@@ -14,7 +14,7 @@
   --transition: all 0.3s ease;
 }
 
-/* Container for centering */
+
 body {
   margin: 0;
   padding: 0;
@@ -23,20 +23,20 @@ body {
 }
 
 .form-container {
-  margin: 0 auto; /* center horizontally */
+  margin: 0 auto;
 }
 
 .main-content {
-  min-height: calc(100vh - 70px); /* Adjust for navbar height */
+  min-height: calc(100vh - 70px); 
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* aligns top, not vertically centered */
+  align-items: flex-start; 
   padding-top: 30px;
   padding-bottom: 30px;
-  background-color: #f5f7fb; /* keep your existing background */
+  background-color: #f5f7fb; 
 }
 
-/* Message Container */
+
 .message-container {
   background: white;
   border-radius: var(--radius);
@@ -69,7 +69,7 @@ body {
   color: var(--secondary);
 }
 
-/* Form Container - Reduced Width */
+
 .form-container {
   background: white;
   border-radius: var(--radius);
@@ -77,7 +77,7 @@ body {
   overflow: hidden;
   margin-bottom: 30px;
   width: 100%;
-  max-width: 700px; /* Reduced from full width */
+  max-width: 700px;
 }
 
 .form-header {
@@ -98,7 +98,7 @@ body {
   opacity: 0.9;
 }
 
-/* Table Styles */
+
 .table-responsive {
   overflow-x: auto;
   padding: 0 10px;
@@ -133,7 +133,7 @@ body {
   background-color: #f8f9fa;
 }
 
-/* Input Styles */
+
 .input-with-icon {
   position: relative;
 }
@@ -161,7 +161,7 @@ body {
   color: var(--secondary);
 }
 
-/* Button Styles */
+
 .btn-primary, .btn-submit {
   display: inline-flex;
   align-items: center;
@@ -195,7 +195,7 @@ body {
   border-top: 1px solid var(--border);
 }
 
-/* Notification Styles */
+
 .notification {
   position: fixed;
   top: 20px;
@@ -226,7 +226,7 @@ body {
   background: var(--danger);
 }
 
-/* Responsive Design */
+
 @media (max-width: 768px) {
   body {
       padding: 15px;
