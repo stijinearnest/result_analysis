@@ -10,13 +10,13 @@ from .forms import StudentForm, MarkForm,MarksEntryForm,SubjectForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 
 
-# Home (landing page)
+
 def home(request):
     return render(request, "home.html")
 
 
 
-# Teacher login
+
 def teacher_login(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -31,11 +31,11 @@ def teacher_login(request):
 
 
 
-# Student login
+
 def student_login(request):
     if request.method == "POST":
         reg_no = request.POST.get("reg_no")
-        dob = request.POST.get("dob")  # format YYYY-MM-DD
+        dob = request.POST.get("dob") 
         try:
             student = Student.objects.get(reg_no=reg_no, dob=dob)
             request.session["student_id"] = student.id
@@ -46,7 +46,7 @@ def student_login(request):
 
 
 
-# Teacher Dashboard
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def teacher_dashboard(request):
@@ -55,16 +55,16 @@ def teacher_dashboard(request):
 
 
 
-# Student Decorator
+
 def student_required(view_func):
-    #Decorator to ensure a student is logged in via session.
+    
     def wrapper(request, *args, **kwargs):
         if not request.session.get("student_id"):
-            return redirect("student_login")  # Corrected
+            return redirect("student_login") 
         return view_func(request, *args, **kwargs)
     return wrapper
 
-#student Dashboard
+
 @student_required
 def student_dashboard(request):
     student_id = request.session.get("student_id")
@@ -72,7 +72,6 @@ def student_dashboard(request):
 
     marks = Mark.objects.filter(semester__student=student)
 
-    # Pass/fail (40% of max_marks)
     for m in marks:
         m.passed = m.marks_obtained >= 0.4 * m.max_marks
 
@@ -80,12 +79,12 @@ def student_dashboard(request):
     passed = sum(1 for m in marks if m.passed)
     failed = total_papers - passed
 
-    # SGPA per semester (weighted by credits)
+   
     semesters = marks.values_list('semester__number', flat=True).distinct()
     sgpa_values = []
     sgpa_labels = []
 
-    semester_credit_map = {}  # total credits per semester
+    semester_credit_map = {}  
 
     for sem in semesters:
         sem_marks = marks.filter(semester__number=sem)
@@ -100,20 +99,20 @@ def student_dashboard(request):
         sgpa_values.append(sgpa)
         sgpa_labels.append(f"Sem {sem}")
 
-    # CGPA = weighted average of SGPA by semester credits
+   
     total_all_credits = sum(semester_credit_map.values())
     if total_all_credits > 0:
         cgpa = round(sum(sgpa * semester_credit_map[sem] for sem, sgpa in zip(semesters, sgpa_values)) / total_all_credits, 2)
     else:
         cgpa = 0
 
-   # Semester filter
+
     selected_semester = request.GET.get("semester")
     if selected_semester:
         selected_semester = int(selected_semester)
         marks_selected = marks.filter(semester__number=selected_semester)
     else:
-        # Get the latest semester number
+      
         latest_sem = marks.order_by('-semester__number').first().semester.number if marks.exists() else student.semester
         selected_semester = latest_sem
         marks_selected = marks.filter(semester__number=latest_sem)
@@ -133,7 +132,7 @@ def student_dashboard(request):
     })
 
 
-# Logout
+
 @login_required
 def user_logout(request):
     logout(request)
@@ -141,7 +140,7 @@ def user_logout(request):
 
 
 
-# Teacher: Add Student
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_student(request):
@@ -150,15 +149,15 @@ def add_student(request):
         if form.is_valid():
             student = form.save(commit=False)
 
-            # Automatically calculate semester based on academic year
+          
             start_year = int(student.academic_year.split("-")[0])
             current_year = date.today().year
             years_passed = current_year - start_year
-            student.semester = (years_passed * 2) + 1  # +1 for first semester of current year
+            student.semester = (years_passed * 2) + 1 
 
-            student.save()  # Save to DB
+            student.save() 
 
-            # Redirect to success page with student name
+            
             return redirect("student_success", student_name=student.name)
     else:
         form = StudentForm()
@@ -166,14 +165,14 @@ def add_student(request):
 
 
 
-# Teacher: Select Student by sem
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def select_student_semester(request):
     students = Student.objects.all()
     filtered_students = students
 
-    # Filter by course, reg_no, academic year
+   
     course = request.GET.get('course')
     reg_no = request.GET.get('reg_no')
     academic_year = request.GET.get('academic_year')
@@ -195,7 +194,7 @@ def select_student_semester(request):
     })
 
 
-# Teacher: Edit Marks
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def edit_marks(request, mark_id):
@@ -210,7 +209,7 @@ def edit_marks(request, mark_id):
     return render(request, "edit_marks.html", {"form": form})
 
 
-#searching students
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def select_student_semester(request):
@@ -229,7 +228,7 @@ def select_student_semester(request):
     return render(request, "select_student_semester.html")
 
 
-#student name by reg_no
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def get_student_name_by_regno(request):
@@ -239,7 +238,7 @@ def get_student_name_by_regno(request):
             student = Student.objects.get(reg_no__iexact=reg_no)
             data = {
                 "name": student.name,
-                "id": student.id   # <-- include student id
+                "id": student.id  
             }
         except Student.DoesNotExist:
             data = {"name": "", "id": ""}
@@ -248,7 +247,7 @@ def get_student_name_by_regno(request):
     return JsonResponse(data)
 
 
-#add marks
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_marks_single_page(request):
@@ -261,10 +260,10 @@ def add_marks_single_page(request):
     student = get_object_or_404(Student, id=student_id)
     semester, _ = Semester.objects.get_or_create(student=student, number=sem_number)
 
-    # Subjects for this semester & course
+    
     subjects = Subject.objects.filter(course=student.course, semester_number=semester.number)
 
-    # Check if marks already exist
+   
     existing_marks = Mark.objects.filter(semester=semester).exists()
     if existing_marks:
         return render(request, "add_marks_single.html", {
@@ -273,7 +272,7 @@ def add_marks_single_page(request):
             "already_exists": True
         })
 
-    # Handle AJAX form submission
+    
     if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
         errors = {}
         for subject in subjects:
@@ -293,7 +292,7 @@ def add_marks_single_page(request):
         else:
             return JsonResponse({"success": True, "message": f"Marks for {student.name} saved successfully!"})
 
-    # Render template
+    
     return render(request, "add_marks_single.html", {
         "student": student,
         "semester": sem_number,
@@ -302,7 +301,7 @@ def add_marks_single_page(request):
     })
 
 
-#filtering subjects by sem
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def get_subjects_for_semester(request):
@@ -316,7 +315,6 @@ def get_subjects_for_semester(request):
 
 
 
-# Manage Subjects page
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def manage_subjects(request):
@@ -333,7 +331,7 @@ def manage_subjects(request):
     return render(request, "manage_subjects.html", {"subjects": subjects, "form": form})
 
 
-#edit subject
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def edit_subject(request, subject_id):
@@ -349,7 +347,7 @@ def edit_subject(request, subject_id):
 
 
 
-#delete sub
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def delete_subject(request, subject_id):
@@ -358,7 +356,6 @@ def delete_subject(request, subject_id):
     return redirect("manage_subjects")
 
 
-# Course selection page for sub
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def select_course(request):
@@ -376,7 +373,7 @@ def select_course(request):
     return render(request, "select_course.html", {"courses": COURSES})
 
 
-# Manage subjects for a course
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def manage_subjects_by_course(request, course):
@@ -411,10 +408,10 @@ def student_search(request):
 def student_detail(request, student_id):
     student = get_object_or_404(Student, id=student_id)
 
-    # Fetch all marks for stats calculations
+    
     all_marks = Mark.objects.filter(semester__student=student)
 
-    # Add pass/fail attribute
+   
     for m in all_marks:
         m.passed = m.marks_obtained >= (0.4 * m.max_marks)
 
@@ -422,7 +419,7 @@ def student_detail(request, student_id):
     passed = sum(1 for m in all_marks if m.passed)
     failed = total_papers - passed
 
-    # SGPA calculations using all marks
+   
     semesters = all_marks.values_list("semester__number", flat=True).distinct()
     sgpa_values = []
     sgpa_labels = []
@@ -437,27 +434,25 @@ def student_detail(request, student_id):
 
     cgpa = round(sum(sgpa_values) / len(sgpa_values), 2) if sgpa_values else 0
 
-    # Now handle semester filter only for table display
-   # Filter marks for table display
+
     selected_semester = request.GET.get("semester")
     if selected_semester:
         marks = all_marks.filter(semester__number=selected_semester)
     else:
         marks = all_marks
 
-    # Add pass/fail attribute for table display
     for m in marks:
         m.passed = m.marks_obtained >= (0.4 * m.max_marks)
 
 
     return render(request, "student_detail.html", {
         "student": student,
-        "marks": marks,                  # filtered for table
+        "marks": marks,                 
         "semesters": semesters,
         "selected_semester": selected_semester,
         "sgpa_values": sgpa_values,
         "sgpa_labels": sgpa_labels,
-        "total_papers": total_papers,    # always total
+        "total_papers": total_papers,    
         "passed": passed,
         "failed": failed,
         "cgpa": cgpa
