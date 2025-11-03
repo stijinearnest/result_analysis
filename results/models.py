@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-# Extend User for teacher role
+
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100)
@@ -10,7 +10,7 @@ class Teacher(models.Model):
         return self.full_name
 
 
-# Student model
+
 class Student(models.Model):
     reg_no = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=100)
@@ -37,14 +37,14 @@ class Student(models.Model):
         for sem in self.semesters.all():
             for mark in sem.marks.all():
                 total += 1
-                if mark.marks_obtained >= (0.4 * mark.max_marks):  # 40% passing rule
+                if mark.marks_obtained >= (0.4 * mark.max_marks):  
                     passed += 1
                 else:
                     failed += 1
         return {"total": total, "passed": passed, "failed": failed}
 
 
-# Semester
+
 class Semester(models.Model):
     number = models.IntegerField()
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="semesters")
@@ -85,7 +85,7 @@ class Subject(models.Model):
 
 
 
-# Marks
+
 class Mark(models.Model):
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE, related_name="marks")
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
