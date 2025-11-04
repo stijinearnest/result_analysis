@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/add_marks_single.css' %}">
+
+<div class="container">
+    <h2>Select Subjects for Supply/Improvement ({{ student.name }}, Sem {{ semester }})</h2>
+
+    <form method="GET" action="{% url 'add_marks_single' %}">
+        <input type="hidden" name="student_id" value="{{ student.id }}">
+        <input type="hidden" name="semester" value="{{ semester }}">
+        <input type="hidden" name="attempt_type" value="Supply/Improvement">
+        {% csrf_token %}
+        <ul>
+            {% for subject in subjects %}
+            <li>
+                <label>
+                    <input type="checkbox" name="subjects" value="{{ subject.id }}">
+                    {{ subject.code }} - {{ subject.name }}
+                </label>
+            </li>
+            {% endfor %}
+        </ul>
+        <button type="submit" class="btn-primary">Continue to Add Marks</button>
+    </form>
+    
+</div>
+{% endblock %}

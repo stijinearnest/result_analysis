@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/add_marks_single.css' %}">
+
+<div class="message-container warning">
+    <div class="message-icon">
+        <i class="fas fa-info-circle"></i>
+    </div>
+    <div class="message-content">
+        <h3>Marks Already Registered</h3>
+        <p>Regular marks for {{ student.name }} (Semester {{ semester }}) are already entered.</p>
+        <p>If you need to modify them, please use <strong>Supply / Improvement</strong> option instead.</p>
+    </div>
+    <a href="{% url 'teacher_dashboard' %}" class="btn-primary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+{% endblock %}

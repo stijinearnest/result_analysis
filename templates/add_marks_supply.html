@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}  {# <-- load our new filter #}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/add_marks_single.css' %}">
+
+<div class="container">
+    <div class="form-header">
+        <h2><i class="fas fa-sync-alt"></i> Supply / Improvement Marks Entry</h2>
+        <p>Student: {{ student.name }} (Semester {{ semester }})</p>
+    </div>
+
+    <form id="supplyForm" method="POST">
+        {% csrf_token %}
+        <table class="marks-table">
+            <thead>
+                <tr>
+                    <th>Subject Code</th>
+                    <th>Subject Name</th>
+                    <th>Existing Marks</th>
+                    <th>New Marks</th>
+                    <th>Max Marks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subjects %}
+                {% with existing_mark=existing_marks|get_item:subject.id %}
+                <tr>
+                    <td>{{ subject.code }}</td>
+                    <td>{{ subject.name }}</td>
+
+                    <!-- ✅ Display old mark if available -->
+                    <td>
+                        {% if existing_mark %}
+                            {{ existing_mark.marks_obtained }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <!-- ✅ Input for new marks -->
+                    <td>
+                        <input type="number"
+                               name="new_marks_{{ subject.id }}"
+                               step="0.5"
+                               min="0"
+                               max="{{ existing_mark.max_marks|default:40 }}"
+                               required>
+                    </td>
+
+                    <td>
+                        <input type="number"
+                               name="max_{{ subject.id }}"
+                               value="{{ existing_mark.max_marks|default:40 }}"
+                               min="1"
+                               required>
+                    </td>
+                </tr>
+                {% endwith %}
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save"></i> Save Marks
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById("supplyForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    const form = this;
+    const formData = new FormData(form);
+
+    fetch("", {
+        method: "POST",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.href = "{% url 'teacher_dashboard' %}";
+        } else {
+            alert("Error: " + JSON.stringify(data.errors));
+        }
+    })
+    .catch(err => alert("Error submitting: " + err));
+});
+</script>
+{% endblock %}
