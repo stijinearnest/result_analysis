@@ -57,6 +57,9 @@ path("teacher/student-detail/<int:student_id>/", views.student_detail, name="stu
          auth_views.PasswordResetCompleteView.as_view(template_name="password_reset_complete.html"), 
          name="password_reset_complete"),
 
+path("student/<int:student_id>/attempts/", views.view_all_attempts, name="view_all_attempts"),
+path("student/<int:student_id>/subject/<int:subject_id>/attempts/", views.subject_attempt_history, name="subject_attempt_history"),
+
 
 
 ]

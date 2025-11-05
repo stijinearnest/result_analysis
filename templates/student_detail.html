@@ -109,7 +109,8 @@
                         <th>Marks Obtained</th>
                         <th>Max Marks</th>
                         <th>Status</th>
-                        <th>No. of Attempts</th> <!-- ✅ NEW COLUMN -->
+                        <th>No. of Attempts</th> 
+                        <th>Preview of attempts</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -127,8 +128,6 @@
                                 <span class="badge bg-danger">Failed</span>
                             {% endif %}
                         </td>
-
-                        <!-- ✅ Show Attempt Count -->
                         <td>
                             {% if m.attempt_count > 1 %}
                                 <span class="text-primary fw-bold">{{ m.attempt_count }}</span>
@@ -136,6 +135,19 @@
                                 <span class="text-muted">{{ m.attempt_count }}</span>
                             {% endif %}
                         </td>
+                        <td>
+                            <a href="{% url 'subject_attempt_history' student.id m.subject.id %}" class="btn-secondary">
+                                <i class="fas fa-history"></i> View Attempts
+                            </a>
+                        </td>
+
+                      
+                        <!--<td>
+                            <a href="{% url 'view_all_attempts' student.id %}" class="btn-secondary">
+                                <i class="fas fa-history"></i> Preview
+                            </a>
+                            
+                        </td>-->
 
                         <td>
                             <a href="{% url 'edit_marks' m.id %}" class="btn btn-sm btn-outline-primary">

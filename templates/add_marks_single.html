@@ -10,7 +10,7 @@
         <i class="fas fa-exclamation-circle"></i>
     </div>
     <div class="message-content">
-        <h3>Marks Added</h3>
+        <h3>Marks Already Added</h3>
     </div>
     <a href="{% url 'teacher_dashboard' %}" class="btn-primary">
         <i class="fas fa-arrow-left"></i> Back to Dashboard
@@ -23,8 +23,6 @@
         <h2><i class="fas fa-chart-bar"></i> Enter Marks</h2>
         <p>Enter marks for {{ student.name }} (Semester {{ semester }})</p>
     </div>
-
-
 
     <form id="marksForm" class="marks-form" method="POST">
         {% csrf_token %}
@@ -45,8 +43,7 @@
                         <td>{{ subject.name }}</td>
                         <td>
                             <div class="input-with-icon">
-                                <input type="number" name="marks_{{ subject.id }}" min="0" max="{{ subject.max_marks }}" step="0.5" required>
-
+                                <input type="number" name="marks_{{ subject.id }}" min="0" max="100" step="0.5" required>
                                 <i class="fas fa-pen"></i>
                             </div>
                         </td>
@@ -64,7 +61,8 @@
         
         <input type="hidden" name="student_id" value="{{ student.id }}">
         <input type="hidden" name="semester" value="{{ semester }}">
-        
+        <input type="hidden" name="attempt_type" value="{{ attempt_type }}">
+
         <div class="form-actions">
             <button type="submit" class="btn-submit">
                 <i class="fas fa-save"></i> Save Marks
@@ -81,7 +79,6 @@
         e.preventDefault();
         const form = this;
         const formData = new FormData(form);
-
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
 
@@ -101,7 +98,6 @@
             if (data.success) {
                 showNotification(data.message, 'success');
                 form.querySelectorAll('input').forEach(input => input.disabled = true);
-                submitBtn.disabled = true;
                 submitBtn.innerHTML = 'Saved ✔';
             } else {
                 showNotification(data.message || 'Error saving marks', 'error');
@@ -117,7 +113,7 @@
         });
     });
 
-    // Notification display
+    // Notification popup
     function showNotification(message, type) {
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
@@ -133,18 +129,13 @@
         }, 3000);
     }
 
-    //  Dynamically update marks max limit based on max_marks entered
+    // Update max dynamically
     document.addEventListener("DOMContentLoaded", function() {
-        
         document.querySelectorAll('input[name^="max_"]').forEach(maxInput => {
-            const subjectId = maxInput.name.split("_")[1];  // extract subject id
+            const subjectId = maxInput.name.split("_")[1];
             const marksInput = document.querySelector(`input[name="marks_${subjectId}"]`);
-            
             if (marksInput) {
-                
                 marksInput.max = maxInput.value || 100;
-
-                
                 maxInput.addEventListener("input", function() {
                     marksInput.max = this.value || 100;
                 });
@@ -152,7 +143,6 @@
         });
     });
 </script>
-
 
 {% endif %}
 {% endblock %}

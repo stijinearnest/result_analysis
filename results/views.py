@@ -1,3 +1,5 @@
+from collections import defaultdict
+from django.db.models import Max
 
 from datetime import date
 from django.http import JsonResponse
@@ -8,6 +10,7 @@ from django.contrib import messages
 from .models import Student, Mark,Teacher,Subject,Semester
 from .forms import StudentForm, MarkForm,MarksEntryForm,SubjectForm
 from django.contrib.auth.decorators import login_required, user_passes_test
+from collections import defaultdict
 
 
 
@@ -272,7 +275,6 @@ def get_student_name_by_regno(request):
     return JsonResponse(data)
 
 
-
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_marks_single_page(request):
@@ -286,11 +288,9 @@ def add_marks_single_page(request):
     student = get_object_or_404(Student, id=student_id)
     semester, _ = Semester.objects.get_or_create(student=student, number=sem_number)
 
-    
     subjects = Subject.objects.filter(course=student.course, semester_number=semester.number)
-    
 
-    
+    # ✅ Regular attempt: prevent duplicate entries
     if attempt_type == "Regular":
         existing = Mark.objects.filter(semester=semester).exists()
         if existing:
@@ -300,7 +300,7 @@ def add_marks_single_page(request):
                 "attempt_type": attempt_type
             })
 
-   
+    # ✅ Supply/Improvement Step 1: Subject selection
     if attempt_type == "Supply/Improvement" and request.method != "POST" and not request.GET.getlist("subjects"):
         return render(request, "select_supply_subjects.html", {
             "student": student,
@@ -308,50 +308,92 @@ def add_marks_single_page(request):
             "subjects": subjects
         })
 
-    
+    # ✅ Selected subjects
     selected_subject_ids = request.GET.getlist("subjects") or request.POST.getlist("selected_subjects")
     selected_subjects = Subject.objects.filter(id__in=selected_subject_ids) if selected_subject_ids else subjects
 
-    
+    # ✅ Handle AJAX submission
     if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
         errors = {}
+        saved_count = 0
+
         for subject in selected_subjects:
             try:
-                new_mark = float(request.POST.get(f"marks_{subject.id}", 0))
-                max_marks = float(request.POST.get(f"max_{subject.id}", 50))
-
-                mark, created = Mark.objects.get_or_create(
-                    semester=semester,
-                    subject=subject,
-                    defaults={
-                        "marks_obtained": new_mark,
-                        "max_marks": max_marks,
-                        "attempt_type": attempt_type,
-                        "attempt_no": 1
-                    }
+                # Get marks (works for both 'marks_' and 'new_marks_')
+                marks_str = (
+                    request.POST.get(f"marks_{subject.id}") or
+                    request.POST.get(f"new_marks_{subject.id}")
                 )
+                max_str = request.POST.get(f"max_{subject.id}")
 
-                if not created and attempt_type == "Supply/Improvement":
-                   
-                    highest = max(mark.marks_obtained, new_mark)
-                    mark.marks_obtained = highest
-                    mark.max_marks = max_marks
-                    mark.attempt_no += 1
-                    mark.attempt_type = attempt_type
-                    mark.save()
+                if not marks_str or not max_str:
+                    raise ValueError("Missing marks or max marks")
+
+                new_mark = float(marks_str)
+                max_marks = float(max_str)
+
+                # ✅ Supply/Improvement — always create a NEW record
+                if attempt_type == "Supply/Improvement":
+                    last_attempt = (
+                        Mark.objects.filter(semester=semester, subject=subject)
+                        .order_by("-attempt_no")
+                        .first()
+                    )
+                    attempt_no = (last_attempt.attempt_no + 1) if last_attempt else 1
+
+                    Mark.objects.create(
+                        semester=semester,
+                        subject=subject,
+                        marks_obtained=new_mark,
+                        max_marks=max_marks,
+                        attempt_type=attempt_type,
+                        attempt_no=attempt_no,
+                    )
+                    saved_count += 1
+
+                # ✅ Regular Attempt — create once or update existing
+                else:
+                    mark, created = Mark.objects.get_or_create(
+                        semester=semester,
+                        subject=subject,
+                        defaults={
+                            "marks_obtained": new_mark,
+                            "max_marks": max_marks,
+                            "attempt_type": attempt_type,
+                            "attempt_no": 1
+                        }
+                    )
+
+                    if not created:
+                        mark.marks_obtained = new_mark
+                        mark.max_marks = max_marks
+                        mark.save()
+                        mark.attempt_type = attempt_type
+
+                    saved_count += 1
 
             except Exception as e:
                 errors[subject.name] = str(e)
 
+        # ✅ Response
         if errors:
-            return JsonResponse({"success": False, "errors": errors})
+            return JsonResponse({
+                "success": False,
+                "message": "Some marks failed to save.",
+                "errors": errors
+            })
         else:
-            return JsonResponse({"success": True, "message": f"{attempt_type} marks saved successfully!"})
+            return JsonResponse({
+                "success": True,
+                "message": f"{attempt_type} marks saved successfully for {saved_count} subjects!"
+            })
 
-   
-    existing_marks = {m.subject.id: m for m in Mark.objects.filter(semester=semester, subject__in=selected_subjects)}
+    # ✅ Preload existing marks for display
+    existing_marks = {
+        m.subject.id: m for m in Mark.objects.filter(semester=semester, subject__in=selected_subjects)
+    }
 
-   
+    # ✅ Render correct template
     return render(
         request,
         "add_marks_supply.html" if attempt_type == "Supply/Improvement" else "add_marks_single.html",
@@ -469,38 +511,48 @@ def student_search(request):
         students = Student.objects.filter(reg_no__icontains=query)
     return render(request, "student_search.html", {"students": students})
     
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def student_detail(request, student_id):
     student = get_object_or_404(Student, id=student_id)
 
+    # ✅ Get all marks for the student
     all_marks = Mark.objects.filter(semester__student=student).select_related("subject", "semester")
 
-    
-    for m in all_marks:
-        m.passed = m.marks_obtained >= (0.4 * m.max_marks)
+    # ✅ Group marks by subject and pick the highest marks_obtained
+    best_marks = []
+    subject_best_map = defaultdict(lambda: None)
 
-    total_papers = all_marks.count()
-    passed = sum(1 for m in all_marks if m.passed)
+    for mark in all_marks:
+        current_best = subject_best_map[mark.subject]
+        if current_best is None or mark.marks_obtained > current_best.marks_obtained:
+            subject_best_map[mark.subject] = mark
+
+    best_marks = list(subject_best_map.values())
+
+    # Compute pass/fail for display
+    for m in best_marks:
+        m.passed = m.marks_obtained >= (0.4 * m.max_marks)
+        m.attempt_count = Mark.objects.filter(semester__student=student, subject=m.subject).count()
+
+    total_papers = len(best_marks)
+    passed = sum(1 for m in best_marks if m.passed)
     failed = total_papers - passed
 
-   
-    semesters = all_marks.values_list("semester__number", flat=True).distinct()
+    # ✅ SGPA and CGPA using best marks only
+    semesters = sorted({m.semester.number for m in best_marks})
     sgpa_values, sgpa_labels = [], []
     semester_credit_map = {}
 
     for sem in semesters:
-        sem_marks = all_marks.filter(semester__number=sem)
-        if sem_marks.exists():
+        sem_marks = [m for m in best_marks if m.semester.number == sem]
+        if sem_marks:
             total_credits = sum((m.subject.credits or 0) for m in sem_marks)
             total_credit_points = 0
-
             for m in sem_marks:
-                
                 gp = (m.marks_obtained / m.max_marks) * 10 if m.max_marks > 0 else 0
-                
                 total_credit_points += gp * (m.subject.credits or 0)
-
             sgpa = round(total_credit_points / total_credits, 3) if total_credits > 0 else 0
             sgpa_values.append(sgpa)
             sgpa_labels.append(f"Sem {sem}")
@@ -510,31 +562,25 @@ def student_detail(request, student_id):
             sgpa_labels.append(f"Sem {sem}")
             semester_credit_map[sem] = 0
 
-    
     total_all_credits = sum(semester_credit_map.values())
     if total_all_credits > 0:
         cgpa = round(
             sum(
                 sgpa * semester_credit_map.get(sem, 0)
                 for sgpa, sem in zip(sgpa_values, semesters)
-            )
-            / total_all_credits,
+            ) / total_all_credits,
             3,
         )
     else:
         cgpa = 0.0
 
-
+    # ✅ Semester filter for display
     selected_semester = request.GET.get("semester")
     if selected_semester:
-        marks = all_marks.filter(semester__number=selected_semester)
+        selected_semester = int(selected_semester)
+        marks = [m for m in best_marks if m.semester.number == selected_semester]
     else:
-        marks = all_marks
-
- 
-    for m in marks:
-        m.passed = m.marks_obtained >= (0.4 * m.max_marks)
-        m.attempt_count = m.attempt_no
+        marks = best_marks
 
     return render(request, "student_detail.html", {
         "student": student,
@@ -550,8 +596,71 @@ def student_detail(request, student_id):
     })
 
 
+
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def student_success(request, student_name):
     return render(request, "student_success.html", {"student_name": student_name})
+
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def view_all_attempts(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+
+    # Get all marks for that student, ordered by subject then attempt_no
+    all_marks = (
+        Mark.objects.filter(semester__student=student)
+        .select_related("subject", "semester")
+        .order_by("subject__name", "attempt_no")
+    )
+
+    # Group marks by subject and add computed fields
+    subject_attempts = defaultdict(list)
+    for mark in all_marks:
+        # compute pass/fail (40% of max_marks). guard against zero max_marks.
+        try:
+            max_m = float(mark.max_marks or 0)
+            obtained = float(mark.marks_obtained or 0)
+            mark.passed = (max_m > 0) and (obtained >= 0.4 * max_m)
+        except Exception:
+            mark.passed = False
+
+        # optional: format values for display if you want strings:
+        # mark.marks_display = f"{obtained:.2f}"
+        # mark.max_display = f"{max_m:.2f}"
+
+        subject_attempts[mark.subject].append(mark)
+
+    return render(request, "view_all_attempts.html", {
+        "student": student,
+        "subject_attempts": dict(subject_attempts)
+    })
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def subject_attempt_history(request, student_id, subject_id):
+    student = get_object_or_404(Student, id=student_id)
+    subject = get_object_or_404(Subject, id=subject_id)
+
+    # Get all attempts for that student and subject
+    attempts = (
+        Mark.objects.filter(semester__student=student, subject=subject)
+        .select_related("semester", "subject")
+        .order_by("attempt_no")
+    )
+
+    # Compute pass/fail for each attempt
+    for mark in attempts:
+        try:
+            mark.passed = (mark.max_marks > 0) and (mark.marks_obtained >= 0.4 * mark.max_marks)
+        except Exception:
+            mark.passed = False
+
+    return render(request, "subject_attempt_history.html", {
+        "student": student,
+        "subject": subject,
+        "attempts": attempts
+    })
 
