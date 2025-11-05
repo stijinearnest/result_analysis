@@ -133,18 +133,18 @@
         }, 3000);
     }
 
-    // 🔹 Dynamically update marks max limit based on max_marks entered
+    //  Dynamically update marks max limit based on max_marks entered
     document.addEventListener("DOMContentLoaded", function() {
-        // Select all rows of the marks table
+        
         document.querySelectorAll('input[name^="max_"]').forEach(maxInput => {
             const subjectId = maxInput.name.split("_")[1];  // extract subject id
             const marksInput = document.querySelector(`input[name="marks_${subjectId}"]`);
             
             if (marksInput) {
-                // Set initial max limit
+                
                 marksInput.max = maxInput.value || 100;
 
-                // Update dynamically when max_marks changes
+                
                 maxInput.addEventListener("input", function() {
                     marksInput.max = this.value || 100;
                 });

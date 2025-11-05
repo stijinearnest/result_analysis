@@ -286,11 +286,11 @@ def add_marks_single_page(request):
     student = get_object_or_404(Student, id=student_id)
     semester, _ = Semester.objects.get_or_create(student=student, number=sem_number)
 
-    # Get all subjects in semester
+    
     subjects = Subject.objects.filter(course=student.course, semester_number=semester.number)
     
 
-    # ✅ 1️⃣ Regular Attempt: Check if already entered
+    
     if attempt_type == "Regular":
         existing = Mark.objects.filter(semester=semester).exists()
         if existing:
@@ -300,7 +300,7 @@ def add_marks_single_page(request):
                 "attempt_type": attempt_type
             })
 
-    # ✅ 2️⃣ Supply/Improvement Step 1: Subject selection page
+   
     if attempt_type == "Supply/Improvement" and request.method != "POST" and not request.GET.getlist("subjects"):
         return render(request, "select_supply_subjects.html", {
             "student": student,
@@ -308,11 +308,11 @@ def add_marks_single_page(request):
             "subjects": subjects
         })
 
-    # ✅ 3️⃣ Handle selected subjects (Supply flow or Regular flow)
+    
     selected_subject_ids = request.GET.getlist("subjects") or request.POST.getlist("selected_subjects")
     selected_subjects = Subject.objects.filter(id__in=selected_subject_ids) if selected_subject_ids else subjects
 
-    # ✅ 4️⃣ Handle marks submission (AJAX)
+    
     if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
         errors = {}
         for subject in selected_subjects:
@@ -332,7 +332,7 @@ def add_marks_single_page(request):
                 )
 
                 if not created and attempt_type == "Supply/Improvement":
-                    # Compare old vs new marks → Save highest
+                   
                     highest = max(mark.marks_obtained, new_mark)
                     mark.marks_obtained = highest
                     mark.max_marks = max_marks
@@ -348,10 +348,10 @@ def add_marks_single_page(request):
         else:
             return JsonResponse({"success": True, "message": f"{attempt_type} marks saved successfully!"})
 
-    # ✅ 5️⃣ Preload existing marks for display
+   
     existing_marks = {m.subject.id: m for m in Mark.objects.filter(semester=semester, subject__in=selected_subjects)}
 
-    # ✅ 6️⃣ Render correct template
+   
     return render(
         request,
         "add_marks_supply.html" if attempt_type == "Supply/Improvement" else "add_marks_single.html",
@@ -476,7 +476,7 @@ def student_detail(request, student_id):
 
     all_marks = Mark.objects.filter(semester__student=student).select_related("subject", "semester")
 
-    # Pass/fail calculation
+    
     for m in all_marks:
         m.passed = m.marks_obtained >= (0.4 * m.max_marks)
 
@@ -484,7 +484,7 @@ def student_detail(request, student_id):
     passed = sum(1 for m in all_marks if m.passed)
     failed = total_papers - passed
 
-    # --- ✅ Correct Kannur University SGPA / CGPA Calculation ---
+   
     semesters = all_marks.values_list("semester__number", flat=True).distinct()
     sgpa_values, sgpa_labels = [], []
     semester_credit_map = {}
@@ -496,9 +496,9 @@ def student_detail(request, student_id):
             total_credit_points = 0
 
             for m in sem_marks:
-                # Grade Point = (marks_obtained / max_marks) × 10
+                
                 gp = (m.marks_obtained / m.max_marks) * 10 if m.max_marks > 0 else 0
-                # Credit Point = Grade Point × Credits
+                
                 total_credit_points += gp * (m.subject.credits or 0)
 
             sgpa = round(total_credit_points / total_credits, 3) if total_credits > 0 else 0
@@ -510,7 +510,7 @@ def student_detail(request, student_id):
             sgpa_labels.append(f"Sem {sem}")
             semester_credit_map[sem] = 0
 
-    # CGPA = Weighted average of SGPAs by credits
+    
     total_all_credits = sum(semester_credit_map.values())
     if total_all_credits > 0:
         cgpa = round(
@@ -524,14 +524,14 @@ def student_detail(request, student_id):
     else:
         cgpa = 0.0
 
-    # Semester filter for table display
+
     selected_semester = request.GET.get("semester")
     if selected_semester:
         marks = all_marks.filter(semester__number=selected_semester)
     else:
         marks = all_marks
 
-    # Pass/fail + attempt count
+ 
     for m in marks:
         m.passed = m.marks_obtained >= (0.4 * m.max_marks)
         m.attempt_count = m.attempt_no
