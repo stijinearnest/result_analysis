@@ -317,8 +317,8 @@ def add_marks_single_page(request):
         errors = {}
         for subject in selected_subjects:
             try:
-                new_mark = float(request.POST.get(f"new_marks_{subject.id}", 0))
-                max_marks = float(request.POST.get(f"max_{subject.id}", 100))
+                new_mark = float(request.POST.get(f"marks_{subject.id}", 0))
+                max_marks = float(request.POST.get(f"max_{subject.id}", 50))
 
                 mark, created = Mark.objects.get_or_create(
                     semester=semester,

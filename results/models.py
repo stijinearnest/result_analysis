@@ -145,13 +145,12 @@ class Mark(models.Model):
     def __str__(self):
         return f"{self.subject.name} (Attempt {self.attempt_no} - {self.attempt_type})"
 
-    # 🧮 Helper methods for clarity
     def grade_point(self):
-        """Grade Point = (marks_obtained / max_marks) × 10"""
+        
         if self.max_marks > 0:
             return round((self.marks_obtained / self.max_marks) * 10, 2)
         return 0.0
 
     def credit_point(self):
-        """Credit Point = Grade Point × Subject Credits"""
+        
         return round(self.grade_point() * (self.subject.credits or 0), 2)
