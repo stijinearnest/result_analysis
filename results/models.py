@@ -11,11 +11,40 @@ class Teacher(models.Model):
 
 
 class Student(models.Model):
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other'),
+    ]
+
+    CASTE_CHOICES = [
+        ('GEN', 'General'),
+        ('OBC', 'OBC'),
+        ('SC', 'SC'),
+        ('ST', 'ST'),
+        ('OTHER', 'Other'),
+    ]
+
+    RELIGION_CHOICES = [
+        ('HINDU', 'Hindu'),
+        ('MUSLIM', 'Muslim'),
+        ('CHRISTIAN', 'Christian'),
+        ('SIKH', 'Sikh'),
+        ('BUDDHIST', 'Buddhist'),
+        ('JAIN', 'Jain'),
+        ('OTHER', 'Other'),
+    ]
     reg_no = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=100)
     dob = models.DateField()
     course = models.CharField(max_length=100, default="B.Sc Computer Science")
     semester = models.IntegerField(default=1)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+    caste = models.CharField(max_length=10, choices=CASTE_CHOICES)
+    religion = models.CharField(max_length=20, choices=RELIGION_CHOICES)
+
+    address = models.TextField()
+    pin_code = models.CharField(max_length=6)
     academic_year = models.CharField(max_length=20, default="2024-25")
     photo = models.ImageField(upload_to="students/", blank=True, null=True)
 

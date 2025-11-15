@@ -1,10 +1,11 @@
+
 from django import forms
 from .models import Student, Semester, Mark, Subject
 
 class StudentForm(forms.ModelForm):
     class Meta:
         model = Student
-        fields = ["reg_no", "name", "dob", "course", "academic_year", "photo"]
+        fields = ["reg_no", "name", "dob", "course", "academic_year","gender","caste","religion","address","pin_code", "photo"]
         widgets = {"dob": forms.DateInput(attrs={"type": "date"})}
 
 class SemesterForm(forms.ModelForm):
