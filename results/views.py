@@ -278,10 +278,16 @@ def get_student_name_by_regno(request):
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 
-
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_marks_single_page(request):
+    """
+    Full view supporting:
+     - Regular attempts (prevent duplicate entries)
+     - Supply/Improvement attempts with a subject-selection step (GET -> select_supply_subjects.html)
+     - Robust subject lookup (course fk or string), and semester-only fallback
+     - AJAX POST handler returning JSON
+    """
     student_id = request.GET.get("student_id")
     sem_number = request.GET.get("semester")
     attempt_type = request.GET.get("attempt_type", "Regular")
@@ -291,7 +297,7 @@ def add_marks_single_page(request):
 
     student = get_object_or_404(Student, id=student_id)
 
-    # Normalize semester number to int when possible
+    # Normalize semester number to int if possible (keeps behavior consistent)
     try:
         sem_num_int = int(sem_number)
     except (TypeError, ValueError):
@@ -299,34 +305,63 @@ def add_marks_single_page(request):
 
     semester, _ = Semester.objects.get_or_create(student=student, number=sem_num_int)
 
-    # Build subjects queryset robustly:
-    subjects_qs = Subject.objects.none()
-    student_course = getattr(student, "course", None)
+    # ---------- Supply/Improvement selection step (GET) ----------
+    # If teacher is attempting Supply/Improvement and no subjects are provided in querystring,
+    # show the selection page so they can pick which subjects to attempt.
+    if attempt_type == "Supply/Improvement" and request.method != "POST":
+        selected_subject_ids = request.GET.getlist("subjects")
+        if not selected_subject_ids:
+            # Build candidate list using same robust logic as below
+            candidate_qs = Subject.objects.none()
+            student_course = getattr(student, "course", None)
+            if student_course is not None:
+                if hasattr(student_course, "id"):
+                    candidate_qs = Subject.objects.filter(course__id=student_course.id, semester_number=semester.number)
+                else:
+                    candidate_qs = Subject.objects.filter(course__iexact=str(student_course), semester_number=semester.number)
 
-    if student_course is not None:
-        # FK-style course
-        if hasattr(student_course, "id"):
-            subjects_qs = Subject.objects.filter(course__id=student_course.id, semester_number=semester.number)
-        # String-style course
-        else:
-            subjects_qs = Subject.objects.filter(course__iexact=str(student_course), semester_number=semester.number)
+            if not candidate_qs.exists():
+                candidate_qs = Subject.objects.filter(semester_number=semester.number)
 
-    # Fallback: semester-only
-    if not subjects_qs.exists():
-        subjects_qs = Subject.objects.filter(semester_number=semester.number)
+            return render(request, "select_supply_subjects.html", {
+                "student": student,
+                "semester": sem_num_int,
+                "subjects": candidate_qs,
+                "attempt_type": attempt_type,
+            })
 
-    # Debug - remove or convert to logger.debug in production
-    print(f"[add_marks_single_page] student={student.id} course={repr(student_course)} sem={semester.number} subjects_count={subjects_qs.count()}")
+    # ---------- Determine selected subjects (GET or POST) ----------
+    selected_subject_ids = request.GET.getlist("subjects") or request.POST.getlist("selected_subjects")
 
-    # If still empty, render a friendly page telling the admin what's missing
+    # If specific subjects were selected, use them (preserves teacher choice)
+    if selected_subject_ids:
+        subjects_qs = Subject.objects.filter(id__in=selected_subject_ids).order_by('id')
+    else:
+        # Robust subject lookup: try course FK -> course string (iexact) -> fallback to semester-only
+        student_course = getattr(student, "course", None)
+        subjects_qs = Subject.objects.none()
+
+        if student_course is not None:
+            if hasattr(student_course, "id"):
+                subjects_qs = Subject.objects.filter(course__id=student_course.id, semester_number=semester.number)
+            else:
+                subjects_qs = Subject.objects.filter(course__iexact=str(student_course), semester_number=semester.number)
+
+        if not subjects_qs.exists():
+            subjects_qs = Subject.objects.filter(semester_number=semester.number)
+
+    # Debug print (optional) - replace with logger.debug in production
+    print(f"[add_marks_single_page] student={student.id} course={repr(getattr(student, 'course', None))} sem={semester.number} subjects_count={subjects_qs.count()}")
+
+    # If still no subjects, show a friendly page explaining next steps
     if not subjects_qs.exists():
         return render(request, "add_marks_no_subjects.html", {
             "student": student,
             "semester": sem_num_int,
-            "message": "No subjects found for this student&semester. Ensure student's course is set and subjects exist for that course & semester."
+            "message": "No subjects found for this student & semester. Ensure student's course is set and subjects are created for that course/semester."
         })
 
-    # Prevent duplicate Regular attempt entries
+    # ---------- Prevent duplicate entries for Regular attempt ----------
     if attempt_type == "Regular":
         existing = Mark.objects.filter(semester=semester).exists()
         if existing:
@@ -336,13 +371,14 @@ def add_marks_single_page(request):
                 "attempt_type": attempt_type
             })
 
-    # Handle AJAX submission (Supply & Regular logic retained)
+    # ---------- Handle AJAX POST submission ----------
     if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
         errors = {}
         saved_count = 0
 
         for subject in subjects_qs:
             try:
+                # Accept either marks_<id> (add form) or new_marks_<id> (alternate naming)
                 marks_str = request.POST.get(f"marks_{subject.id}") or request.POST.get(f"new_marks_{subject.id}")
                 max_str = request.POST.get(f"max_{subject.id}")
 
@@ -353,6 +389,7 @@ def add_marks_single_page(request):
                 max_marks = float(max_str)
 
                 if attempt_type == "Supply/Improvement":
+                    # Always create a new record for supply/improvement with incremented attempt_no
                     last_attempt = Mark.objects.filter(semester=semester, subject=subject).order_by("-attempt_no").first()
                     attempt_no = (last_attempt.attempt_no + 1) if last_attempt else 1
                     Mark.objects.create(
@@ -363,7 +400,9 @@ def add_marks_single_page(request):
                         attempt_type=attempt_type,
                         attempt_no=attempt_no,
                     )
+                    saved_count += 1
                 else:
+                    # Regular: create or update existing single record
                     mark, created = Mark.objects.get_or_create(
                         semester=semester,
                         subject=subject,
@@ -379,17 +418,25 @@ def add_marks_single_page(request):
                         mark.max_marks = max_marks
                         mark.attempt_type = attempt_type
                         mark.save()
-
-                saved_count += 1
+                    saved_count += 1
 
             except Exception as e:
                 errors[subject.name] = str(e)
 
+        # Return JSON response matching prior behavior
         if errors:
-            return JsonResponse({"success": False, "message": "Some marks failed to save.", "errors": errors})
+            return JsonResponse({
+                "success": False,
+                "message": "Some marks failed to save.",
+                "errors": errors
+            })
         else:
-            return JsonResponse({"success": True, "message": f"{attempt_type} marks saved successfully for {saved_count} subjects!"})
+            return JsonResponse({
+                "success": True,
+                "message": f"{attempt_type} marks saved successfully for {saved_count} subjects!"
+            })
 
+    # Preload existing marks for display (if any) so template can show them
     existing_marks = {m.subject.id: m for m in Mark.objects.filter(semester=semester, subject__in=subjects_qs)}
 
     template = "add_marks_supply.html" if attempt_type == "Supply/Improvement" else "add_marks_single.html"
@@ -400,7 +447,6 @@ def add_marks_single_page(request):
         "existing_marks": existing_marks,
         "attempt_type": attempt_type
     })
-
 
 
 
