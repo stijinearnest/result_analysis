@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="display:flex; gap:24px; align-items:flex-start; padding:16px;">
+  <!-- Sidebar filters -->
+  <aside style="width:320px; padding:16px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.06); background:#fff;">
+    <h3>Filter students</h3>
+    <form method="get" id="student-filter-form">
+      <label>Semester</label>
+      <select name="semester" id="semester-select">
+        <option value="">-- Any --</option>
+        {% for sn in semesters_numbers %}
+          <option value="{{ sn }}" {% if filter_values.semester|stringformat:"s" == sn|stringformat:"s" %}selected{% endif %}>Sem {{ sn }}</option>
+        {% endfor %}
+      </select>
+
+      <label>Subject (only subjects for chosen semester)</label>
+      <select name="subject" id="subject-select">
+        <option value="">-- Any --</option>
+        {% for sub in subjects_for_sem %}
+          <option value="{{ sub.id }}" {% if filter_values.subject and filter_values.subject|stringformat:"s" == sub.id|stringformat:"s" %}selected{% endif %}>
+            {{ sub.name }} {% if sub.code %}({{ sub.code }}){% endif %}
+          </option>
+        {% endfor %}
+      </select>
+
+      <label>Subject Status</label>
+      <select name="subject_status">
+        <option value="">-- Any --</option>
+        <option value="passed" {% if filter_values.subject_status == 'passed' %}selected{% endif %}>Passed (in selected subject)</option>
+        <option value="failed" {% if filter_values.subject_status == 'failed' %}selected{% endif %}>Failed (in selected subject)</option>
+      </select>
+
+      <hr>
+
+      <label>Academic Year</label>
+      <select name="academic_year">
+        <option value="">-- Any --</option>
+        {% for ay in academic_years %}
+          <option value="{{ ay }}" {% if filter_values.academic_year == ay %}selected{% endif %}>{{ ay }}</option>
+        {% endfor %}
+      </select>
+
+      <label>Gender</label>
+      <select name="gender">
+        <option value="">-- Any --</option>
+        {% for g in genders %}
+          <option value="{{ g }}" {% if filter_values.gender == g %}selected{% endif %}>{{ g }}</option>
+        {% endfor %}
+      </select>
+
+      <label>Caste</label>
+      <select name="caste">
+        <option value="">-- Any --</option>
+        {% for c in castes %}
+          <option value="{{ c }}" {% if filter_values.caste == c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+
+      <label>Religion</label>
+      <select name="religion">
+        <option value="">-- Any --</option>
+        {% for r in religions %}
+          <option value="{{ r }}" {% if filter_values.religion == r %}selected{% endif %}>{{ r }}</option>
+        {% endfor %}
+      </select>
+
+      <label>Course</label>
+      <select name="course" id="course-select">
+        <option value="">-- Any --</option>
+        {% for c in courses %}
+          <option value="{{ c }}" {% if filter_values.course == c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+      
+      <label>Reg. No</label>
+      <input type="text" name="reg_no" value="{{ filter_values.reg_no|default_if_none:'' }}" placeholder="Registration no" style="width:100%;">
+
+      <label>Overall Pass / Fail</label>
+      <select name="pass_status">
+        <option value="">-- Any --</option>
+        <option value="passed" {% if filter_values.pass_status == 'passed' %}selected{% endif %}>Passed (all papers)</option>
+        <option value="failed" {% if filter_values.pass_status == 'failed' %}selected{% endif %}>Failed (any paper)</option>
+      </select>
+
+      <div style="margin-top:12px;">
+        <button type="submit">Apply filters</button>
+        <a href="{% url 'teacher_students_filter' %}">Reset</a>
+      </div>
+    </form>
+  </aside>
+
+  <!-- Results -->
+  <section style="flex:1;">
+    <h2>Students ({{ students|length }})</h2>
+
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Reg no</th>
+          <th>Course</th>
+          <th>Academic year</th>
+          <th>Gender</th>
+          <th>Caste</th>
+          <th>Religion</th>
+          <th>{% if filter_values.subject %}Subject Status{% else %}View{% endif %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+          <tr>
+            <td>{{ s.name }}</td>
+            <td>{{ s.reg_no }}</td>
+            <td>{{ s.course }}</td>
+            <td>{{ s.academic_year }}</td>
+            <td>{{ s.gender }}</td>
+            <td>{{ s.caste }}</td>
+            <td>{{ s.religion }}</td>
+            
+            
+            <td>
+                {% if filter_values.subject %}
+                {% if s.subject_pass_info == True %}
+                <span style="color:green;">Passed</span>
+                {% elif s.subject_pass_info == False %}
+                <span style="color:red;">Failed</span>
+                {% else %}
+                <span style="color:gray;">No record</span>
+                {% endif %}
+                {% else %}
+                
+                {% endif %}
+            </td>
+            <td><a href="{% url 'student_detail' s.id %}">Open</a></td>
+            
+          </tr>
+        {% empty %}
+          <tr><td colspan="11">No students found for these filters.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<script>
+    (function(){
+      const semSelect = document.getElementById('semester-select');
+      const courseSelect = document.getElementById('course-select');
+      const subjectSelect = document.getElementById('subject-select');
+  
+      async function loadSubjectsForFilters(semVal, courseVal, preserveSelected=false) {
+        // Clear current options except the default
+        subjectSelect.innerHTML = '<option value="">-- Any --</option>';
+        // Don't fetch if neither is provided — optional: if you want all subjects for course only, allow courseVal to trigger fetch
+        if (!semVal && !courseVal) return;
+  
+        // construct query string
+        const params = new URLSearchParams();
+        if (semVal) params.append('semester', semVal);
+        if (courseVal) params.append('course', courseVal);
+  
+        try {
+          const resp = await fetch("{% url 'get_subjects_for_semester' %}?" + params.toString());
+          if (!resp.ok) return;
+          const data = await resp.json();
+          const subjects = data.subjects || [];
+          const prev = preserveSelected ? subjectSelect.getAttribute('data-selected') : null;
+          subjects.forEach(sub=>{
+            const opt = document.createElement('option');
+            opt.value = sub.id;
+            opt.textContent = sub.name + (sub.code ? ' (' + sub.code + ')' : '');
+            if (prev && prev == String(sub.id)) opt.selected = true;
+            subjectSelect.appendChild(opt);
+          });
+        } catch (err) {
+          console.error('Failed to load subjects:', err);
+        }
+      }
+  
+      // preserve previously selected subject if the page was loaded with values
+      (function preserveSelectedOnLoad(){
+        const presetSubject = "{{ filter_values.subject|default_if_none:'' }}";
+        if (presetSubject) {
+          subjectSelect.setAttribute('data-selected', presetSubject);
+        }
+      })();
+  
+      // event listeners: when either semester OR course changes, reload subjects
+      const onFilterChange = function(){
+        // Clear any previously selected subject when semester or course changes
+        subjectSelect.removeAttribute('data-selected');
+        const semVal = semSelect ? semSelect.value : '';
+        const courseVal = courseSelect ? courseSelect.value : '';
+        loadSubjectsForFilters(semVal, courseVal);
+      };
+  
+      semSelect && semSelect.addEventListener('change', onFilterChange);
+      courseSelect && courseSelect.addEventListener('change', onFilterChange);
+  
+      // on load, if page has preselected semester OR course, pre-load subjects and preserve selected subject
+      const initialSem = semSelect ? semSelect.value : '';
+      const initialCourse = courseSelect ? courseSelect.value : '';
+      if (initialSem || initialCourse) {
+        loadSubjectsForFilters(initialSem, initialCourse, true);
+      }
+    })();
+  </script>
+  
+{% endblock %}

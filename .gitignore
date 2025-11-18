@@ -1,0 +1,40 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.python-version
+
+# Environment
+.env
+venv/
+env/
+
+# Django / SQLite
+db.sqlite3
+*.db
+*.sqlite3
+
+# Media & static
+/media/
+staticfiles/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Migrations (optional but recommended when early in dev)
+# Comment out if you want migrations tracked
+*/migrations/*
+!*/migrations/__init__.py
+
+# Cache
+*.log
+*.pot
+*.pyc
+*.pkl
+*.cache

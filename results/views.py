@@ -277,6 +277,10 @@ def get_student_name_by_regno(request):
 
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
+
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_marks_single_page(request):
     student_id = request.GET.get("student_id")
     sem_number = request.GET.get("semester")
@@ -286,61 +290,71 @@ def add_marks_single_page(request):
         return redirect("teacher_dashboard")
 
     student = get_object_or_404(Student, id=student_id)
-    semester, _ = Semester.objects.get_or_create(student=student, number=sem_number)
 
-    subjects = Subject.objects.filter(course=student.course, semester_number=semester.number)
+    # Normalize semester number to int when possible
+    try:
+        sem_num_int = int(sem_number)
+    except (TypeError, ValueError):
+        sem_num_int = sem_number
 
-    # ✅ Regular attempt: prevent duplicate entries
+    semester, _ = Semester.objects.get_or_create(student=student, number=sem_num_int)
+
+    # Build subjects queryset robustly:
+    subjects_qs = Subject.objects.none()
+    student_course = getattr(student, "course", None)
+
+    if student_course is not None:
+        # FK-style course
+        if hasattr(student_course, "id"):
+            subjects_qs = Subject.objects.filter(course__id=student_course.id, semester_number=semester.number)
+        # String-style course
+        else:
+            subjects_qs = Subject.objects.filter(course__iexact=str(student_course), semester_number=semester.number)
+
+    # Fallback: semester-only
+    if not subjects_qs.exists():
+        subjects_qs = Subject.objects.filter(semester_number=semester.number)
+
+    # Debug - remove or convert to logger.debug in production
+    print(f"[add_marks_single_page] student={student.id} course={repr(student_course)} sem={semester.number} subjects_count={subjects_qs.count()}")
+
+    # If still empty, render a friendly page telling the admin what's missing
+    if not subjects_qs.exists():
+        return render(request, "add_marks_no_subjects.html", {
+            "student": student,
+            "semester": sem_num_int,
+            "message": "No subjects found for this student&semester. Ensure student's course is set and subjects exist for that course & semester."
+        })
+
+    # Prevent duplicate Regular attempt entries
     if attempt_type == "Regular":
         existing = Mark.objects.filter(semester=semester).exists()
         if existing:
             return render(request, "add_marks_already_exists.html", {
                 "student": student,
-                "semester": sem_number,
+                "semester": sem_num_int,
                 "attempt_type": attempt_type
             })
 
-    # ✅ Supply/Improvement Step 1: Subject selection
-    if attempt_type == "Supply/Improvement" and request.method != "POST" and not request.GET.getlist("subjects"):
-        return render(request, "select_supply_subjects.html", {
-            "student": student,
-            "semester": sem_number,
-            "subjects": subjects
-        })
-
-    # ✅ Selected subjects
-    selected_subject_ids = request.GET.getlist("subjects") or request.POST.getlist("selected_subjects")
-    selected_subjects = Subject.objects.filter(id__in=selected_subject_ids) if selected_subject_ids else subjects
-
-    # ✅ Handle AJAX submission
+    # Handle AJAX submission (Supply & Regular logic retained)
     if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
         errors = {}
         saved_count = 0
 
-        for subject in selected_subjects:
+        for subject in subjects_qs:
             try:
-                # Get marks (works for both 'marks_' and 'new_marks_')
-                marks_str = (
-                    request.POST.get(f"marks_{subject.id}") or
-                    request.POST.get(f"new_marks_{subject.id}")
-                )
+                marks_str = request.POST.get(f"marks_{subject.id}") or request.POST.get(f"new_marks_{subject.id}")
                 max_str = request.POST.get(f"max_{subject.id}")
 
-                if not marks_str or not max_str:
+                if marks_str is None or max_str is None:
                     raise ValueError("Missing marks or max marks")
 
                 new_mark = float(marks_str)
                 max_marks = float(max_str)
 
-                # ✅ Supply/Improvement — always create a NEW record
                 if attempt_type == "Supply/Improvement":
-                    last_attempt = (
-                        Mark.objects.filter(semester=semester, subject=subject)
-                        .order_by("-attempt_no")
-                        .first()
-                    )
+                    last_attempt = Mark.objects.filter(semester=semester, subject=subject).order_by("-attempt_no").first()
                     attempt_no = (last_attempt.attempt_no + 1) if last_attempt else 1
-
                     Mark.objects.create(
                         semester=semester,
                         subject=subject,
@@ -349,9 +363,6 @@ def add_marks_single_page(request):
                         attempt_type=attempt_type,
                         attempt_no=attempt_no,
                     )
-                    saved_count += 1
-
-                # ✅ Regular Attempt — create once or update existing
                 else:
                     mark, created = Mark.objects.get_or_create(
                         semester=semester,
@@ -363,48 +374,32 @@ def add_marks_single_page(request):
                             "attempt_no": 1
                         }
                     )
-
                     if not created:
                         mark.marks_obtained = new_mark
                         mark.max_marks = max_marks
-                        mark.save()
                         mark.attempt_type = attempt_type
+                        mark.save()
 
-                    saved_count += 1
+                saved_count += 1
 
             except Exception as e:
                 errors[subject.name] = str(e)
 
-        # ✅ Response
         if errors:
-            return JsonResponse({
-                "success": False,
-                "message": "Some marks failed to save.",
-                "errors": errors
-            })
+            return JsonResponse({"success": False, "message": "Some marks failed to save.", "errors": errors})
         else:
-            return JsonResponse({
-                "success": True,
-                "message": f"{attempt_type} marks saved successfully for {saved_count} subjects!"
-            })
+            return JsonResponse({"success": True, "message": f"{attempt_type} marks saved successfully for {saved_count} subjects!"})
 
-    # ✅ Preload existing marks for display
-    existing_marks = {
-        m.subject.id: m for m in Mark.objects.filter(semester=semester, subject__in=selected_subjects)
-    }
+    existing_marks = {m.subject.id: m for m in Mark.objects.filter(semester=semester, subject__in=subjects_qs)}
 
-    # ✅ Render correct template
-    return render(
-        request,
-        "add_marks_supply.html" if attempt_type == "Supply/Improvement" else "add_marks_single.html",
-        {
-            "student": student,
-            "semester": sem_number,
-            "subjects": selected_subjects,
-            "existing_marks": existing_marks,
-            "attempt_type": attempt_type
-        }
-    )
+    template = "add_marks_supply.html" if attempt_type == "Supply/Improvement" else "add_marks_single.html"
+    return render(request, template, {
+        "student": student,
+        "semester": sem_num_int,
+        "subjects": subjects_qs,
+        "existing_marks": existing_marks,
+        "attempt_type": attempt_type
+    })
 
 
 
@@ -415,11 +410,20 @@ def add_marks_single_page(request):
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def get_subjects_for_semester(request):
     sem_number = request.GET.get("semester")
+    course = request.GET.get("course")
+    subjects = Subject.objects.all()
     if sem_number:
-        subjects = Subject.objects.filter(semester_number=sem_number)
-        data = [{"id": s.id, "name": s.name, "code": s.code} for s in subjects]
-    else:
-        data = []
+        try:
+            sem_int = int(sem_number)
+            subjects = subjects.filter(semester_number=sem_int)
+        except ValueError:
+            subjects = subjects.none()
+
+    if course:
+        subjects = subjects.filter(course__iexact=course)
+
+    subjects = subjects.order_by("name")
+    data = [{"id": s.id, "name": s.name, "code": s.code} for s in subjects]
     return JsonResponse({"subjects": data})
 
 
@@ -664,3 +668,174 @@ def subject_attempt_history(request, student_id, subject_id):
         "attempts": attempts
     })
 
+
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def teacher_students_filter(request):
+    """
+    Teacher dashboard — student filtering:
+      - by semester (select semester)
+      - subjects shown change to only those for selected semester
+      - filter students by pass/fail in a specific subject of that semester
+      - plus other student-level filters (academic_year, gender, caste, religion, course, reg_no)
+    """
+    # Filter option data for form selects
+    semesters_numbers = Semester.objects.values_list('number', flat=True).distinct().order_by('number')
+    academic_years = Student.objects.values_list('academic_year', flat=True).distinct().order_by('academic_year')
+    genders = Student.objects.values_list('gender', flat=True).distinct()
+    castes = Student.objects.values_list('caste', flat=True).distinct()
+    religions = Student.objects.values_list('religion', flat=True).distinct()
+    courses = Student.objects.values_list('course', flat=True).distinct()
+
+    # GET params
+    semester_number = request.GET.get('semester')         # expected as string or None
+    subject_id = request.GET.get('subject')               # subject id (from selected semester)
+    subject_status = request.GET.get('subject_status')    # 'passed', 'failed', or None
+    academic_year = request.GET.get('academic_year')
+    gender = request.GET.get('gender')
+    caste = request.GET.get('caste')
+    religion = request.GET.get('religion')
+    course = request.GET.get('course')
+    reg_no = request.GET.get('reg_no')
+    pass_status = request.GET.get('pass_status')          # existing overall pass/fail for all papers (optional)
+
+    # Base student queryset
+    students_qs = Student.objects.all().order_by('name')
+
+    # apply simple student-level filters
+    if academic_year:
+        students_qs = students_qs.filter(academic_year=academic_year)
+    if gender:
+        students_qs = students_qs.filter(gender__iexact=gender)
+    if caste:
+        students_qs = students_qs.filter(caste__iexact=caste)
+    if religion:
+        students_qs = students_qs.filter(religion__iexact=religion)
+    if course:
+        students_qs = students_qs.filter(course__iexact=course)
+    if reg_no:
+        students_qs = students_qs.filter(reg_no__icontains=reg_no)
+
+    # Prepare subjects list for the selected semester (for the template)
+    if semester_number:
+        try:
+            sem_int = int(semester_number)
+            if course:
+                subjects_for_sem = Subject.objects.filter(semester_number=sem_int, course__iexact=course).order_by('name')
+            else:
+                subjects_for_sem = Subject.objects.filter(semester_number=sem_int).order_by('name')
+        except ValueError:
+            subjects_for_sem = Subject.objects.none()
+    else:
+    # if no semester selected, but course selected we can optionally show all subjects for course
+        if course:
+            subjects_for_sem = Subject.objects.filter(course__iexact=course).order_by('semester_number', 'name')
+        else:
+            subjects_for_sem = Subject.objects.none()
+
+    # If subject filter is present, compute pass/fail sets for that subject in that semester
+    # We'll identify student ids to keep depending on subject_status.
+    subject_student_ids_to_keep = None  # None => don't apply subject-level filtering
+    if subject_id:
+        try:
+            subject_id = int(subject_id)
+        except ValueError:
+            subject_id = None
+
+    if subject_id and semester_number:
+        # marks for that subject in that semester
+        marks_qs = Mark.objects.filter(semester__number=sem_int, subject_id=subject_id)
+
+        # Build sets of student ids who passed / failed this subject
+        passed_ids = set()
+        failed_ids = set()
+        for m in marks_qs:
+            try:
+                # treat pass >= 40% of max_marks
+                if m.max_marks and (m.marks_obtained >= 0.4 * m.max_marks):
+                    passed_ids.add(m.semester.student_id)
+                else:
+                    failed_ids.add(m.semester.student_id)
+            except Exception:
+                failed_ids.add(m.semester.student_id)
+
+        if subject_status == 'passed':
+            subject_student_ids_to_keep = passed_ids
+        elif subject_status == 'failed':
+            subject_student_ids_to_keep = failed_ids
+        else:
+            # If no subject_status requested, keep all students who have marks for that subject
+            subject_student_ids_to_keep = set(m.semester.student_id for m in marks_qs)
+
+        # Intersect with current queryset
+        if subject_student_ids_to_keep is not None:
+            students_qs = students_qs.filter(id__in=list(subject_student_ids_to_keep))
+
+    # If subject not specified but semester specified and pass_status (overall) filtering is requested,
+    # we keep the earlier behavior where we compute pass/fail across all marks (optional)
+    # (existing 'pass_status' param applies to whole student result, not subject-specific)
+    students = []
+    for s in students_qs:
+        # Compute overall stats (useful for display)
+        marks = Mark.objects.filter(semester__student=s)
+        if marks.exists():
+            total_max = sum(m.max_marks for m in marks)
+            total_obt = sum(m.marks_obtained for m in marks)
+            avg_percent = round((total_obt / total_max * 100), 2) if total_max > 0 else None
+            overall_pass = all(m.marks_obtained >= 0.4 * m.max_marks for m in marks)
+        else:
+            avg_percent = None
+            overall_pass = False
+
+        # Apply overall pass_status filter if provided (this is separate from subject-specific filter)
+        if pass_status == 'passed' and not overall_pass:
+            continue
+        if pass_status == 'failed' and overall_pass:
+            continue
+
+        # For convenience in template show whether the student passed/failed the selected subject (if any)
+        subject_pass_info = None
+        if subject_id and semester_number:
+            # try to get the mark record for this student for that semester & subject
+            subj_mark = Mark.objects.filter(semester__student=s, semester__number=sem_int, subject_id=subject_id).first()
+            if subj_mark:
+                try:
+                    subject_pass_info = (subj_mark.marks_obtained >= 0.4 * subj_mark.max_marks)
+                except Exception:
+                    subject_pass_info = False
+            else:
+                subject_pass_info = None  # student had no mark record for this subject in that semester
+
+        # attach safe attributes for template
+        s.total_papers = marks.count()
+        s.avg_percent = avg_percent
+        s.overall_pass = overall_pass
+        s.subject_pass_info = subject_pass_info  # True/False/None
+        
+
+        students.append(s)
+
+    context = {
+        'students': students,
+        'semesters_numbers': semesters_numbers,
+        'subjects_for_sem': subjects_for_sem,
+        'academic_years': academic_years,
+        'genders': [g for g in genders if g],
+        'castes': [c for c in castes if c],
+        'religions': [r for r in religions if r],
+        'courses': [c for c in courses if c],
+        'filter_values': {
+            'semester': semester_number,
+            'subject': subject_id,
+            'subject_status': subject_status,
+            'academic_year': academic_year,
+            'gender': gender,
+            'caste': caste,
+            'religion': religion,
+            'course': course,
+            'reg_no': reg_no,
+            'pass_status': pass_status,
+        }
+    }
+    return render(request, "teacher_students_filter.html", context)

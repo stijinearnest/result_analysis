@@ -60,6 +60,8 @@ path("teacher/student-detail/<int:student_id>/", views.student_detail, name="stu
 path("student/<int:student_id>/attempts/", views.view_all_attempts, name="view_all_attempts"),
 path("student/<int:student_id>/subject/<int:subject_id>/attempts/", views.subject_attempt_history, name="subject_attempt_history"),
 
+path('ajax/get-subjects/', views.get_subjects_for_semester, name='get_subjects_for_semester'),
+ path('teacher/students-filter/', views.teacher_students_filter, name='teacher_students_filter'),
 
 
 ]
