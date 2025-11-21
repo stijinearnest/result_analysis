@@ -846,14 +846,28 @@ def teacher_students_filter(request):
         subject_pass_info = None
         if subject_id and semester_number:
             # try to get the mark record for this student for that semester & subject
-            subj_mark = Mark.objects.filter(semester__student=s, semester__number=sem_int, subject_id=subject_id).first()
+            subj_mark = Mark.objects.filter(semester__student=s, semester__number=sem_int, subject_id=subject_id).order_by('-id').first()
             if subj_mark:
                 try:
-                    subject_pass_info = (subj_mark.marks_obtained >= 0.4 * subj_mark.max_marks)
+                    maxm = subj_mark.max_marks or getattr(subj_mark.subject, "max_marks", None) or 0
+                    got = subj_mark.marks_obtained or 0
+                    subject_pass_info = (got >= 0.4 * maxm) if maxm > 0 else False
                 except Exception:
                     subject_pass_info = False
+
+                # attach marks for template display
+                try:
+                    s.subject_marks = float(got)
+                except Exception:
+                    s.subject_marks = got
+                try:
+                    s.subject_max = float(maxm)
+                except Exception:
+                    s.subject_max = maxm
             else:
-                subject_pass_info = None  # student had no mark record for this subject in that semester
+                subject_pass_info = None  # no record
+                s.subject_marks = None
+                s.subject_max = None
 
         # attach safe attributes for template
         s.total_papers = marks.count()

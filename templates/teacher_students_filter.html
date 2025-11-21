@@ -119,18 +119,25 @@
             
             
             <td>
-                {% if filter_values.subject %}
+              {% if filter_values.subject %}
                 {% if s.subject_pass_info == True %}
-                <span style="color:green;">Passed</span>
+                  <span style="color:green;">Passed</span>
+                  {% if s.subject_marks is not None and s.subject_max is not None %}
+                    — <strong>{{ s.subject_marks|floatformat:2 }}/{{ s.subject_max|floatformat:2 }}</strong>
+                  {% endif %}
                 {% elif s.subject_pass_info == False %}
-                <span style="color:red;">Failed</span>
+                  <span style="color:red;">Failed</span>
+                  {% if s.subject_marks is not None and s.subject_max is not None %}
+                    — <strong>{{ s.subject_marks|floatformat:2 }}/{{ s.subject_max|floatformat:2 }}</strong>
+                  {% endif %}
                 {% else %}
-                <span style="color:gray;">No record</span>
+                  <span style="color:gray;">No record</span>
                 {% endif %}
-                {% else %}
-                
-                {% endif %}
+              {% else %}
+                &nbsp;
+              {% endif %}
             </td>
+            
             <td><a href="{% url 'student_detail' s.id %}">Open</a></td>
             
           </tr>
