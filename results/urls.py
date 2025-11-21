@@ -63,5 +63,10 @@ path("student/<int:student_id>/subject/<int:subject_id>/attempts/", views.subjec
 path('ajax/get-subjects/', views.get_subjects_for_semester, name='get_subjects_for_semester'),
  path('teacher/students-filter/', views.teacher_students_filter, name='teacher_students_filter'),
 
+ # example
+path('teacher/grace/', views.grace_marks, name='grace_marks'),
+path('teacher/grace/<int:student_id>/<int:sem_number>/', views.apply_grace_marks, name='apply_grace_marks'),
+
+
 
 ]

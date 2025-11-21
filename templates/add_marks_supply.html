@@ -39,22 +39,18 @@
                     </td>
 
                     <!-- New Marks -->
-                    <td>
-                        <input type="number"
-                               name="new_marks_{{ subject.id }}"
-                               step="0.5"
-                               min="0"
-                               max="{{ existing_mark.max_marks|default:50 }}"
-                               required>
-                    </td>
+                    <input type="number"
+                    name="new_marks_{{ subject.id }}"
+                    step="0.5"
+                    min="0"
+                    max="{{ subject.max_marks }}"
+                    required>
+             
 
                     <!-- Max Marks -->
                     <td>
-                        <input type="number"
-                               name="max_{{ subject.id }}"
-                               value="{{ existing_mark.max_marks|default:50 }}"
-                               min="1"
-                               required>
+                        {{ subject.max_marks }}
+
                     </td>
                 </tr>
                 {% endwith %}

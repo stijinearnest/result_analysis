@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
-
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/manage_subjects.css' %}">
+
 <div class="container">
     <div class="page-header">
         <h1>Manage Subjects</h1>
@@ -9,6 +10,23 @@
             <i class="fas fa-arrow-left"></i> Go Back
         </a>
     </div>
+
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% if form.errors %}
+      <div class="alert alert-danger">
+        <strong>Fix the errors below:</strong>
+        <ul>
+          {% for field, errs in form.errors.items %}
+            <li>{{ field }}: {{ errs|join:", " }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
 
     <!-- Existing Subjects Table -->
     <div class="table-container">
@@ -19,6 +37,7 @@
                     <th>Code</th>
                     <th>Name</th>
                     <th>Credits</th>
+                    <th>Max Marks</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -29,6 +48,7 @@
                     <td>{{ subject.code }}</td>
                     <td>{{ subject.name }}</td>
                     <td>{{ subject.credits }}</td>
+                    <td>{{ subject.max_marks }}</td>
                     <td class="action-cell">
                         <a href="{% url 'edit_subject' subject.id %}" class="action-btn edit-btn">
                             <i class="fas fa-edit"></i> Edit
@@ -40,7 +60,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5">
+                    <td colspan="6">
                         <div class="empty-state">
                             <i class="fas fa-book-open"></i>
                             <p>No subjects added for this course yet.</p>
@@ -78,6 +98,20 @@
                     <label for="id_credits">Credits</label>
                     {{ form.credits }}
                 </div>
+
+                <!-- NEW: max_marks field -->
+                <div class="form-group">
+                    <label for="id_max_marks">Max Marks</label>
+                    {{ form.max_marks }}
+                </div>
+
+                <!-- OPTIONAL: if your form has elective_group -->
+                {% if form.elective_group %}
+                <div class="form-group">
+                    <label for="id_elective_group">Elective Group (optional)</label>
+                    {{ form.elective_group }}
+                </div>
+                {% endif %}
             </div>
             <button type="submit" class="submit-btn">
                 <i class="fas fa-plus"></i> Add Subject
@@ -86,7 +120,5 @@
     </div>
 </div>
 
-<!-- External CSS & JS -->
-<link rel="stylesheet" href="{% static 'css/manage_subjects.css' %}">
 <script src="{% static 'js/manage_subjects.js' %}"></script>
 {% endblock %}

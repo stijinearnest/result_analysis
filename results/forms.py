@@ -49,12 +49,13 @@ class MarksEntryForm(forms.Form):
 class SubjectForm(forms.ModelForm):
     class Meta:
         model = Subject
-        fields = ["course", "name", "code", "semester_number", "credits"]
+        fields = ["course", "name", "code", "semester_number", "credits","max_marks"]
         widgets = {
             "course": forms.Select(attrs={"class": "form-control"}),
             "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Subject Name"}),
             "code": forms.TextInput(attrs={"class": "form-control", "placeholder": "Subject Code"}),
             "semester_number": forms.NumberInput(attrs={"class": "form-control", "min": 1}),
             "credits": forms.NumberInput(attrs={"class": "form-control", "min": 0.5, "step": 0.5}),
+            'max_marks': forms.NumberInput(attrs={'min': 0}),
         }
 

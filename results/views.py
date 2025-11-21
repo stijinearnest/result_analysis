@@ -287,6 +287,7 @@ def add_marks_single_page(request):
      - Supply/Improvement attempts with a subject-selection step (GET -> select_supply_subjects.html)
      - Robust subject lookup (course fk or string), and semester-only fallback
      - AJAX POST handler returning JSON
+     - Uses subject.max_marks (no max_<id> from POST)
     """
     student_id = request.GET.get("student_id")
     sem_number = request.GET.get("semester")
@@ -380,13 +381,13 @@ def add_marks_single_page(request):
             try:
                 # Accept either marks_<id> (add form) or new_marks_<id> (alternate naming)
                 marks_str = request.POST.get(f"marks_{subject.id}") or request.POST.get(f"new_marks_{subject.id}")
-                max_str = request.POST.get(f"max_{subject.id}")
-
-                if marks_str is None or max_str is None:
-                    raise ValueError("Missing marks or max marks")
+                if marks_str is None:
+                    raise ValueError("Missing marks input")
 
                 new_mark = float(marks_str)
-                max_marks = float(max_str)
+
+                # ✨ NEW — use subject.max_marks instead of reading max_<id> from POST
+                max_marks = float(getattr(subject, "max_marks", 0) or 0)
 
                 if attempt_type == "Supply/Improvement":
                     # Always create a new record for supply/improvement with incremented attempt_no
@@ -447,6 +448,7 @@ def add_marks_single_page(request):
         "existing_marks": existing_marks,
         "attempt_type": attempt_type
     })
+
 
 
 
@@ -885,3 +887,100 @@ def teacher_students_filter(request):
         }
     }
     return render(request, "teacher_students_filter.html", context)
+
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def grace_marks(request):
+    if request.method == "POST":
+        reg_no = request.POST.get("reg_no")
+        sem_number = request.POST.get("semester")
+
+        try:
+            student = Student.objects.get(reg_no__iexact=reg_no)
+        except Student.DoesNotExist:
+            messages.error(request, "Student not found")
+            return redirect("grace_marks")
+
+        return redirect("apply_grace_marks", student_id=student.id, sem_number=sem_number)
+
+    return render(request, "grace_marks_select.html")
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def apply_grace_marks(request, student_id, sem_number):
+    """
+    Load only the latest mark record per subject for the given student's semester,
+    then allow per-subject percentage-of-semester-total grace addition.
+    """
+    student = get_object_or_404(Student, id=student_id)
+    semester = get_object_or_404(Semester, student=student, number=sem_number)
+
+    # All mark rows for the semester (we'll pick the latest per subject)
+    all_marks_qs = Mark.objects.filter(semester=semester).select_related("subject")
+
+    # Get distinct subject ids present in marks for this semester
+    subject_ids = list(all_marks_qs.values_list('subject_id', flat=True).distinct())
+
+    latest_marks = []
+    for sid in subject_ids:
+        # Prefer ordering by a timestamp if available, otherwise fall back to id
+        # This is robust across DB backends (no DISTINCT ON).
+        if hasattr(Mark, 'created_at'):  # use created_at if your model has it
+            latest = all_marks_qs.filter(subject_id=sid).order_by('-created_at').first()
+        elif hasattr(Mark, 'updated_at'):
+            latest = all_marks_qs.filter(subject_id=sid).order_by('-updated_at').first()
+        else:
+            # fallback: use id as proxy for "latest"
+            latest = all_marks_qs.filter(subject_id=sid).order_by('-id').first()
+
+        if latest:
+            latest_marks.append(latest)
+
+    # compute semester total max using only the latest marks (per subject)
+    total_sem_max = sum((m.max_marks or 0) for m in latest_marks)
+
+    if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
+        try:
+            updated = []
+            for m in latest_marks:
+                raw_percent = request.POST.get(f"percent_{m.id}", "").strip()
+                if raw_percent == "":
+                    continue
+                try:
+                    percent = float(raw_percent)
+                except ValueError:
+                    percent = 0.0
+
+                # Grace added is percent% of semester total max (as you requested)
+                grace_to_add = (total_sem_max * percent) / 100.0
+                grace_to_add = round(grace_to_add, 2)
+
+                new_marks = m.marks_obtained + grace_to_add
+                # Optional: cap at subject max
+                # new_marks = min(new_marks, m.max_marks)
+
+                old_marks = float(m.marks_obtained)
+                m.marks_obtained = new_marks
+                m.save()
+
+                updated.append({
+                    "mark_id": m.id,
+                    "subject": m.subject.name,
+                    "old_marks": old_marks,
+                    "percent": percent,
+                    "grace_added": grace_to_add,
+                    "new_marks": new_marks
+                })
+
+            return JsonResponse({"success": True, "updated": updated})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    # GET: render page using only latest_marks
+    return render(request, "apply_grace_marks.html", {
+        "student": student,
+        "semester": semester,
+        "marks": latest_marks,
+        "total_sem_max": total_sem_max,
+    })
+
