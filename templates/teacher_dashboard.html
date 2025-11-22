@@ -1,80 +1,100 @@
- {% extends "base.html" %}
-{%load static%}
+{% extends "base.html" %}
+{% load static %}
 {% block content %}
-<div class="dashboard-container">
-    <div class="dashboard-header">
-        <h1><i class="fas fa-chalkboard-teacher"></i> Teacher Dashboard</h1>
-        <p>Manage your classroom and student information</p>
-    </div>
+<div class="inf-wrap">
+    <div class="hero-glass">
+        <div class="hi-badge" aria-hidden="true">👋</div>
     
-    <div class="dashboard-content">
-        <div class="welcome-section">
-            <h2>Welcome! {{ teacher_name }} 👋</h2>
-            <p>You have full access to manage student records and academic information</p>
+        <div class="hero-content">
+          <h1 class="hero-title">Welcome back,{{teacher_name}}</h1>
+          <p class="hero-sub">
+            You have full access to manage student records, track academic progress, and organize your classroom. Let's make learning magical today!
+          </p>
         </div>
-        
-        <!-- Single line menu -->
-        <div class="menu-container">
-            <div class="single-line-menu">
-                <div class="menu-item">
-                    <div class="menu-icon">
-                        <i class="fas fa-user-plus"></i>
-                    </div>
-                    <h3>Add Student</h3>
-                    <a href="{% url 'add_student' %}" class="menu-link">Add Student</a>
-                </div>
-                
-                <div class="menu-item">
-                    <div class="menu-icon">
-                        <i class="fas fa-chart-bar"></i>
-                    </div>
-                    <h3>Add Marks</h3>
-                    <a href="{% url 'select_student_semester' %}" class="menu-link">Add Marks</a>
-                </div>
+      </div>
+    
+      <!-- Section heading that follows hero -->
+      <div class="follow-section">
+        <h2 class="follow-title">What would you like to do?</h2>
+        <p class="follow-sub">Quick access to all classroom management features</p>
+      </div>
 
-                <div class="menu-item">
-                    <div class="menu-icon">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <h3>Add Subject</h3>
-                    <a href="{% url 'select_course' %}" class="menu-link">Add Subject</a>
-                </div>
-                
-                <div class="menu-item">
-                    <div class="menu-icon">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <h3>View Student</h3>
-                    <a href="{% url 'student_search' %}" class="menu-link">View Students</a>
-                </div>
-                <div class="menu-item">
-                    <div class="menu-icon">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <h3>Filter Student</h3>
-                    <a href="{% url 'teacher_students_filter' %}" class="menu-link"> Students</a>
-                </div>
 
-                <div class="menu-item">
-                    <div class="menu-icon">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <h3>Add Grace</h3>
-                    <a href="{% url 'grace_marks' %}" class="menu-link"> Students</a>
-                </div>
-            </div>
-            </div>
-        </div>
-        
-        <div class="logout-section">
-            <a href="{% url 'logout' %}" class="logout-btn">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </div>
+  <!-- infographic grid: 6 cards -->
+  <div class="infographic">
+    <!-- Card 1 -->
+    <div class="inf-card">
+      <div class="card-stroke"></div>
+      <div class="icon-badge"><i class="fas fa-user-plus" aria-hidden="true"></i></div>
+      <div class="card-inner">
+        <h3>Add Student</h3>
+        <p class="small">Create new student records quickly</p>
+        <a href="{% url 'add_student' %}" class="btn">Add Student</a>
+      </div>
     </div>
+
+    <!-- Card 2 -->
+    <div class="inf-card">
+      <div class="card-stroke"></div>
+      <div class="icon-badge"><i class="fas fa-chart-bar"></i></div>
+      <div class="card-inner">
+        <h3>Add Marks</h3>
+        <p class="small">Enter and edit marks for students</p>
+        <a href="{% url 'select_student_semester' %}" class="btn">Add Marks</a>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="inf-card">
+      <div class="card-stroke"></div>
+      <div class="icon-badge"><i class="fas fa-book"></i></div>
+      <div class="card-inner">
+        <h3>Add Subject</h3>
+        <p class="small">Manage subjects and course details</p>
+        <a href="{% url 'select_course' %}" class="btn">Add Subject</a>
+      </div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="inf-card">
+      <div class="card-stroke"></div>
+      <div class="icon-badge"><i class="fas fa-search"></i></div>
+      <div class="card-inner">
+        <h3>View Students</h3>
+        <p class="small">Search and view student profiles</p>
+        <a href="{% url 'student_search' %}" class="btn">View Students</a>
+      </div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="inf-card">
+      <div class="card-stroke"></div>
+      <div class="icon-badge"><i class="fas fa-filter"></i></div>
+      <div class="card-inner">
+        <h3>Filter Students</h3>
+        <p class="small">Filter by semester, course &amp; more</p>
+        <a href="{% url 'teacher_students_filter' %}" class="btn">Filter Students</a>
+      </div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="inf-card">
+      <div class="card-stroke"></div>
+      <div class="icon-badge"><i class="fas fa-gift"></i></div>
+      <div class="card-inner">
+        <h3>Add Grace</h3>
+        <p class="small">Add grace marks or make corrections</p>
+        <a href="{% url 'grace_marks' %}" class="btn">Add Grace</a>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <!-- design reference (local path for your convenience) -->
+  <img src="/mnt/data/2.jpeg" alt="design reference" class="design-ref" />
 </div>
 
-<!-- External CSS & JS -->
 <link rel="stylesheet" href="{% static 'css/teacher_dashboard.css' %}">
 <script src="{% static 'js/teacher_dashboard.js' %}"></script>
 {% endblock %}
