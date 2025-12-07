@@ -67,6 +67,6 @@ path('ajax/get-subjects/', views.get_subjects_for_semester, name='get_subjects_f
 path('teacher/grace/', views.grace_marks, name='grace_marks'),
 path('teacher/grace/<int:student_id>/<int:sem_number>/', views.apply_grace_marks, name='apply_grace_marks'),
 
-
+ path('ajax/get-student/', views.ajax_get_student, name='ajax_get_student'),
 
 ]

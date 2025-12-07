@@ -145,7 +145,123 @@ select.form-control {
     box-shadow: var(--shadow-hover);
     transform: translateY(-2px);
 }
+/* Container styling */
+/* Attempt type block — matches the card + blue header aesthetic */
 
+/* container wrapper you will add around the snippet */
+.attempt-type-container {
+    background: #ffffff;
+    border: 1px solid rgba(230,237,247,0.9);
+    border-radius: 8px;
+    padding: 14px 16px;
+    max-width: 420px;
+    margin: 14px 0 0;            /* spacing from previous inputs */
+    box-shadow: 0 8px 24px rgba(15,23,42,0.06);
+  }
+  
+  /* if the container sits inside a wider card, keep it flush */
+  .form-container .attempt-type-container { margin-left: 18px; margin-right: 18px; }
+  
+  /* label styling (keeps strong markup) */
+  .attempt-type-container label {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 8px;
+  }
+  
+  /* select styling to match input-with-icon look */
+  .attempt-type-container select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 100%;
+    padding: 10px 40px 10px 14px;   /* room for custom icon at right */
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #e6edf7;
+    background: linear-gradient(180deg,#fff,#fbfdff);
+    color: #111827;
+    cursor: pointer;
+    transition: box-shadow .18s ease, border-color .18s ease, transform .12s ease;
+    box-shadow: none;
+  }
+  
+  /* caret / icon on the right of select */
+  .attempt-type-container {
+    position: relative;
+  }
+  .attempt-type-container::after {
+    content: "\f107";                 /* fontawesome caret-down */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    right: 18px;
+    top: calc(50% + 2px);
+    transform: translateY(-50%);
+    color: #6b7280;
+    pointer-events: none;
+    font-size: 14px;
+  }
+  
+  /* focus state like other inputs */
+  .attempt-type-container select:focus {
+    border-color: rgba(59,130,246,0.9);
+    box-shadow: 0 8px 22px rgba(59,130,246,0.10);
+    outline: none;
+    transform: translateY(-1px);
+  }
+  
+  /* small required asterisk if present inside label strong */
+  .attempt-type-container label strong { font-weight:800; }
+  .attempt-type-container label strong::after {
+    content: "";
+    display:inline-block;
+    margin-left:6px;
+    color:#ef4444; /* red if you put * after strong in markup, keep original text */
+  }
+  
+  /* inline layout variant (if you want label and select side-by-side) */
+  .attempt-type-inline {
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+  .attempt-type-inline label { margin:0; white-space:nowrap; }
+  
+  /* small helper text (if added) */
+  .attempt-type-container .helper {
+    display:block;
+    font-size:12px;
+    color:#6b7280;
+    margin-top:8px;
+  }
+  
+  /* match button spacing with the card */
+  .attempt-type-container + .form-actions { margin-top: 18px; }
+  
+  /* responsive rules */
+  @media (max-width: 576px) {
+    .attempt-type-container { padding: 12px; max-width: 100%; margin: 10px 0 0; }
+    .attempt-type-container::after { right: 12px; font-size:13px; }
+    .attempt-type-inline { flex-direction:column; align-items:stretch; }
+  }
+  
+  /* Optional: small visual variant if you want the select to appear inset like other inputs */
+  .attempt-type-container.select-inset select {
+    padding-left: 38px; /* room for icon on left */
+    background-image: none;
+  }
+  
+  /* Optional: small icon on the left (match other inputs with an icon) */
+  /* Use markup: <div class="attempt-type-container with-left-icon"><i class="fas fa-calendar-alt"></i><select>...</select></div> */
+  .attempt-type-container.with-left-icon { display:flex; gap:10px; align-items:center; }
+  .attempt-type-container.with-left-icon i {
+    color:#6b7280; font-size:16px; margin-left:6px;
+  }
+  .attempt-type-container.with-left-icon select { padding-left: 12px; }
+  
 /* Responsive */
 @media (max-width: 576px) {
     .selection-card {

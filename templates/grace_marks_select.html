@@ -1,40 +1,131 @@
 {% extends "base.html" %}
+{% load static %}
+
+
+
 {% block content %}
 
-<div class="container mt-4">
-    <h2>Apply Grace Marks</h2>
-    <p>Select the student and semester to continue.</p>
+<link rel="stylesheet" href="{% static 'css/grace_marks.css' %}">
 
-    {% if messages %}
-        {% for msg in messages %}
-            <div class="alert alert-warning">{{ msg }}</div>
-        {% endfor %}
-    {% endif %}
-
-    <form method="POST">
-        {% csrf_token %}
-
-        <div class="mb-3">
-            <label>Registration Number</label>
-            <input type="text" name="reg_no" class="form-control" required placeholder="Enter registration number">
+<div class="grace-container">
+    <div class="grace-card">
+        
+        <div class="grace-header">
+            <h2><i class="fas fa-star"></i> Apply Grace Marks</h2>
+            <p>Select the student and semester to continue.</p>
         </div>
 
-        <div class="mb-3">
-            <label>Select Semester</label>
-            <select name="semester" class="form-control" required>
-                <option value="">-- Select Semester --</option>
-                <option value="1">Semester 1</option>
-                <option value="2">Semester 2</option>
-                <option value="3">Semester 3</option>
-                <option value="4">Semester 4</option>
-                <option value="5">Semester 5</option>
-                <option value="6">Semester 6</option>
-            </select>
+        {% if messages %}
+        <div class="grace-messages">
+            {% for msg in messages %}
+                <div class="grace-alert">{{ msg }}</div>
+            {% endfor %}
         </div>
+        {% endif %}
 
-        <button type="submit" class="btn btn-primary">Load Subjects</button>
-        <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary">Cancel</a>
-    </form>
+        <form id="graceForm" method="POST">
+            {% csrf_token %}
+
+            <!-- Registration number -->
+            <div class="form-group">
+                <label>Registration Number</label>
+                <div class="input-row">
+                    <input type="text" id="reg_no" name="reg_no" required>
+                    <button type="button" id="lookupBtn" class="lookup-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <small id="reg_note" class="note">Type the reg.no — name will auto-fill.</small>
+            </div>
+
+            <!-- Auto-filled Name -->
+            <div class="form-group hidden" id="nameRow">
+                <label>Student Name</label>
+                <input type="text" id="student_name" readonly>
+                <input type="hidden" id="student_id" name="student_id">
+            </div>
+
+            <!-- Semester -->
+            <div class="form-group">
+                <label>Select Semester</label>
+                <select name="semester" required>
+                    <option value="">-- Select Semester --</option>
+                    <option value="1">Semester 1</option>
+                    <option value="2">Semester 2</option>
+                    <option value="3">Semester 3</option>
+                    <option value="4">Semester 4</option>
+                    <option value="5">Semester 5</option>
+                    <option value="6">Semester 6</option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Load Subjects</button>
+                <a href="{% url 'teacher_dashboard' %}" class="btn-secondary">Cancel</a>
+            </div>
+        </form>
+
+    </div>
 </div>
+
+<script>
+(function(){
+  const regInput = document.getElementById('reg_no');
+  const lookupBtn = document.getElementById('lookupBtn');
+  const studentName = document.getElementById('student_name');
+  const studentIdField = document.getElementById('student_id');
+  const nameRow = document.getElementById('nameRow');
+  const regNote = document.getElementById('reg_note');
+
+  function debounce(fn, delay=600){
+    let t; 
+    return function(...args){
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(this,args), delay);
+    };
+  }
+
+  function setNote(msg, type="info"){
+    regNote.textContent = msg;
+    regNote.className = "note " + type;
+  }
+
+  async function lookupStudent(){
+    const reg = regInput.value.trim();
+    studentName.value = "";
+    studentIdField.value = "";
+    nameRow.classList.add("hidden");
+
+    if (!reg) {
+        setNote("Type the registration number.");
+        return;
+    }
+
+    setNote("Checking...");
+
+    try {
+      const resp = await fetch("{% url 'ajax_get_student' %}?reg_no=" + reg);
+      const data = await resp.json();
+
+      if (data.success) {
+        studentName.value = data.student.name;
+        studentIdField.value = data.student.id;
+        nameRow.classList.remove("hidden");
+        setNote("Student found ✔", "success");
+      } else {
+        setNote("No student found", "error");
+      }
+
+    } catch(e){
+      setNote("Connection error", "error");
+    }
+  }
+
+  const debouncedLookup = debounce(lookupStudent, 500);
+
+  regInput.addEventListener("input", debouncedLookup);
+  lookupBtn.addEventListener("click", lookupStudent);
+})();
+</script>
 
 {% endblock %}

@@ -1,6 +1,7 @@
+
 from collections import defaultdict
 from django.db.models import Max
-
+from django.views.decorators.http import require_GET
 from datetime import date
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -18,8 +19,6 @@ def home(request):
     return render(request, "home.html")
 
 
-
-
 def teacher_login(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -31,8 +30,6 @@ def teacher_login(request):
         else:
             messages.error(request, "Invalid username or password or unauthorized access")
     return render(request, "teacher_login.html")
-
-
 
 
 def student_login(request):
@@ -48,15 +45,11 @@ def student_login(request):
     return render(request, "student_login.html")
 
 
-
-
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def teacher_dashboard(request):
     teacher_name = request.user.first_name or request.user.username
     return render(request, "teacher_dashboard.html",{"teacher_name": teacher_name})
-
-
 
 
 def student_required(view_func):
@@ -71,56 +64,83 @@ def student_required(view_func):
 @student_required
 def student_dashboard(request):
     student_id = request.session.get("student_id")
-    student = Student.objects.get(id=student_id)
+    student = get_object_or_404(Student, id=student_id)
 
-    marks = Mark.objects.filter(semester__student=student)
+    #best marks selecting
+    all_marks = Mark.objects.filter(semester__student=student).select_related("subject", "semester")
+    subject_best_map = defaultdict(lambda: None)
+    for mark in all_marks:
+        current_best = subject_best_map[mark.subject]
+        if current_best is None or mark.marks_obtained > current_best.marks_obtained:
+            subject_best_map[mark.subject] = mark
 
-    for m in marks:
-        m.passed = m.marks_obtained >= 0.4 * m.max_marks
+    best_marks = list(subject_best_map.values())
 
-    total_papers = marks.count()
-    passed = sum(1 for m in marks if m.passed)
+    
+    for m in best_marks:
+        m.passed = (m.marks_obtained >= (0.4 * m.max_marks)) if m.max_marks is not None else False
+        # attempt count 
+        m.attempt_count = Mark.objects.filter(semester__student=student, subject=m.subject).count()
+
+    # Totals based on best_marks
+    total_papers = len(best_marks)
+    passed = sum(1 for m in best_marks if m.passed)
     failed = total_papers - passed
 
-   
-    semesters = marks.values_list('semester__number', flat=True).distinct()
+    # 
+    semesters = sorted({m.semester.number for m in best_marks})
+
+    # Compute SGPA per semester and CGPA using credit-weighted GPA (same approach as student_detail)
     sgpa_values = []
     sgpa_labels = []
-
-    semester_credit_map = {}  
+    semester_credit_map = {}
 
     for sem in semesters:
-        sem_marks = marks.filter(semester__number=sem)
-        total_credits = sum(m.subject.credits for m in sem_marks)
-        semester_credit_map[sem] = total_credits
-
-        if total_credits > 0:
-            weighted_sum = sum((m.marks_obtained / m.max_marks) * m.subject.credits for m in sem_marks)
-            sgpa = round((weighted_sum / total_credits) * 10, 2)
+        # marks belonging to this semester (from best_marks)
+        sem_marks = [m for m in best_marks if m.semester.number == sem]
+        if sem_marks:
+            total_credits = sum((m.subject.credits or 0) for m in sem_marks)
+            semester_credit_map[sem] = total_credits
+            total_credit_points = 0.0
+            for m in sem_marks:
+                # grade point scaled to 10 (same as student_detail)
+                gp = (m.marks_obtained / m.max_marks) * 10 if (m.max_marks and m.max_marks > 0) else 0
+                total_credit_points += gp * (m.subject.credits or 0)
+            sgpa = round(total_credit_points / total_credits, 3) if total_credits > 0 else 0
         else:
             sgpa = 0
+            semester_credit_map[sem] = 0
         sgpa_values.append(sgpa)
         sgpa_labels.append(f"Sem {sem}")
 
-   
     total_all_credits = sum(semester_credit_map.values())
     if total_all_credits > 0:
-        cgpa = round(sum(sgpa * semester_credit_map[sem] for sem, sgpa in zip(semesters, sgpa_values)) / total_all_credits, 2)
+        # Weighted average of semester SGPAs using semester credits (same method as student_detail)
+        cgpa = round(
+            sum(
+                sgpa * semester_credit_map.get(sem, 0)
+                for sgpa, sem in zip(sgpa_values, semesters)
+            ) / total_all_credits,
+            3,
+        )
     else:
-        cgpa = 0
+        cgpa = 0.0
 
-
+    # Semester selection for display: pick requested semester or latest available
     selected_semester = request.GET.get("semester")
     if selected_semester:
         selected_semester = int(selected_semester)
-        marks_selected = marks.filter(semester__number=selected_semester)
+        marks_selected = [m for m in best_marks if m.semester.number == selected_semester]
     else:
-      
-        latest_sem = marks.order_by('-semester__number').first().semester.number if marks.exists() else student.semester
+        # choose latest semester present in best_marks; fallback to student's semester if none
+        if best_marks:
+            latest_sem = max(m.semester.number for m in best_marks)
+        else:
+            latest_sem = getattr(student, "semester", None) or 0
         selected_semester = latest_sem
-        marks_selected = marks.filter(semester__number=latest_sem)
+        marks_selected = [m for m in best_marks if m.semester.number == selected_semester]
 
-
+    # Render using the same template variables as before
     return render(request, "student_dashboard.html", {
         "student": student,
         "cgpa": cgpa,
@@ -129,7 +149,7 @@ def student_dashboard(request):
         "failed": failed,
         "sgpa_labels": sgpa_labels,
         "sgpa_values": sgpa_values,
-        "marks": marks_selected,
+        "marks": marks_selected,          # only best marks for the chosen semester
         "semesters": semesters,
         "selected_semester": selected_semester,
     })
@@ -998,3 +1018,19 @@ def apply_grace_marks(request, student_id, sem_number):
         "total_sem_max": total_sem_max,
     })
 
+# views.py
+
+
+
+@require_GET
+def ajax_get_student(request):
+    reg_no = request.GET.get('reg_no', '').strip()
+    if not reg_no:
+        return JsonResponse({'success': False, 'message': 'Provide registration number.'})
+
+    try:
+        student = Student.objects.get(reg_no__iexact=reg_no)
+        # return minimal safe payload
+        return JsonResponse({'success': True, 'student': {'id': student.id, 'name': student.name}})
+    except Student.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Student not found.'})

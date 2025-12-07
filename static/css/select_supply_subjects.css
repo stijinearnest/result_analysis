@@ -1,0 +1,115 @@
+/* ---------- PAGE BACKGROUND ---------- */
+body {
+    background: #f5f7fb;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ---------- CARD CONTAINER ---------- */
+.container {
+    max-width: 650px;
+    margin: 60px auto;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    padding: 0;
+    overflow: hidden;
+}
+
+/* ---------- HEADER ---------- */
+.container h2 {
+    margin: 0;
+    padding: 22px 25px;
+    background: linear-gradient(135deg, #3b66f0, #4a7bff);
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* ---------- FORM AREA ---------- */
+form {
+    padding: 25px 30px;
+}
+
+/* ---------------------------------------
+   SUBJECT LIST — SCOPE ONLY TO FORM AREA
+---------------------------------------- */
+
+.form-container ul,
+.container ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+/* List items inside THIS container only */
+.container ul li {
+    background: #f9fbfe;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #e4e9f2;
+    display: flex;
+    align-items: center;
+    transition: 0.25s ease;
+    cursor: pointer;
+}
+
+.container ul li:hover {
+    background: #eef4ff;
+    border-color: #c9d9ff;
+    transform: translateY(-2px);
+}
+
+/* checkbox styling */
+.container ul li input[type="checkbox"] {
+    margin-right: 12px;
+    width: 18px;
+    height: 18px;
+    accent-color: #3b66f0;
+    cursor: pointer;
+}
+
+.container ul li label {
+    font-size: 15px;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* ---------- BUTTON ---------- */
+.btn-primary {
+    display: block;
+    width: 100%;
+    background: #3b66f0;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    box-shadow: 0 6px 24px rgba(59, 102, 240, 0.25);
+    transition: 0.25s ease;
+}
+
+.btn-primary:hover {
+    background: #2f54d4;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(59, 102, 240, 0.35);
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 550px) {
+    .container {
+        margin: 30px 12px;
+    }
+    form {
+        padding: 18px;
+    }
+    .container ul li {
+        padding: 10px 12px;
+    }
+}

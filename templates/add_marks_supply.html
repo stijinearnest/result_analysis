@@ -2,7 +2,7 @@
 {% load static %}
 {% load custom_filters %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/add_marks_single.css' %}">
+<link rel="stylesheet" href="{% static 'css/add_marks_supply.css' %}">
 
 <div class="container">
     <div class="form-header">
@@ -26,36 +26,46 @@
                 {% for subject in subjects %}
                 {% with existing_mark=existing_marks|get_item:subject.id %}
                 <tr>
+                    <!-- Subject Code -->
                     <td>{{ subject.code }}</td>
+              
+                    <!-- Subject Name -->
                     <td>{{ subject.name }}</td>
-
+              
                     <!-- Existing Marks -->
                     <td>
-                        {% if existing_mark %}
-                            {{ existing_mark.marks_obtained }}
-                        {% else %}
-                            -
-                        {% endif %}
+                      {% if existing_mark %}
+                        {{ existing_mark.marks_obtained }}
+                      {% else %}
+                        -
+                      {% endif %}
                     </td>
-
-                    <!-- New Marks -->
-                    <input type="number"
-                    name="new_marks_{{ subject.id }}"
-                    step="0.5"
-                    min="0"
-                    max="{{ subject.max_marks }}"
-                    required>
-             
-
+              
+                    <!-- New Marks (INPUT must be inside its TD) -->
+                    <td>
+                      <div class="input-with-icon">
+                        <input type="number"
+                               name="new_marks_{{ subject.id }}"
+                               step="0.5"
+                               min="0"
+                               max="{{ subject.max_marks }}"
+                               required>
+                        <i class="fas fa-pen" aria-hidden="true"></i>
+                      </div>
+                    </td>
+              
                     <!-- Max Marks -->
                     <td>
-                        {{ subject.max_marks }}
-
+                      <div class="max-marks">
+                        <span class="max-value">{{ subject.max_marks }}</span>
+                        <i class="fas fa-scale-balanced" aria-hidden="true"></i>
+                      </div>
                     </td>
                 </tr>
                 {% endwith %}
                 {% endfor %}
-            </tbody>
+              </tbody>
+              
         </table>
 
         <input type="hidden" name="student_id" value="{{ student.id }}">

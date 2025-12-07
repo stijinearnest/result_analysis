@@ -1,0 +1,172 @@
+/* -------------------------------
+   Grace Marks – Form Card Design
+   Clean, aesthetic, matches your
+   previous designs.
+--------------------------------*/
+
+body {
+    background: #f5f7fb;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* center container */
+.grace-container {
+    display: flex;
+    justify-content: center;
+    padding: 30px 10px;
+}
+
+/* card */
+.grace-card {
+    width: 100%;
+    max-width: 600px;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(2,6,23,0.07);
+    border: 1px solid #eef3fb;
+}
+
+/* header */
+.grace-header {
+    background: linear-gradient(135deg, #3b66f0, #4a7bff);
+    padding: 22px 26px;
+    color: #fff;
+}
+
+.grace-header h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.grace-header p {
+    margin: 6px 0 0;
+    opacity: .9;
+    font-size: 15px;
+}
+
+/* messages */
+.grace-messages {
+    padding: 12px 20px;
+}
+
+.grace-alert {
+    background: #fff5d9;
+    color: #8d5e0a;
+    border-left: 4px solid #f7c948;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+/* form */
+#graceForm {
+    padding: 22px 26px 30px;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+/* input + select */
+input[type="text"],
+select {
+    width: 100%;
+    padding: 11px 12px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: 1px solid #dce5f2;
+    background: #ffffff;
+    transition: 0.2s;
+}
+
+input[type="text"]:focus,
+select:focus {
+    border-color: #3b66f0;
+    box-shadow: 0 6px 20px rgba(59,102,240,0.15);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+/* registration number + search icon */
+.input-row {
+    display: flex;
+    gap: 10px;
+}
+
+.lookup-btn {
+    background: #eef3ff;
+    padding: 0 18px;
+    border-radius: 8px;
+    border: 1px solid #dce5f2;
+    cursor: pointer;
+    color: #3b66f0;
+    transition: 0.2s;
+}
+
+.lookup-btn:hover {
+    background: #dfebff;
+    transform: translateY(-2px);
+}
+
+/* note under reg input */
+.note {
+    display: block;
+    font-size: 13px;
+    margin-top: 6px;
+    color: #6b7280;
+}
+
+.note.success { color: #10b981; font-weight: 600; }
+.note.error   { color: #ef4444; font-weight: 600; }
+
+/* hide row until filled */
+.hidden { display: none; }
+
+/* buttons */
+.form-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 12px;
+}
+
+.btn-primary {
+    background: #3b66f0;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-primary:hover {
+    background: #2f54d4;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #f5f7fb;
+    border: 1px solid #dce5f2;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #374151;
+    font-weight: 700;
+}
+
+.btn-secondary:hover {
+    background: #eef2ff;
+}

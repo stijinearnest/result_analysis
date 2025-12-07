@@ -1,8 +1,12 @@
 {% extends "base.html" %}
+{% load static %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/teacher_students_filter.css' %}">
+{% endblock %}
 {% block content %}
-<div class="container" style="display:flex; gap:24px; align-items:flex-start; padding:16px;">
-  <!-- Sidebar filters -->
-  <aside style="width:320px; padding:16px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.06); background:#fff;">
+<div class="container filter-top-layout">
+  <!-- aside (filters) -->
+  <aside>
     <h3>Filter students</h3>
     <form method="get" id="student-filter-form">
       <label>Semester</label>
@@ -71,9 +75,8 @@
           <option value="{{ c }}" {% if filter_values.course == c %}selected{% endif %}>{{ c }}</option>
         {% endfor %}
       </select>
+
       
-      <label>Reg. No</label>
-      <input type="text" name="reg_no" value="{{ filter_values.reg_no|default_if_none:'' }}" placeholder="Registration no" style="width:100%;">
 
       <label>Overall Pass / Fail</label>
       <select name="pass_status">
@@ -82,14 +85,15 @@
         <option value="failed" {% if filter_values.pass_status == 'failed' %}selected{% endif %}>Failed (any paper)</option>
       </select>
 
-      <div style="margin-top:12px;">
+      <div class="filters-actions">
         <button type="submit">Apply filters</button>
-        <a href="{% url 'teacher_students_filter' %}">Reset</a>
+        <a class="reset-link" href="{% url 'teacher_students_filter' %}">Reset</a>
       </div>
     </form>
   </aside>
 
   <!-- Results -->
+  <div class="table-wrap">
   <section style="flex:1;">
     <h2>Students ({{ students|length }})</h2>
 
@@ -122,9 +126,10 @@
               {% if filter_values.subject %}
                 {% if s.subject_pass_info == True %}
                   <span style="color:green;">Passed</span>
-                  {% if s.subject_marks is not None and s.subject_max is not None %}
-                    — <strong>{{ s.subject_marks|floatformat:2 }}/{{ s.subject_max|floatformat:2 }}</strong>
-                  {% endif %}
+                  {% if s.marks_obtained is not None and s.real_max is not None %}
+  — <strong>{{ s.marks_obtained|floatformat:2 }}/{{ s.real_max|floatformat:2 }}</strong>
+{% endif %}
+
                 {% elif s.subject_pass_info == False %}
                   <span style="color:red;">Failed</span>
                   {% if s.subject_marks is not None and s.subject_max is not None %}
@@ -147,6 +152,7 @@
       </tbody>
     </table>
   </section>
+
 </div>
 
 <script>
@@ -212,5 +218,5 @@
       }
     })();
   </script>
-  
+  <link rel="stylesheet" href="{% static 'css/teacher_students_filter.css' %}">
 {% endblock %}
