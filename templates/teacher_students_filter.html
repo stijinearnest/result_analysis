@@ -75,7 +75,18 @@
           <option value="{{ c }}" {% if filter_values.course == c %}selected{% endif %}>{{ c }}</option>
         {% endfor %}
       </select>
-
+      <label>Syllabus Year</label>
+  <select name="syllabus" class="form-control">
+    <option value="">All</option>
+    {% for s in syllabi %}
+      {% if not filter_values.course or s.course == filter_values.course %}
+        <option value="{{ s.id }}"
+          {% if filter_values.syllabus == s.id|stringformat:"s" %}selected{% endif %}>
+          {{ s.course }} – {{ s.year }}
+        </option>
+      {% endif %}
+    {% endfor %}
+  </select>
       
 
       <label>Overall Pass / Fail</label>
