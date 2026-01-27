@@ -68,5 +68,11 @@ path('teacher/grace/', views.grace_marks, name='grace_marks'),
 path('teacher/grace/<int:student_id>/<int:sem_number>/', views.apply_grace_marks, name='apply_grace_marks'),
 
  path('ajax/get-student/', views.ajax_get_student, name='ajax_get_student'),
+ path("ajax/get-syllabus/", views.get_syllabus_by_course, name="get_syllabus_by_course"),
+path("ajax/create-syllabus/", views.ajax_create_syllabus, name="ajax_create_syllabus"),
+
+ 
+
+
 
 ]

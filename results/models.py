@@ -9,6 +9,15 @@ class Teacher(models.Model):
     def __str__(self):
         return self.full_name
 
+class Syllabus(models.Model):
+    course = models.CharField(max_length=50)
+    year = models.IntegerField()  # e.g. 2019, 2022, 2024
+
+    class Meta:
+        unique_together = ("course", "year")
+
+    def __str__(self):
+        return f"{self.course} - {self.year}"
 
 class Student(models.Model):
     GENDER_CHOICES = [
@@ -42,7 +51,7 @@ class Student(models.Model):
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     caste = models.CharField(max_length=10, choices=CASTE_CHOICES)
     religion = models.CharField(max_length=20, choices=RELIGION_CHOICES)
-
+    syllabus = models.ForeignKey(Syllabus, on_delete=models.PROTECT, null=True, blank=True)
     address = models.TextField()
     pin_code = models.CharField(max_length=6)
     academic_year = models.CharField(max_length=20, default="2024-25")
@@ -150,6 +159,7 @@ class Subject(models.Model):
     semester_number = models.IntegerField(default=1)
     credits = models.FloatField(default=3.0)
     max_marks = models.PositiveIntegerField(default=50)
+    syllabus = models.ForeignKey(Syllabus, on_delete=models.CASCADE,null=True,blank=True)
 
     def __str__(self):
         return f"{self.course} | Sem {self.semester_number} | {self.code} - {self.name}"

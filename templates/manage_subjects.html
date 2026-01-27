@@ -32,18 +32,21 @@
     <div class="table-container">
         <table class="subjects-table">
             <thead>
-                <tr>
-                    <th>Semester</th>
-                    <th>Code</th>
-                    <th>Name</th>
-                    <th>Credits</th>
-                    <th>Max Marks</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
+  <tr>
+    <th>Syllabus Year</th>   <!-- ✅ NEW -->
+    <th>Semester</th>
+    <th>Code</th>
+    <th>Name</th>
+    <th>Credits</th>
+    <th>Max Marks</th>
+    <th>Actions</th>
+  </tr>
+</thead>
+
             <tbody>
                 {% for subject in subjects %}
                 <tr>
+                    <td>{{ subject.syllabus.year }}</td> 
                     <td>{{ subject.semester_number }}</td>
                     <td>{{ subject.code }}</td>
                     <td>{{ subject.name }}</td>
@@ -82,6 +85,9 @@
                     <label for="id_course">Course</label>
                     {{ form.course }}
                 </div>
+                
+
+
                 <div class="form-group">
                     <label for="id_name">Subject Name</label>
                     {{ form.name }}

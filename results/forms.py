@@ -1,12 +1,35 @@
 
 from django import forms
-from .models import Student, Semester, Mark, Subject
+from .models import Student, Semester, Mark, Subject,Syllabus
+
+
 
 class StudentForm(forms.ModelForm):
     class Meta:
         model = Student
-        fields = ["reg_no", "name", "dob", "course", "academic_year","gender","caste","religion","address","pin_code", "photo"]
-        widgets = {"dob": forms.DateInput(attrs={"type": "date"})}
+        fields = [
+            "reg_no", "name", "dob",
+            "course", "syllabus",
+            "academic_year",
+            "gender", "caste", "religion",
+            "address", "pin_code", "photo"
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # default: no syllabus until course is selected
+        self.fields["syllabus"].queryset = Syllabus.objects.none()
+
+        if "course" in self.data:
+            course = self.data.get("course")
+            self.fields["syllabus"].queryset = Syllabus.objects.filter(course=course)
+
+        elif self.instance.pk:
+            self.fields["syllabus"].queryset = Syllabus.objects.filter(
+                course=self.instance.course
+            )
+
 
 class SemesterForm(forms.ModelForm):
     class Meta:
@@ -24,7 +47,8 @@ class MarksEntryForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         if semester:
-            subjects = Subject.objects.filter(course=semester.student.course, semester_number=semester.number)
+            subjects = Subject.objects.filter( syllabus=semester.student.syllabus,
+    semester_number=semester.number)
             for subject in subjects:
                
                 self.fields[f"subject_{subject.id}_obtained"] = forms.FloatField(
@@ -49,13 +73,28 @@ class MarksEntryForm(forms.Form):
 class SubjectForm(forms.ModelForm):
     class Meta:
         model = Subject
-        fields = ["course", "name", "code", "semester_number", "credits","max_marks"]
-        widgets = {
-            "course": forms.Select(attrs={"class": "form-control"}),
-            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Subject Name"}),
-            "code": forms.TextInput(attrs={"class": "form-control", "placeholder": "Subject Code"}),
-            "semester_number": forms.NumberInput(attrs={"class": "form-control", "min": 1}),
-            "credits": forms.NumberInput(attrs={"class": "form-control", "min": 0.5, "step": 0.5}),
-            'max_marks': forms.NumberInput(attrs={'min': 0}),
-        }
+        fields = [
+            "course",
+            "syllabus",
+            "name",
+            "code",
+            "semester_number",
+            "credits",
+            "max_marks",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # do not show all syllabi by default
+        self.fields["syllabus"].queryset = Syllabus.objects.none()
+
+        if "course" in self.data:
+            course = self.data.get("course")
+            self.fields["syllabus"].queryset = Syllabus.objects.filter(course=course)
+
+        elif self.instance.pk:
+            self.fields["syllabus"].queryset = Syllabus.objects.filter(
+                course=self.instance.course
+            )
 

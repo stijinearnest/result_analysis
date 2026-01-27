@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Avg,Q
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from .models import Student, Mark,Teacher,Subject,Semester
+from .models import Student, Mark,Teacher,Subject,Semester,Syllabus
 from .forms import StudentForm, MarkForm,MarksEntryForm,SubjectForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from collections import defaultdict
@@ -161,7 +161,20 @@ def user_logout(request):
     logout(request)
     return redirect("home")
 
+def get_syllabus_by_course(request):
+    course = request.GET.get("course")
 
+    if not course:
+        return JsonResponse({"syllabi": []})
+
+    syllabi = Syllabus.objects.filter(course=course).order_by("year")
+
+    return JsonResponse({
+        "syllabi": [
+            {"id": s.id, "year": s.year}
+            for s in syllabi
+        ]
+    })
 
 
 @login_required(login_url='teacher_login')
@@ -172,13 +185,15 @@ def add_student(request):
         if form.is_valid():
             student = form.save(commit=False)
 
-          
+# semester calculation stays the same
             start_year = int(student.academic_year.split("-")[0])
             current_year = date.today().year
             years_passed = current_year - start_year
-            student.semester = (years_passed * 2) + 1 
+            student.semester = (years_passed * 2) + 1
 
-            student.save() 
+# syllabus already chosen via form
+            student.save()
+ 
 
             
             return redirect("student_success", student_name=student.name)
@@ -333,16 +348,10 @@ def add_marks_single_page(request):
         selected_subject_ids = request.GET.getlist("subjects")
         if not selected_subject_ids:
             # Build candidate list using same robust logic as below
-            candidate_qs = Subject.objects.none()
-            student_course = getattr(student, "course", None)
-            if student_course is not None:
-                if hasattr(student_course, "id"):
-                    candidate_qs = Subject.objects.filter(course__id=student_course.id, semester_number=semester.number)
-                else:
-                    candidate_qs = Subject.objects.filter(course__iexact=str(student_course), semester_number=semester.number)
-
-            if not candidate_qs.exists():
-                candidate_qs = Subject.objects.filter(semester_number=semester.number)
+            candidate_qs = Subject.objects.filter(
+            syllabus=student.syllabus,
+    semester_number=semester.number
+)
 
             return render(request, "select_supply_subjects.html", {
                 "student": student,
@@ -356,20 +365,18 @@ def add_marks_single_page(request):
 
     # If specific subjects were selected, use them (preserves teacher choice)
     if selected_subject_ids:
-        subjects_qs = Subject.objects.filter(id__in=selected_subject_ids).order_by('id')
+       subjects_qs = Subject.objects.filter(
+    id__in=selected_subject_ids,
+    syllabus=student.syllabus
+).order_by("code")
+
     else:
         # Robust subject lookup: try course FK -> course string (iexact) -> fallback to semester-only
-        student_course = getattr(student, "course", None)
-        subjects_qs = Subject.objects.none()
+       subjects_qs = Subject.objects.filter(
+    syllabus=student.syllabus,
+    semester_number=semester.number
+).order_by("code")
 
-        if student_course is not None:
-            if hasattr(student_course, "id"):
-                subjects_qs = Subject.objects.filter(course__id=student_course.id, semester_number=semester.number)
-            else:
-                subjects_qs = Subject.objects.filter(course__iexact=str(student_course), semester_number=semester.number)
-
-        if not subjects_qs.exists():
-            subjects_qs = Subject.objects.filter(semester_number=semester.number)
 
     # Debug print (optional) - replace with logger.debug in production
     print(f"[add_marks_single_page] student={student.id} course={repr(getattr(student, 'course', None))} sem={semester.number} subjects_count={subjects_qs.count()}")
@@ -377,17 +384,21 @@ def add_marks_single_page(request):
     # If still no subjects, show a friendly page explaining next steps
     if not subjects_qs.exists():
         return render(request, "add_marks_no_subjects.html", {
-            "student": student,
-            "semester": sem_num_int,
-            "message": "No subjects found for this student & semester. Ensure student's course is set and subjects are created for that course/semester."
-        })
+    "student": student,
+    "semester": sem_num_int,
+    "message": (
+        "No subjects found for this student's syllabus and semester. "
+        "Please add subjects for this syllabus before entering marks."
+    )
+})
+
 
     # ---------- Prevent duplicate entries for Regular attempt ----------
     if attempt_type == "Regular":
         existing = Mark.objects.filter(semester=semester).exists()
         if existing:
             return render(request, "add_marks_already_exists.html", {
-                "student": student,
+                "student": student, 
                 "semester": sem_num_int,
                 "attempt_type": attempt_type
             })
@@ -499,7 +510,10 @@ def get_subjects_for_semester(request):
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def manage_subjects(request):
-    subjects = Subject.objects.all().order_by("course", "semester_number")
+    subjects = Subject.objects.select_related("syllabus").order_by(
+    "course", "syllabus__year", "semester_number"
+)
+
 
     if request.method == "POST":
         form = SubjectForm(request.POST)
@@ -558,19 +572,38 @@ def select_course(request):
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def manage_subjects_by_course(request, course):
-    subjects = Subject.objects.filter(course=course).order_by('semester_number')
+    syllabus_id = request.GET.get("syllabus")
+
+    if not syllabus_id:
+        messages.error(request, "Please select syllabus year")
+        return redirect("select_course")
+
+    subjects = Subject.objects.filter(
+        course=course,
+        syllabus_id=syllabus_id
+    ).order_by("semester_number", "code")
+
     if request.method == "POST":
         form = SubjectForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('manage_subjects_by_course', course=course)
+            subject = form.save(commit=False)
+            subject.course = course
+            subject.syllabus_id = syllabus_id
+            subject.save()
+
+            return redirect(
+                f"/teacher/manage-subjects/{course}/?syllabus={syllabus_id}"
+            )
     else:
-        form = SubjectForm(initial={"course": course})
+        form = SubjectForm()
+
     return render(request, "manage_subjects.html", {
         "subjects": subjects,
         "form": form,
-        "course": course
+        "course": course,
+        "syllabus_id": syllabus_id,
     })
+
 
 
 
@@ -1034,3 +1067,34 @@ def ajax_get_student(request):
         return JsonResponse({'success': True, 'student': {'id': student.id, 'name': student.name}})
     except Student.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Student not found.'})
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def ajax_create_syllabus(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False})
+
+    course = request.POST.get("course")
+    year = request.POST.get("year")
+
+    if not course or not year:
+        return JsonResponse({"success": False, "error": "Missing data"})
+
+    try:
+        year = int(year)
+    except ValueError:
+        return JsonResponse({"success": False, "error": "Invalid year"})
+
+    syllabus, created = Syllabus.objects.get_or_create(
+        course=course,
+        year=year
+    )
+
+    return JsonResponse({
+        "success": True,
+        "id": syllabus.id,
+        "year": syllabus.year,
+        "created": created,
+    })
