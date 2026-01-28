@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+  <h2>🏢 {{ department.name }} — Students</h2>
+
+  <table class="table table-striped mt-3">
+    <thead>
+      <tr>
+        <th>Reg No</th>
+        <th>Name</th>
+        <th>Semester</th>
+        <th>CGPA</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in students %}
+      <tr>
+        <td>{{ row.student.reg_no }}</td>
+        <td>{{ row.student.name }}</td>
+        <td>{{ row.student.semester }}</td>
+        <td>{{ row.cgpa }}</td>
+        <td>
+          {% if row.overall_pass %}
+            <span class="badge bg-success">Pass</span>
+          {% else %}
+            <span class="badge bg-danger">Fail</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" class="text-center">No students found</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <a href="{% url 'admin_department_analysis' %}" class="btn btn-secondary mt-3">
+    ← Back to Department Analytics
+  </a>
+</div>
+
+{% endblock %}

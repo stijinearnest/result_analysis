@@ -16,6 +16,8 @@ urlpatterns = [
    
     path("teacher/dashboard/", views.teacher_dashboard, name="teacher_dashboard"),
     path("student/dashboard/", views.student_dashboard, name="student_dashboard"),
+    path("control/dashboard/", views.admin_dashboard, name="admin_dashboard"),
+
 
   
     path("teacher/add-student/", views.add_student, name="add_student"),
@@ -71,8 +73,25 @@ path('teacher/grace/<int:student_id>/<int:sem_number>/', views.apply_grace_marks
  path("ajax/get-syllabus/", views.get_syllabus_by_course, name="get_syllabus_by_course"),
 path("ajax/create-syllabus/", views.ajax_create_syllabus, name="ajax_create_syllabus"),
 
- 
+ path(
+  "control/department-analysis/",
+  views.admin_department_analysis,
+  name="admin_department_analysis"
+),
 
+path(
+    "control/departments/<int:department_id>/students/",
+    views.admin_department_students,
+    name="admin_department_students"
+),
+
+path("control/teachers/add/", views.add_teacher, name="add_teacher"),
+path("control/teachers/<int:teacher_id>/edit/", views.edit_teacher, name="edit_teacher"),
+
+
+path("control/departments/", views.manage_departments, name="manage_departments"),
+path("control/departments/add/", views.add_department, name="add_department"),
+path("control/departments/<int:department_id>/edit/", views.edit_department, name="edit_department"),
 
 
 ]

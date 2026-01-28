@@ -8,11 +8,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Avg,Q
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from .models import Student, Mark,Teacher,Subject,Semester,Syllabus
-from .forms import StudentForm, MarkForm,MarksEntryForm,SubjectForm
+from .models import Department, Student, Mark,Teacher,Subject,Semester,Syllabus
+from .forms import StudentForm, MarkForm,MarksEntryForm,SubjectForm,TeacherCreateForm,TeacherEditForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from collections import defaultdict
-
+from django.contrib.auth.models import User
 
 
 def home(request):
@@ -26,7 +26,11 @@ def teacher_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None and (user.is_staff or user.is_superuser):
             login(request, user)
-            return redirect("teacher_dashboard")
+            if user.is_superuser:
+                return redirect("admin_dashboard")
+            else:
+                return redirect("teacher_dashboard")
+
         else:
             messages.error(request, "Invalid username or password or unauthorized access")
     return render(request, "teacher_login.html")
@@ -51,6 +55,11 @@ def teacher_dashboard(request):
     teacher_name = request.user.first_name or request.user.username
     return render(request, "teacher_dashboard.html",{"teacher_name": teacher_name})
 
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_superuser)
+def admin_dashboard(request):
+    return render(request, "admin_dashboard.html")
 
 def student_required(view_func):
     
@@ -190,6 +199,9 @@ def add_student(request):
             current_year = date.today().year
             years_passed = current_year - start_year
             student.semester = (years_passed * 2) + 1
+            # 🔐 Restrict teacher to own department
+            if not request.user.is_superuser:
+                student.department = request.user.teacher.department
 
 # syllabus already chosen via form
             student.save()
@@ -202,34 +214,6 @@ def add_student(request):
     return render(request, "add_student.html", {"form": form})
 
 
-
-
-@login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
-def select_student_semester(request):
-    students = Student.objects.all()
-    filtered_students = students
-
-   
-    course = request.GET.get('course')
-    reg_no = request.GET.get('reg_no')
-    academic_year = request.GET.get('academic_year')
-
-    if course:
-        filtered_students = filtered_students.filter(course=course)
-    if reg_no:
-        filtered_students = filtered_students.filter(reg_no__icontains=reg_no)
-    if academic_year:
-        filtered_students = filtered_students.filter(academic_year=academic_year)
-
-    if request.method == "POST":
-        student_id = request.POST.get('student')
-        semester_number = request.POST.get('semester')
-        return redirect('add_marks', student_id=student_id, sem_number=semester_number)
-
-    return render(request, "select_student_semester.html", {
-        "students": filtered_students
-    })
 
 
 
@@ -258,7 +242,14 @@ def select_student_semester(request):
 
         if reg_no and semester_number and attempt_type:
             try:
-                student = Student.objects.get(reg_no__iexact=reg_no)
+                if request.user.is_superuser:
+                    student = Student.objects.get(reg_no__iexact=reg_no)
+                else:
+                    student = Student.objects.get(
+        reg_no__iexact=reg_no,
+        department=request.user.teacher.department
+    )
+
 
                 
                 if attempt_type == "Regular":
@@ -298,7 +289,14 @@ def get_student_name_by_regno(request):
     reg_no = request.GET.get('reg_no')
     if reg_no:
         try:
-            student = Student.objects.get(reg_no__iexact=reg_no)
+            if request.user.is_superuser:
+                student = Student.objects.get(reg_no__iexact=reg_no)
+            else:
+                student = Student.objects.get(
+        reg_no__iexact=reg_no,
+        department=request.user.teacher.department
+    )
+
             data = {
                 "name": student.name,
                 "id": student.id  
@@ -332,6 +330,10 @@ def add_marks_single_page(request):
         return redirect("teacher_dashboard")
 
     student = get_object_or_404(Student, id=student_id)
+    if not request.user.is_superuser:
+        if student.department != request.user.teacher.department:
+            return redirect("teacher_dashboard")
+
 
     # Normalize semester number to int if possible (keeps behavior consistent)
     try:
@@ -569,8 +571,8 @@ def select_course(request):
 
 
 
-@login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
 def manage_subjects_by_course(request, course):
     syllabus_id = request.GET.get("syllabus")
 
@@ -613,7 +615,14 @@ def student_search(request):
     students = []
     query = request.GET.get("q")
     if query:
-        students = Student.objects.filter(reg_no__icontains=query)
+        if request.user.is_superuser:
+            students = Student.objects.filter(reg_no__icontains=query)
+        else:
+            students = Student.objects.filter(
+        reg_no__icontains=query,
+        department=request.user.teacher.department
+    )
+
     return render(request, "student_search.html", {"students": students})
     
 
@@ -621,6 +630,10 @@ def student_search(request):
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def student_detail(request, student_id):
     student = get_object_or_404(Student, id=student_id)
+    if not request.user.is_superuser:
+        if student.department != request.user.teacher.department:
+            return redirect("teacher_dashboard")
+
 
     # ✅ Get all marks for the student
     all_marks = Mark.objects.filter(semester__student=student).select_related("subject", "semester")
@@ -713,6 +726,10 @@ def student_success(request, student_name):
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def view_all_attempts(request, student_id):
     student = get_object_or_404(Student, id=student_id)
+    if not request.user.is_superuser:
+        if student.department != request.user.teacher.department:
+            return redirect("teacher_dashboard")
+
 
     # Get all marks for that student, ordered by subject then attempt_no
     all_marks = (
@@ -748,6 +765,11 @@ def view_all_attempts(request, student_id):
 def subject_attempt_history(request, student_id, subject_id):
     student = get_object_or_404(Student, id=student_id)
     subject = get_object_or_404(Subject, id=subject_id)
+
+    if not request.user.is_superuser:
+        if student.department != request.user.teacher.department:
+            return redirect("teacher_dashboard")
+
 
     # Get all attempts for that student and subject
     attempts = (
@@ -821,11 +843,16 @@ def teacher_students_filter(request):
     # ==========================
     # Base student queryset
     # ==========================
-    students_qs = (
-        Student.objects.all()
-        .select_related("syllabus")
-        .order_by("name")
+    students_qs = Student.objects.select_related("syllabus")
+
+    if not request.user.is_superuser:
+        students_qs = students_qs.filter(
+        department=request.user.teacher.department
     )
+
+    students_qs = students_qs.order_by("name")
+
+    
 
     # ==========================
     # Student-level filters
@@ -1018,6 +1045,7 @@ def grace_marks(request):
         return redirect("apply_grace_marks", student_id=student.id, sem_number=sem_number)
 
     return render(request, "grace_marks_select.html")
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def apply_grace_marks(request, student_id, sem_number):
@@ -1099,21 +1127,33 @@ def apply_grace_marks(request, student_id, sem_number):
 
 # views.py
 
-
-
-@require_GET
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def ajax_get_student(request):
     reg_no = request.GET.get('reg_no', '').strip()
+
     if not reg_no:
         return JsonResponse({'success': False, 'message': 'Provide registration number.'})
 
     try:
-        student = Student.objects.get(reg_no__iexact=reg_no)
-        # return minimal safe payload
-        return JsonResponse({'success': True, 'student': {'id': student.id, 'name': student.name}})
+        if request.user.is_superuser:
+            student = Student.objects.get(reg_no__iexact=reg_no)
+        else:
+            student = Student.objects.get(
+                reg_no__iexact=reg_no,
+                department=request.user.teacher.department
+            )
+
+        return JsonResponse({
+            'success': True,
+            'student': {
+                'id': student.id,
+                'name': student.name
+            }
+        })
+
     except Student.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Student not found.'})
-
 
 @login_required(login_url="teacher_login")
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
@@ -1142,4 +1182,183 @@ def ajax_create_syllabus(request):
         "id": syllabus.id,
         "year": syllabus.year,
         "created": created,
+    })
+
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_superuser)
+def admin_department_analysis(request):
+    from .models import Department
+
+    departments = Department.objects.all()
+    data = []
+
+    for dept in departments:
+        students = Student.objects.filter(department=dept)
+        marks = Mark.objects.filter(semester__student__department=dept)
+
+        total_students = students.count()
+
+        if marks.exists():
+            avg_percent = round(
+                sum(m.marks_obtained for m in marks) /
+                sum(m.max_marks for m in marks) * 100,
+                2
+            )
+            passed_students = 0
+
+        for student in students:
+            student_marks = Mark.objects.filter(semester__student=student)
+
+            if student_marks.exists() and all(
+                m.marks_obtained >= 0.4 * m.max_marks for m in student_marks
+    ):
+                passed_students += 1
+
+                pass_rate = round(
+    (passed_students / total_students) * 100,
+    2
+) if total_students > 0 else 0
+
+        else:
+            avg_percent = 0
+            pass_rate = 0
+
+        data.append({
+            "department": dept.name,
+             "department_id": dept.id,
+            "students": total_students,
+            "avg_percent": avg_percent,
+            "pass_rate": pass_rate
+        })
+
+    return render(request, "admin_department_analysis.html", {
+        "data": data
+    })
+
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def admin_department_students(request, department_id):
+    department = get_object_or_404(Department, id=department_id)
+
+    students = (
+        Student.objects
+        .filter(department=department)
+        .select_related("syllabus")
+        .order_by("name")
+    )
+
+    student_data = []
+
+    for s in students:
+        marks = Mark.objects.filter(semester__student=s)
+
+        if marks.exists():
+            overall_pass = all(
+                m.marks_obtained >= 0.4 * m.max_marks
+                for m in marks
+            )
+        else:
+            overall_pass = False
+
+        student_data.append({
+            "student": s,
+            "cgpa": s.cgpa(),
+            "overall_pass": overall_pass,
+        })
+
+    return render(request, "admin_department_students.html", {
+        "department": department,
+        "students": student_data
+    })
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def add_teacher(request):
+    if request.method == "POST":
+        form = TeacherCreateForm(request.POST)
+        if form.is_valid():
+            user = User.objects.create_user(
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password"],
+                is_staff=True
+            )
+
+            Teacher.objects.create(
+                user=user,
+                full_name=form.cleaned_data["full_name"],
+                department=form.cleaned_data["department"]
+            )
+
+            messages.success(request, "Teacher added successfully")
+            return redirect("admin_dashboard")
+    else:
+        form = TeacherCreateForm()
+
+    return render(request, "add_teacher.html", {"form": form})
+
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def edit_teacher(request, teacher_id):
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+
+    if request.method == "POST":
+        form = TeacherEditForm(request.POST)
+        if form.is_valid():
+            teacher.full_name = form.cleaned_data["full_name"]
+            teacher.department = form.cleaned_data["department"]
+            teacher.save()
+
+            messages.success(request, "Teacher updated successfully")
+            return redirect("admin_dashboard")
+    else:
+        form = TeacherEditForm(initial={
+            "full_name": teacher.full_name,
+            "department": teacher.department
+        })
+
+    return render(request, "edit_teacher.html", {
+        "form": form,
+        "teacher": teacher
+    })
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def manage_departments(request):
+    departments = Department.objects.all().order_by("name")
+    return render(request, "manage_departments.html", {
+        "departments": departments
+    })
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def add_department(request):
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        if name:
+            Department.objects.create(name=name)
+            messages.success(request, "Department added successfully")
+            return redirect("manage_departments")
+        messages.error(request, "Department name is required")
+
+    return render(request, "add_department.html")
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def edit_department(request, department_id):
+    department = get_object_or_404(Department, id=department_id)
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        if name:
+            department.name = name
+            department.save()
+            messages.success(request, "Department updated successfully")
+            return redirect("manage_departments")
+        messages.error(request, "Department name is required")
+
+    return render(request, "edit_department.html", {
+        "department": department
     })

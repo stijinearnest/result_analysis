@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+  <h1 class="mb-3">🛠 Admin Dashboard</h1>
+  <p class="text-muted">System-wide control panel</p>
+
+  <div class="row g-4">
+
+    <!-- Manage Teachers -->
+    <div class="col-md-4">
+      <div class="card p-3">
+        <h5>👨‍🏫 Manage Teachers</h5>
+        <a href="{% url 'add_teacher' %}" class="btn btn-primary mt-2">
+  Add Teacher
+</a>
+
+      </div>
+    </div>
+
+    <!-- Departments -->
+    <div class="col-md-4">
+      <div class="card p-3">
+        <h5>🏢 Departments</h5>
+        <a href="{% url 'manage_departments' %}" class="btn btn-primary mt-2">
+  Manage Departments
+</a>
+
+          
+      </div>
+    </div>
+     <div class="menu-item"> 
+          <div class="menu-icon"> 
+            <i class="fas fa-book"></i> 
+          </div> 
+          
+          <h3>Add Subject</h3> 
+          <a href="{% url 'select_course' %}" class="menu-link">Add Subject</a> 
+        </div>
+
+    <!-- Students -->
+    <div class="col-md-4">
+      <div class="card p-3">
+        <h5>👨‍🎓 All Students</h5>
+        <a href="{% url 'student_search' %}" class="btn btn-primary mt-2">
+          View Students
+        </a>
+      </div>
+    </div>
+
+    <!-- Department Analytics -->
+    <div class="col-md-4">
+      <div class="card p-3">
+        <h5>📊 Department Analytics</h5>
+        <a href="{% url 'admin_department_analysis' %}" class="btn btn-success mt-2">
+          View Analytics
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

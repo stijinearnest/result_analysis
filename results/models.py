@@ -1,13 +1,24 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+class Department(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
 
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100)
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
-    def __str__(self):
-        return self.full_name
+    
+
 
 class Syllabus(models.Model):
     course = models.CharField(max_length=50)
@@ -56,6 +67,11 @@ class Student(models.Model):
     pin_code = models.CharField(max_length=6)
     academic_year = models.CharField(max_length=20, default="2024-25")
     photo = models.ImageField(upload_to="students/", blank=True, null=True)
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True)
 
     def __str__(self):
         return f"{self.reg_no} - {self.name}"

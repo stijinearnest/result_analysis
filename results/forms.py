@@ -1,8 +1,18 @@
 
 from django import forms
-from .models import Student, Semester, Mark, Subject,Syllabus
+from .models import Student, Semester, Mark, Subject,Syllabus,Teacher
 
 
+class TeacherCreateForm(forms.Form):
+    username = forms.CharField(max_length=150)
+    password = forms.CharField(widget=forms.PasswordInput)
+    full_name = forms.CharField(max_length=100)
+    department = forms.ModelChoiceField(queryset=Teacher._meta.get_field("department").remote_field.model.objects.all())
+
+
+class TeacherEditForm(forms.Form):
+    full_name = forms.CharField(max_length=100)
+    department = forms.ModelChoiceField(queryset=Teacher._meta.get_field("department").remote_field.model.objects.all())
 
 class StudentForm(forms.ModelForm):
     class Meta:
