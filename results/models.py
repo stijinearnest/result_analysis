@@ -6,8 +6,28 @@ class Department(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Course(models.Model):
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.CASCADE,
+        related_name="courses"
+    )
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = ("department", "name")
+
+    def __str__(self):
+        return f"{self.name} ({self.department.name})"
+
 
 class Teacher(models.Model):
+    ROLE_CHOICES = [
+        ("TEACHER", "Teacher"),
+        ("HOD", "HOD"),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100)
     department = models.ForeignKey(
@@ -16,6 +36,12 @@ class Teacher(models.Model):
         null=True,
         blank=True
     )
+    role = models.CharField(
+        max_length=10,
+        choices=ROLE_CHOICES,
+        default="TEACHER"
+    )
+
 
     
 
@@ -72,6 +98,15 @@ class Student(models.Model):
         on_delete=models.PROTECT,
         null=True,
         blank=True)
+    course = models.CharField(max_length=100, default="B.Sc Computer Science")
+
+    course_ref = models.ForeignKey(
+        Course,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="students"
+    )
 
     def __str__(self):
         return f"{self.reg_no} - {self.name}"
@@ -176,6 +211,15 @@ class Subject(models.Model):
     credits = models.FloatField(default=3.0)
     max_marks = models.PositiveIntegerField(default=50)
     syllabus = models.ForeignKey(Syllabus, on_delete=models.CASCADE,null=True,blank=True)
+    course = models.CharField(max_length=50, choices=COURSE_CHOICES)
+
+    course_ref = models.ForeignKey(
+        Course,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="subjects"
+    )
 
     def __str__(self):
         return f"{self.course} | Sem {self.semester_number} | {self.code} - {self.name}"

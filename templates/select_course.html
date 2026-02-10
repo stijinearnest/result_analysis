@@ -23,9 +23,10 @@
         </label>
         <select id="course" class="form-control" required>
             <option value="">-- Select Course --</option>
-            {% for c in courses %}
-                <option value="{{ c }}">{{ c }}</option>
-            {% endfor %}
+            {% for course in courses %}
+  <option value="{{ course.name }}">{{ course.name }}</option>
+{% endfor %}
+
         </select>
     </div>
 

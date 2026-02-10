@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+  <h2>📚 Courses in {{ department.name }}</h2>
+
+  <!-- Add course form -->
+  <form method="post" class="mb-4">
+    {% csrf_token %}
+    <div class="input-group">
+      <input
+        type="text"
+        name="name"
+        class="form-control"
+        placeholder="Enter course name (e.g. B.Sc Computer Science)"
+        required
+      >
+      <button class="btn btn-success" type="submit">
+        ➕ Add Course
+      </button>
+    </div>
+  </form>
+
+  <!-- Course list -->
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Course Name</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for course in courses %}
+      <tr>
+        <td>{{ course.name }}</td>
+        <td>
+          <a href="{% url 'edit_course' course.id %}"
+             class="btn btn-sm btn-primary">
+            Edit
+          </a>
+
+          <a href="{% url 'delete_course' course.id %}"
+             class="btn btn-sm btn-danger ms-2">
+            Delete
+          </a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="2" class="text-center text-muted">
+          No courses added for this department yet.
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+  <a href="{% url 'manage_departments' %}" class="btn btn-secondary">
+    ← Back to Departments
+  </a>
+</div>
+
+{% endblock %}

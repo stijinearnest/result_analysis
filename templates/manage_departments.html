@@ -23,6 +23,11 @@
           <a href="{% url 'edit_department' dept.id %}" class="btn btn-sm btn-primary">
             Edit
           </a>
+
+          <a href="{% url 'manage_department_courses' dept.id %}"
+             class="btn btn-sm btn-warning ms-2">
+            Manage Courses
+          </a>
         </td>
       </tr>
       {% empty %}

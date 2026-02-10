@@ -38,6 +38,13 @@
             <h3>View Student</h3> 
             <a href="{% url 'student_search' %}" class="menu-link">View Students</a> 
           </div> 
+  {% if user.teacher.role == "HOD" %}
+  <a href="{% url 'select_course' %}" class="btn btn-warning">
+    📘 Manage Subjects
+  </a>
+{% endif %}
+
+
           <div class="menu-item"> 
             <div class="menu-icon"> 
               <i class="fas fa-search"></i> 

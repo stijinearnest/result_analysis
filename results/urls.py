@@ -92,6 +92,23 @@ path("control/teachers/<int:teacher_id>/edit/", views.edit_teacher, name="edit_t
 path("control/departments/", views.manage_departments, name="manage_departments"),
 path("control/departments/add/", views.add_department, name="add_department"),
 path("control/departments/<int:department_id>/edit/", views.edit_department, name="edit_department"),
+path(
+    "control/departments/<int:department_id>/courses/",
+    views.manage_department_courses,
+    name="manage_department_courses"
+),
+
+path(
+    "control/courses/<int:course_id>/edit/",
+    views.edit_course,
+    name="edit_course"
+),
+path(
+    "control/courses/<int:course_id>/delete/",
+    views.delete_course,
+    name="delete_course"
+),
+
 
 
 ]

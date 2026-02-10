@@ -1,13 +1,26 @@
 
 from django import forms
-from .models import Student, Semester, Mark, Subject,Syllabus,Teacher
+from .models import Student, Semester, Mark, Subject,Syllabus,Teacher,Course
 
 
 class TeacherCreateForm(forms.Form):
     username = forms.CharField(max_length=150)
     password = forms.CharField(widget=forms.PasswordInput)
     full_name = forms.CharField(max_length=100)
-    department = forms.ModelChoiceField(queryset=Teacher._meta.get_field("department").remote_field.model.objects.all())
+
+    department = forms.ModelChoiceField(
+        queryset=Teacher._meta.get_field("department")
+        .remote_field.model.objects.all()
+    )
+
+    role = forms.ChoiceField(
+        choices=[
+            ("TEACHER", "Teacher"),
+            ("HOD", "HOD"),
+        ],
+        initial="TEACHER"
+    )
+
 
 
 class TeacherEditForm(forms.Form):
@@ -15,11 +28,19 @@ class TeacherEditForm(forms.Form):
     department = forms.ModelChoiceField(queryset=Teacher._meta.get_field("department").remote_field.model.objects.all())
 
 class StudentForm(forms.ModelForm):
+    course_ref = forms.ModelChoiceField(
+        queryset=Course.objects.all(),
+        required=False,
+        label="Course"
+    )
+
     class Meta:
         model = Student
         fields = [
             "reg_no", "name", "dob",
-            "course", "syllabus",
+            "course_ref",   # ✅ new FK field (shown to user)
+            "course",       # ⚠️ old string field (hidden later)
+            "syllabus",
             "academic_year",
             "gender", "caste", "religion",
             "address", "pin_code", "photo"
@@ -28,17 +49,40 @@ class StudentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # Hide old course field from UI
+        self.fields["course"].widget = forms.HiddenInput()
+
         # default: no syllabus until course is selected
         self.fields["syllabus"].queryset = Syllabus.objects.none()
 
-        if "course" in self.data:
-            course = self.data.get("course")
-            self.fields["syllabus"].queryset = Syllabus.objects.filter(course=course)
+        # When form is submitted
+        if "course_ref" in self.data:
+            try:
+                course_ref_id = int(self.data.get("course_ref"))
+                course_obj = Course.objects.get(id=course_ref_id)
 
-        elif self.instance.pk:
+                # 🔁 sync old string field
+                self.fields["syllabus"].queryset = Syllabus.objects.filter(
+                    course=course_obj.name
+                )
+            except (ValueError, Course.DoesNotExist):
+                pass
+
+        # When editing existing student
+        elif self.instance.pk and self.instance.course:
             self.fields["syllabus"].queryset = Syllabus.objects.filter(
                 course=self.instance.course
             )
+
+    def clean(self):
+        cleaned = super().clean()
+        course_ref = cleaned.get("course_ref")
+
+        # 🔁 keep string course in sync
+        if course_ref:
+            cleaned["course"] = course_ref.name
+
+        return cleaned
 
 
 class SemesterForm(forms.ModelForm):
@@ -81,10 +125,17 @@ class MarksEntryForm(forms.Form):
 
 
 class SubjectForm(forms.ModelForm):
+    course_ref = forms.ModelChoiceField(
+        queryset=Course.objects.all(),
+        required=False,
+        label="Course"
+    )
+
     class Meta:
         model = Subject
         fields = [
-            "course",
+            "course_ref",   # ✅ shown to user
+            "course",       # ⚠️ hidden string
             "syllabus",
             "name",
             "code",
@@ -96,15 +147,31 @@ class SubjectForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # do not show all syllabi by default
+        self.fields["course"].widget = forms.HiddenInput()
         self.fields["syllabus"].queryset = Syllabus.objects.none()
 
-        if "course" in self.data:
-            course = self.data.get("course")
-            self.fields["syllabus"].queryset = Syllabus.objects.filter(course=course)
+        if "course_ref" in self.data:
+            try:
+                course_ref_id = int(self.data.get("course_ref"))
+                course_obj = Course.objects.get(id=course_ref_id)
+                self.fields["syllabus"].queryset = Syllabus.objects.filter(
+                    course=course_obj.name
+                )
+            except (ValueError, Course.DoesNotExist):
+                pass
 
-        elif self.instance.pk:
+        elif self.instance.pk and self.instance.course:
             self.fields["syllabus"].queryset = Syllabus.objects.filter(
                 course=self.instance.course
             )
+
+    def clean(self):
+        cleaned = super().clean()
+        course_ref = cleaned.get("course_ref")
+
+        if course_ref:
+            cleaned["course"] = course_ref.name
+
+        return cleaned
+
 

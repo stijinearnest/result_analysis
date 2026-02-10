@@ -8,11 +8,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Avg,Q
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from .models import Department, Student, Mark,Teacher,Subject,Semester,Syllabus
+from .models import Department, Student, Mark,Teacher,Subject,Semester,Syllabus,Course
 from .forms import StudentForm, MarkForm,MarksEntryForm,SubjectForm,TeacherCreateForm,TeacherEditForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from collections import defaultdict
 from django.contrib.auth.models import User
+
+def is_hod(user):
+    return (
+        hasattr(user, "teacher") and
+        user.teacher.role == "HOD"
+    )
 
 
 def home(request):
@@ -308,8 +314,7 @@ def get_student_name_by_regno(request):
     return JsonResponse(data)
 
 
-@login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+
 
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
@@ -509,12 +514,19 @@ def get_subjects_for_semester(request):
 
 
 
-@login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser or is_hod(u))
+
 def manage_subjects(request):
-    subjects = Subject.objects.select_related("syllabus").order_by(
-    "course", "syllabus__year", "semester_number"
-)
+    subjects = Subject.objects.select_related("syllabus")
+
+    if is_hod(request.user):
+        subjects = subjects.filter(
+        course_ref__department=request.user.teacher.department
+    )
+
+    subjects = subjects.order_by("course", "syllabus__year", "semester_number")
+
 
 
     if request.method == "POST":
@@ -530,7 +542,7 @@ def manage_subjects(request):
 
 
 @login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser or is_hod(u))
 def edit_subject(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
     if request.method == "POST":
@@ -546,34 +558,52 @@ def edit_subject(request, subject_id):
 
 
 @login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser or is_hod(u))
 def delete_subject(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
     subject.delete()
     return redirect("manage_subjects")
 
 
-@login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser or is_hod(u))
 def select_course(request):
-    COURSES = [
-        "Computer Science",
-        "Business Administration",
-        "Engineering",
-        "Medicine",
-        "Law",
-    ]
+    # Admin → all courses
+    if request.user.is_superuser:
+        courses = Course.objects.all().order_by("name")
+
+    # HOD → only own department courses
+    else:
+        courses = Course.objects.filter(
+            department=request.user.teacher.department
+        ).order_by("name")
+
     if request.method == "POST":
         selected_course = request.POST.get("course")
         if selected_course:
-            return redirect('manage_subjects_by_course', course=selected_course)
-    return render(request, "select_course.html", {"courses": COURSES})
+            return redirect(
+                "manage_subjects_by_course",
+                course=selected_course
+            )
+
+    return render(request, "select_course.html", {
+        "courses": courses
+    })
+
 
 
 
 @login_required(login_url="teacher_login")
-@user_passes_test(lambda u: u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser or is_hod(u))
+
 def manage_subjects_by_course(request, course):
+    if is_hod(request.user):
+        if not Course.objects.filter(
+        name__iexact=course,
+        department=request.user.teacher.department
+    ).exists():
+            return redirect("teacher_dashboard")
+
     syllabus_id = request.GET.get("syllabus")
 
     if not syllabus_id:
@@ -873,7 +903,11 @@ def teacher_students_filter(request):
         students_qs = students_qs.filter(religion__iexact=religion)
 
     if course:
-        students_qs = students_qs.filter(course__iexact=course)
+        students_qs = students_qs.filter(
+        Q(course__iexact=course) |
+        Q(course_ref__name__iexact=course)
+    )
+
 
     if reg_no:
         students_qs = students_qs.filter(reg_no__icontains=reg_no)
@@ -887,9 +921,12 @@ def teacher_students_filter(request):
         try:
             sem_int = int(semester_number)
             subjects_for_sem = Subject.objects.filter(
-                semester_number=sem_int,
-                syllabus_id=syllabus_id
-            ).order_by("name")
+    semester_number=sem_int,
+    syllabus_id=syllabus_id
+).filter(
+    Q(course_ref__isnull=False) | Q(course__isnull=False)
+).order_by("name")
+
         except ValueError:
             subjects_for_sem = Subject.objects.none()
 
@@ -1286,10 +1323,12 @@ def add_teacher(request):
             )
 
             Teacher.objects.create(
-                user=user,
-                full_name=form.cleaned_data["full_name"],
-                department=form.cleaned_data["department"]
-            )
+    user=user,
+    full_name=form.cleaned_data["full_name"],
+    department=form.cleaned_data["department"],
+    role=form.cleaned_data["role"]   # ✅ NEW
+)
+
 
             messages.success(request, "Teacher added successfully")
             return redirect("admin_dashboard")
@@ -1362,3 +1401,66 @@ def edit_department(request, department_id):
     return render(request, "edit_department.html", {
         "department": department
     })
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def manage_department_courses(request, department_id):
+    department = get_object_or_404(Department, id=department_id)
+    courses = department.courses.all().order_by("name")
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        if name:
+            Course.objects.get_or_create(
+                department=department,
+                name=name
+            )
+            messages.success(request, "Course added successfully")
+            return redirect("manage_department_courses", department_id=department.id)
+        messages.error(request, "Course name is required")
+
+    return render(request, "manage_department_courses.html", {
+        "department": department,
+        "courses": courses
+    })
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def edit_course(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        if name:
+            course.name = name
+            course.save()
+            messages.success(request, "Course updated successfully")
+            return redirect(
+                "manage_department_courses",
+                department_id=course.department.id
+            )
+        messages.error(request, "Course name is required")
+
+    return render(request, "edit_course.html", {
+        "course": course
+    })
+
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def delete_course(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    department_id = course.department.id
+
+    if request.method == "POST":
+        course.delete()
+        messages.success(request, "Course deleted successfully")
+        return redirect(
+            "manage_department_courses",
+            department_id=department_id
+        )
+
+    return render(request, "delete_course.html", {
+        "course": course
+    })
+
