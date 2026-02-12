@@ -1,0 +1,178 @@
+/* =============================
+   ADMIN THEME VARIABLES
+============================= */
+
+:root {
+  --admin-bg: #0f172a;
+  --admin-card: #1e293b;
+  --admin-border: #334155;
+  --admin-text: #f1f5f9;
+  --admin-muted: #94a3b8;
+  --admin-accent: #10b981;
+  --admin-accent-dark: #059669;
+}
+
+/* =============================
+   LAYOUT
+============================= */
+
+.admin-container {
+  padding: 40px;
+  min-height: 100vh;
+  background: var(--admin-bg);
+  color: var(--admin-text);
+}
+
+.admin-header {
+  margin-bottom: 40px;
+}
+
+.admin-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.admin-header i {
+  color: var(--admin-accent);
+  margin-right: 10px;
+}
+
+.admin-header p {
+  color: var(--admin-muted);
+  margin-top: 5px;
+}
+
+/* =============================
+   GRID
+============================= */
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+}
+
+/* =============================
+   CARDS
+============================= */
+
+/* =============================
+   PREMIUM CARDS
+============================= */
+
+.admin-card {
+  background: #1e293b;
+  padding: 40px;
+  border-radius: 18px;
+  text-align: center;
+  transition: all 0.35s ease;
+  border: 1px solid rgba(255,255,255,0.05);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle gradient shimmer layer */
+.admin-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(16,185,129,0.08), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+/* Hover Animation */
+.admin-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+  border: 1px solid rgba(16,185,129,0.4);
+}
+
+.admin-card:hover::before {
+  opacity: 1;
+}
+
+/* Title */
+.admin-card h3 {
+  margin-top: 12px;
+  font-weight: 600;
+  font-size: 18px;
+  color: white;
+}
+
+/* Highlight special card */
+.admin-card.highlight {
+  border: 1px solid rgba(16,185,129,0.4);
+}
+
+.admin-card.highlight:hover {
+  box-shadow: 0 0 40px rgba(16,185,129,0.35);
+}
+
+
+
+/* =============================
+   ICON
+============================= */
+
+.card-icon {
+  width: 65px;
+  height: 65px;
+  margin: 0 auto 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--admin-accent), var(--admin-accent-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: white;
+}
+
+/* =============================
+   BUTTONS
+============================= */
+
+.admin-btn {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 11px 26px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.admin-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(16,185,129,0.4);
+}
+
+.admin-btn.success {
+  background: #3b82f6;
+}
+
+.admin-btn.success:hover {
+  background: #2563eb;
+}
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+/* =============================
+   HEADER TEXT FIX
+============================= */
+
+.admin-header h1 {
+  color: white;
+}
+
+.admin-header p {
+  color: #cbd5e1;
+}
+

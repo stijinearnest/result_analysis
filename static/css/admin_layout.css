@@ -1,0 +1,267 @@
+:root {
+  --admin-bg: #0f172a;
+  --sidebar-bg: #111827;
+  --card-bg: #1e293b;
+  --accent: #10b981;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+}
+body {
+    margin: 0;
+    background: #0f172a;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Wrapper */
+.admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ================= SIDEBAR ================= */
+
+.admin-sidebar {
+    width: 240px;
+    background: #0b1220;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    transition: 0.3s ease;
+}
+
+.admin-sidebar.collapsed {
+    width: 80px;
+}
+
+.admin-sidebar.collapsed + .admin-main {
+    margin-left: 80px;
+}
+
+/* ================= MAIN ================= */
+
+.admin-main {
+    margin-left: 240px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    transition: 0.3s ease;
+}
+
+/* ================= TOPBAR ================= */
+
+.admin-topbar {
+    height: 65px;
+    background: #111827;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 40px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* ================= CONTENT ================= */
+
+.admin-content {
+    flex: 1;
+    padding: 60px 80px;
+}
+
+
+/* Sidebar Header */
+
+.sidebar-header {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #1f2937;
+}
+
+.brand {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: var(--accent);
+  font-weight: 600;
+  transition: 0.3s ease;
+}
+
+.admin-sidebar.collapsed .brand-text {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+/* Toggle Button */
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.3s ease;
+}
+
+.sidebar-toggle:hover {
+  color: var(--accent);
+}
+
+/* Nav */
+
+.sidebar-nav {
+  flex: 1;
+  padding: 20px 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 14px 20px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: 0.3s ease;
+  white-space: nowrap;
+}
+
+.nav-item:hover {
+  background: rgba(16,185,129,0.1);
+  color: var(--accent);
+}
+
+.admin-sidebar.collapsed .nav-item span {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+/* Footer */
+
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid #1f2937;
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 10px;
+  background: none;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.logout-btn:hover {
+  background: #ef4444;
+  color: white;
+}
+
+
+
+/* ================= TOPBAR ================= */
+
+.admin-topbar {
+    height: 65px;
+    background: #111827;
+    display: flex;
+    justify-content: space-between;   /* Important */
+    align-items: center;
+    padding: 0 40px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Left Section */
+.topbar-left h4 {
+    margin: 0;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+
+/* Right Section */
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+/* User */
+.admin-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #cbd5e1;
+    font-size: 14px;
+}
+
+/* Logout Icon */
+.topbar-logout button {
+    background: transparent;
+    border: none;
+    color: #f87171;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.topbar-logout button:hover {
+    color: #ef4444;
+}
+
+
+.topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 20px;
+    font-size: 14px;
+}
+
+.topbar-logout {
+    background: transparent;
+    border: none;
+    color: #f87171;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.topbar-logout:hover {
+    color: #ef4444;
+}
+.sidebar-nav .nav-item {
+    padding: 14px 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #cbd5e1;
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+
+.sidebar-nav .nav-item:hover {
+    background: rgba(255,255,255,0.05);
+    color: #22c55e;
+}
+
+
+/* Mobile */
+
+@media (max-width: 768px) {
+  .admin-sidebar {
+    position: absolute;
+    left: -260px;
+    height: 100%;
+    z-index: 1000;
+    transition: left 0.35s ease;
+  }
+
+  .admin-sidebar.active {
+    left: 0;
+  }
+}

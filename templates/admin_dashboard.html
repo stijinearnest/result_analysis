@@ -1,64 +1,59 @@
-{% extends "base.html" %}
+{% extends "admin_base.html" %}
+
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+{% endblock %}
+
 {% block content %}
 
-<div class="container mt-4">
-  <h1 class="mb-3">🛠 Admin Dashboard</h1>
-  <p class="text-muted">System-wide control panel</p>
+<div class="admin-layout">
 
-  <div class="row g-4">
+  <div class="admin-header">
+    <h1><i class="fa-solid fa-gears"></i> Admin Control Panel</h1>
+    <p>System-wide configuration & monitoring</p>
+  </div>
 
-    <!-- Manage Teachers -->
-    <div class="col-md-4">
-      <div class="card p-3">
-        <h5>👨‍🏫 Manage Teachers</h5>
-        <a href="{% url 'add_teacher' %}" class="btn btn-primary mt-2">
-  Add Teacher
-</a>
+  <div class="admin-grid">
 
-      </div>
+    <div class="admin-card">
+      <div class="card-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+      <h3>Manage Teachers</h3>
+      <a href="{% url 'add_teacher' %}" class="admin-btn">Add Teacher</a>
     </div>
 
-    <!-- Departments -->
-    <div class="col-md-4">
-      <div class="card p-3">
-        <h5>🏢 Departments</h5>
-        <a href="{% url 'manage_departments' %}" class="btn btn-primary mt-2">
-  Manage Departments
-</a>
-
-          
-      </div>
-    </div>
-     <div class="menu-item"> 
-          <div class="menu-icon"> 
-            <i class="fas fa-book"></i> 
-          </div> 
-          
-          <h3>Add Subject</h3> 
-          <a href="{% url 'select_course' %}" class="menu-link">Add Subject</a> 
-        </div>
-
-    <!-- Students -->
-    <div class="col-md-4">
-      <div class="card p-3">
-        <h5>👨‍🎓 All Students</h5>
-        <a href="{% url 'student_search' %}" class="btn btn-primary mt-2">
-          View Students
-        </a>
-      </div>
+    <div class="admin-card">
+      <div class="card-icon"><i class="fa-solid fa-building"></i></div>
+      <h3>Departments</h3>
+      <a href="{% url 'manage_departments' %}" class="admin-btn">Manage Departments</a>
     </div>
 
-    <!-- Department Analytics -->
-    <div class="col-md-4">
-      <div class="card p-3">
-        <h5>📊 Department Analytics</h5>
-        <a href="{% url 'admin_department_analysis' %}" class="btn btn-success mt-2">
-          View Analytics
-        </a>
-      </div>
+    
+
+    <div class="admin-card">
+      <div class="card-icon"><i class="fa-solid fa-user-graduate"></i></div>
+      <h3>Students</h3>
+      <a href="{% url 'student_search' %}" class="admin-btn">View Students</a>
+    </div>
+
+    <div class="admin-card">
+      <div class="card-icon"><i class="fa-solid fa-chart-line"></i></div>
+      <h3>Department Analytics</h3>
+      <a href="{% url 'admin_department_analysis' %}" class="admin-btn">
+        View Analytics
+      </a>
     </div>
 
   </div>
+  
+
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/admin_dashboard.js' %}"></script>
 {% endblock %}

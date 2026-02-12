@@ -1,73 +1,157 @@
-{% extends "base.html" %} 
-{%load static%} 
-{% block content %} 
-<div class="dashboard-container"> 
-  <div class="dashboard-header"> 
-    <h1><i class="fas fa-chalkboard-teacher"></i> Teacher Dashboard</h1> 
-    <p>Manage your classroom and student information</p> 
-  </div> 
-  <div class="dashboard-content"> 
-    <div class="welcome-section"> 
-      <h2>Welcome! {{ teacher_name }} 👋</h2> 
-      <p>You have full access to manage student records and academic information</p> 
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/teacher_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+
+  <!-- Sidebar -->
+ <aside class="sidebar" id="sidebar">
+
+  <div class="sidebar-header">
+    <div class="logo">
+      <i class="fa-solid fa-graduation-cap"></i>
+      <span class="logo-text"></span>
     </div>
-     <!-- Single line menu --> 
-     <div class="menu-container"> 
-      <div class="single-line-menu"> 
-        <div class="menu-item"> 
-          <div class="menu-icon"> 
-            <i class="fas fa-user-plus"></i> 
-          </div> 
-          <h3>Add Student</h3> 
-          <a href="{% url 'add_student' %}" class="menu-link">Add Student</a> 
-        </div> 
-        <div class="menu-item"> 
-          <div class="menu-icon"> 
-            <i class="fas fa-chart-bar"></i> 
-          </div> 
-          
-          <h3>Add Marks</h3> 
-          <a href="{% url 'select_student_semester' %}" class="menu-link">Add Marks</a> 
-        </div> 
-        
-        <div class="menu-item"> 
-          <div class="menu-icon">
-             <i class="fas fa-search"></i> 
-            </div> 
-            
-            <h3>View Student</h3> 
-            <a href="{% url 'student_search' %}" class="menu-link">View Students</a> 
-          </div> 
-  {% if user.teacher.role == "HOD" %}
-  <a href="{% url 'select_course' %}" class="btn btn-warning">
-    📘 Manage Subjects
-  </a>
+
+    <button class="sidebar-toggle" id="sidebarToggle">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+  </div>
+
+    <nav class="sidebar-nav">
+
+      <a href="{% url 'teacher_dashboard' %}" class="nav-item active">
+        <i class="fa-solid fa-house"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="{% url 'add_student' %}" class="nav-item">
+        <i class="fa-solid fa-user-plus"></i>
+        <span>Add Student</span>
+      </a>
+
+      <a href="{% url 'select_student_semester' %}" class="nav-item">
+        <i class="fa-solid fa-clipboard-check"></i>
+        <span>Add Marks</span>
+      </a>
+
+      {% if is_hod_user %}
+<a href="{% url 'select_course' %}" class="nav-item">
+    <i class="fa-solid fa-book-open"></i>
+    <span>Manage Subjects</span>
+</a>
 {% endif %}
 
 
-          <div class="menu-item"> 
-            <div class="menu-icon"> 
-              <i class="fas fa-search"></i> 
-            </div>
-            
-            <h3>Filter Student</h3> 
-            <a href="{% url 'teacher_students_filter' %}" class="menu-link"> Students</a>
-           </div> 
-           <div class="menu-item"> 
-            <div class="menu-icon"> 
-              <i class="fas fa-star"></i> 
-            </div> 
-            <h3>Add Grace</h3> 
-            
-            <a href="{% url 'grace_marks' %}" class="menu-link"> Students</a> 
-          </div> 
-        </div> 
-      </div> 
-    </div> 
-   
-    </div> 
-  </div> 
-  <!-- External CSS & JS --> 
-  <link rel="stylesheet" href="{% static 'css/teacher_dashboard.css' %}"> 
-  <script src="{% static 'js/teacher_dashboard.js' %}"></script> 
-  {% endblock %}
+      <a href="{% url 'student_search' %}" class="nav-item">
+        <i class="fa-solid fa-users"></i>
+        <span>View Students</span>
+      </a>
+      <a href="{% url 'teacher_students_filter' %}" class="nav-item">
+        <i class="fa-solid fa-filter"></i>
+        <span>Filter Students</span>
+      </a>
+<a href="{% url 'grace_marks' %}" class="nav-item">
+        <i class="fa-solid fa-star"></i>
+        <span>Manage Grace</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="nav-item logout-btn">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Logout</span>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <header class="header">
+
+  
+
+</header>
+
+
+    <section class="hero">
+      <h2>Welcome {{ teacher_name }}</h2>
+      <p>You have full access to manage student records and academic information</p>
+    </section>
+
+    <main class="content-area">
+
+      <div class="cards-grid">
+
+        <div class="action-card">
+          <div class="card-icon">
+            <i class="fa-solid fa-user-plus"></i>
+          </div>
+          <h3>Add Student</h3>
+          <a href="{% url 'add_student' %}" class="card-button">Add Student</a>
+        </div>
+
+        <div class="action-card">
+          <div class="card-icon">
+            <i class="fa-solid fa-clipboard-check"></i>
+          </div>
+          <h3>Add Marks</h3>
+          <a href="{% url 'select_student_semester' %}" class="card-button">Add Marks</a>
+        </div>
+
+        {% if is_hod_user %}
+<div class="action-card">
+    <div class="card-icon">
+        <i class="fa-solid fa-book-open"></i>
+    </div>
+    <h3>Manage Subjects</h3>
+    <a href="{% url 'select_course' %}" class="card-button">Manage Subjects</a>
+</div>
+{% endif %}
+
+
+        <div class="action-card">
+          <div class="card-icon">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <h3>View Students</h3>
+          <a href="{% url 'student_search' %}" class="card-button">View Students</a>
+        </div>
+
+        <div class="action-card">
+          <div class="card-icon">
+            <i class="fa-solid fa-filter"></i>
+          </div>
+          <h3>Filter Students</h3>
+          <a href="{% url 'teacher_students_filter' %}" class="card-button">Filter Students</a>
+        </div>
+
+        <div class="action-card">
+          <div class="card-icon">
+            <i class="fa-solid fa-star"></i>
+          </div>
+          <h3>Manage Grace</h3>
+          <a href="{% url 'grace_marks' %}" class="card-button">Manage Grace</a>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/teacher_dashboard.js' %}"></script>
+{% endblock %}

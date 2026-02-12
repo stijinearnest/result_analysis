@@ -59,7 +59,17 @@ def student_login(request):
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def teacher_dashboard(request):
     teacher_name = request.user.first_name or request.user.username
-    return render(request, "teacher_dashboard.html",{"teacher_name": teacher_name})
+
+    is_hod_user = (
+        request.user.is_superuser or
+        (hasattr(request.user, "teacher") and request.user.teacher.role == "HOD")
+    )
+
+    return render(request, "teacher_dashboard.html", {
+        "teacher_name": teacher_name,
+        "is_hod_user": is_hod_user
+    })
+
 
 
 @login_required(login_url='teacher_login')
