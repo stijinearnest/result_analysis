@@ -83,6 +83,8 @@
   background: radial-gradient(circle at center, rgba(16,185,129,0.08), transparent 60%);
   opacity: 0;
   transition: opacity 0.4s ease;
+
+  pointer-events: none;   /* 🔥 ADD THIS */
 }
 
 /* Hover Animation */
@@ -165,7 +167,7 @@
     margin: 0 auto;
 }
 /* =============================
-   HEADER TEXT FIX
+   HEADER TEXT FIX8000
 ============================= */
 
 .admin-header h1 {
