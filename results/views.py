@@ -13,6 +13,9 @@ from .forms import StudentForm, MarkForm,MarksEntryForm,SubjectForm,TeacherCreat
 from django.contrib.auth.decorators import login_required, user_passes_test
 from collections import defaultdict
 from django.contrib.auth.models import User
+from django.urls import reverse
+from django.http import HttpResponseRedirect
+
 
 def is_hod(user):
     return (
@@ -186,13 +189,23 @@ def user_logout(request):
     logout(request)
     return redirect("home")
 
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def get_syllabus_by_course(request):
-    course = request.GET.get("course")
 
-    if not course:
+    course_id = request.GET.get("course")
+
+    if not course_id:
         return JsonResponse({"syllabi": []})
 
-    syllabi = Syllabus.objects.filter(course=course).order_by("year")
+    try:
+        course_id = int(course_id)
+    except ValueError:
+        return JsonResponse({"syllabi": []})
+
+    syllabi = Syllabus.objects.filter(
+        course_id=course_id
+    ).order_by("year")
 
     return JsonResponse({
         "syllabi": [
@@ -200,6 +213,7 @@ def get_syllabus_by_course(request):
             for s in syllabi
         ]
     })
+
 
 
 @login_required(login_url='teacher_login')
@@ -211,6 +225,8 @@ def add_student(request):
 
         if form.is_valid():
             student = form.save(commit=False)
+            student.course = student.course_ref.name
+
 
             # Semester calculation
             start_year = int(student.academic_year.split("-")[0])
@@ -331,14 +347,7 @@ def get_student_name_by_regno(request):
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_marks_single_page(request):
-    """
-    Full view supporting:
-     - Regular attempts (prevent duplicate entries)
-     - Supply/Improvement attempts with a subject-selection step (GET -> select_supply_subjects.html)
-     - Robust subject lookup (course fk or string), and semester-only fallback
-     - AJAX POST handler returning JSON
-     - Uses subject.max_marks (no max_<id> from POST)
-    """
+
     student_id = request.GET.get("student_id")
     sem_number = request.GET.get("semester")
     attempt_type = request.GET.get("attempt_type", "Regular")
@@ -347,102 +356,107 @@ def add_marks_single_page(request):
         return redirect("teacher_dashboard")
 
     student = get_object_or_404(Student, id=student_id)
+
     if not request.user.is_superuser:
         if student.department != request.user.teacher.department:
             return redirect("teacher_dashboard")
 
-
-    # Normalize semester number to int if possible (keeps behavior consistent)
     try:
         sem_num_int = int(sem_number)
     except (TypeError, ValueError):
         sem_num_int = sem_number
 
-    semester, _ = Semester.objects.get_or_create(student=student, number=sem_num_int)
-
-    # ---------- Supply/Improvement selection step (GET) ----------
-    # If teacher is attempting Supply/Improvement and no subjects are provided in querystring,
-    # show the selection page so they can pick which subjects to attempt.
-    if attempt_type == "Supply/Improvement" and request.method != "POST":
-        selected_subject_ids = request.GET.getlist("subjects")
-        if not selected_subject_ids:
-            # Build candidate list using same robust logic as below
-            candidate_qs = Subject.objects.filter(
-            syllabus=student.syllabus,
-    semester_number=semester.number
-)
-
-            return render(request, "select_supply_subjects.html", {
-                "student": student,
-                "semester": sem_num_int,
-                "subjects": candidate_qs,
-                "attempt_type": attempt_type,
-            })
-
-    # ---------- Determine selected subjects (GET or POST) ----------
-    selected_subject_ids = request.GET.getlist("subjects") or request.POST.getlist("selected_subjects")
-
-    # If specific subjects were selected, use them (preserves teacher choice)
-    if selected_subject_ids:
-       subjects_qs = Subject.objects.filter(
-    id__in=selected_subject_ids,
-    syllabus=student.syllabus
-).order_by("code")
-
-    else:
-        # Robust subject lookup: try course FK -> course string (iexact) -> fallback to semester-only
-       subjects_qs = Subject.objects.filter(
-    syllabus=student.syllabus,
-    semester_number=semester.number
-).order_by("code")
-
-
-    # Debug print (optional) - replace with logger.debug in production
-    print(f"[add_marks_single_page] student={student.id} course={repr(getattr(student, 'course', None))} sem={semester.number} subjects_count={subjects_qs.count()}")
-
-    # If still no subjects, show a friendly page explaining next steps
-    if not subjects_qs.exists():
-        return render(request, "add_marks_no_subjects.html", {
-    "student": student,
-    "semester": sem_num_int,
-    "message": (
-        "No subjects found for this student's syllabus and semester. "
-        "Please add subjects for this syllabus before entering marks."
+    semester, _ = Semester.objects.get_or_create(
+        student=student,
+        number=sem_num_int
     )
-})
 
+    # ---------------------------------------------------------
+    # GET ALL SUBJECTS FOR THIS SYLLABUS + SEMESTER
+    # ---------------------------------------------------------
+    all_subjects = Subject.objects.filter(
+        syllabus=student.syllabus,
+        semester_number=semester.number
+    ).order_by("code")
 
-    # ---------- Prevent duplicate entries for Regular attempt ----------
+    if not all_subjects.exists():
+        return render(request, "add_marks_no_subjects.html", {
+            "student": student,
+            "semester": sem_num_int,
+            "message": "No subjects found for this syllabus and semester."
+        })
+
+    # ---------------------------------------------------------
+    # SPLIT CORE & ELECTIVES
+    # ---------------------------------------------------------
+    core_subjects = all_subjects.filter(
+        elective_group__isnull=True
+    ) | all_subjects.filter(
+        elective_group=""
+    )
+
+    elective_subjects = all_subjects.exclude(
+        elective_group__isnull=True
+    ).exclude(
+        elective_group=""
+    )
+
+    elective_groups = defaultdict(list)
+
+    for subject in elective_subjects:
+        elective_groups[subject.elective_group].append(subject)
+
+    # ---------------------------------------------------------
+    # PREVENT DUPLICATE REGULAR ENTRY
+    # ---------------------------------------------------------
     if attempt_type == "Regular":
         existing = Mark.objects.filter(semester=semester).exists()
         if existing:
             return render(request, "add_marks_already_exists.html", {
-                "student": student, 
+                "student": student,
                 "semester": sem_num_int,
                 "attempt_type": attempt_type
             })
 
-    # ---------- Handle AJAX POST submission ----------
+    # ---------------------------------------------------------
+    # HANDLE AJAX POST
+    # ---------------------------------------------------------
     if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
+
         errors = {}
         saved_count = 0
 
-        for subject in subjects_qs:
+        # Subjects that will actually be saved
+        subjects_to_save = list(core_subjects)
+
+        # Add selected electives
+        for group in elective_groups.keys():
+            selected_subject_id = request.POST.get(f"elective_{group}")
+            if selected_subject_id:
+                try:
+                    selected_subject = Subject.objects.get(id=int(selected_subject_id))
+                    subjects_to_save.append(selected_subject)
+                except Subject.DoesNotExist:
+                    pass
+
+        for subject in subjects_to_save:
             try:
-                # Accept either marks_<id> (add form) or new_marks_<id> (alternate naming)
                 marks_str = request.POST.get(f"marks_{subject.id}") or request.POST.get(f"new_marks_{subject.id}")
+
                 if marks_str is None:
-                    raise ValueError("Missing marks input")
+                    continue
 
                 new_mark = float(marks_str)
-
-                # ✨ NEW — use subject.max_marks instead of reading max_<id> from POST
                 max_marks = float(getattr(subject, "max_marks", 0) or 0)
 
                 if attempt_type == "Supply/Improvement":
-                    # Always create a new record for supply/improvement with incremented attempt_no
-                    last_attempt = Mark.objects.filter(semester=semester, subject=subject).order_by("-attempt_no").first()
+                    last_attempt = Mark.objects.filter(
+                        semester=semester,
+                        subject=subject
+                    ).order_by("-attempt_no").first()
+
                     attempt_no = (last_attempt.attempt_no + 1) if last_attempt else 1
+
                     Mark.objects.create(
                         semester=semester,
                         subject=subject,
@@ -451,9 +465,7 @@ def add_marks_single_page(request):
                         attempt_type=attempt_type,
                         attempt_no=attempt_no,
                     )
-                    saved_count += 1
                 else:
-                    # Regular: create or update existing single record
                     mark, created = Mark.objects.get_or_create(
                         semester=semester,
                         subject=subject,
@@ -464,40 +476,52 @@ def add_marks_single_page(request):
                             "attempt_no": 1
                         }
                     )
+
                     if not created:
                         mark.marks_obtained = new_mark
                         mark.max_marks = max_marks
                         mark.attempt_type = attempt_type
                         mark.save()
-                    saved_count += 1
+
+                saved_count += 1
 
             except Exception as e:
                 errors[subject.name] = str(e)
 
-        # Return JSON response matching prior behavior
         if errors:
             return JsonResponse({
                 "success": False,
                 "message": "Some marks failed to save.",
                 "errors": errors
             })
-        else:
-            return JsonResponse({
-                "success": True,
-                "message": f"{attempt_type} marks saved successfully for {saved_count} subjects!"
-            })
 
-    # Preload existing marks for display (if any) so template can show them
-    existing_marks = {m.subject.id: m for m in Mark.objects.filter(semester=semester, subject__in=subjects_qs)}
+        return JsonResponse({
+            "success": True,
+            "message": f"{attempt_type} marks saved successfully for {saved_count} subjects!"
+        })
+
+    # ---------------------------------------------------------
+    # PRELOAD EXISTING MARKS
+    # ---------------------------------------------------------
+    existing_marks = {
+        m.subject.id: m
+        for m in Mark.objects.filter(
+            semester=semester,
+            subject__in=all_subjects
+        )
+    }
 
     template = "add_marks_supply.html" if attempt_type == "Supply/Improvement" else "add_marks_single.html"
+
     return render(request, template, {
         "student": student,
         "semester": sem_num_int,
-        "subjects": subjects_qs,
+        "core_subjects": core_subjects,
+        "elective_groups": dict(elective_groups),
         "existing_marks": existing_marks,
         "attempt_type": attempt_type
     })
+
 
 
 
@@ -556,15 +580,30 @@ def manage_subjects(request):
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_superuser or is_hod(u))
 def edit_subject(request, subject_id):
+
     subject = get_object_or_404(Subject, id=subject_id)
+
+    if not request.user.is_superuser:
+        if subject.course_ref.department != request.user.teacher.department:
+            return redirect("teacher_dashboard")
+
     if request.method == "POST":
         form = SubjectForm(request.POST, instance=subject)
         if form.is_valid():
             form.save()
-            return redirect("manage_subjects")
+
+            url = reverse("manage_subjects_by_course",
+                          args=[subject.course_ref.name])
+            return HttpResponseRedirect(
+                f"{url}?syllabus={subject.syllabus_id}"
+            )
     else:
         form = SubjectForm(instance=subject)
-    return render(request, "edit_subject.html", {"form": form, "subject": subject})
+
+    return render(request, "edit_subject.html", {
+        "form": form,
+        "subject": subject
+    })
 
 
 
@@ -572,9 +611,26 @@ def edit_subject(request, subject_id):
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_superuser or is_hod(u))
 def delete_subject(request, subject_id):
+
     subject = get_object_or_404(Subject, id=subject_id)
+
+    if not request.user.is_superuser:
+        if subject.course_ref.department != request.user.teacher.department:
+            return redirect("teacher_dashboard")
+
+    course_name = subject.course_ref.name
+    syllabus_id = subject.syllabus_id
+
     subject.delete()
-    return redirect("manage_subjects")
+
+    url = reverse("manage_subjects_by_course",
+                  args=[course_name])
+
+    return HttpResponseRedirect(
+        f"{url}?syllabus={syllabus_id}"
+    )
+
+
 
 
 @login_required(login_url="teacher_login")
@@ -607,10 +663,11 @@ def select_course(request):
 
 @login_required(login_url="teacher_login")
 @user_passes_test(lambda u: u.is_superuser or is_hod(u))
-def manage_subjects_by_course(request, course):
+def manage_subjects_by_course(request, course_id):
+
 
     # Get actual Course object
-    course_obj = get_object_or_404(Course, name__iexact=course)
+    course_obj = get_object_or_404(Course, id=course_id)
 
     # HOD safety check
     if is_hod(request.user):
@@ -640,9 +697,11 @@ def manage_subjects_by_course(request, course):
 
             subject.save()
 
-            return redirect(
-                f"/teacher/manage-subjects/{course_obj.name}/?syllabus={syllabus_id}"
-            )
+        return redirect(
+    reverse("manage_subjects_by_course", args=[course_obj.id]) +
+    f"?syllabus={syllabus_id}"
+)
+
     else:
         form = SubjectForm(initial={
             "course_ref": course_obj
@@ -1215,22 +1274,24 @@ def ajax_get_student(request):
 @login_required(login_url="teacher_login")
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def ajax_create_syllabus(request):
+
     if request.method != "POST":
         return JsonResponse({"success": False})
 
-    course = request.POST.get("course")
+    course_id = request.POST.get("course")  # this must now be ID
     year = request.POST.get("year")
 
-    if not course or not year:
+    if not course_id or not year:
         return JsonResponse({"success": False, "error": "Missing data"})
 
     try:
+        course_obj = Course.objects.get(id=int(course_id))
         year = int(year)
-    except ValueError:
-        return JsonResponse({"success": False, "error": "Invalid year"})
+    except (ValueError, Course.DoesNotExist):
+        return JsonResponse({"success": False, "error": "Invalid data"})
 
     syllabus, created = Syllabus.objects.get_or_create(
-        course=course,
+        course=course_obj,
         year=year
     )
 
@@ -1240,6 +1301,7 @@ def ajax_create_syllabus(request):
         "year": syllabus.year,
         "created": created,
     })
+
 
 
 @login_required(login_url='teacher_login')

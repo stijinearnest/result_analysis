@@ -26,60 +26,62 @@ class TeacherCreateForm(forms.Form):
 class TeacherEditForm(forms.Form):
     full_name = forms.CharField(max_length=100)
     department = forms.ModelChoiceField(queryset=Teacher._meta.get_field("department").remote_field.model.objects.all())
-
 class StudentForm(forms.ModelForm):
-
     class Meta:
         model = Student
         fields = [
-            "reg_no", "name", "dob",
-            "course_ref",
-            "course",
-            "syllabus",
-            "academic_year",
-            "gender", "caste", "religion",
-            "address", "pin_code", "photo"
-        ]
+    "reg_no",
+    "name",
+    "dob",
+    "gender",
+    "course_ref",
+    "syllabus",
+    "caste",
+    "religion",
+    "academic_year",
+    "address",
+    "pin_code",
+    "photo",
+]
+
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-        # Hide old string field
-        self.fields["course"].widget = forms.HiddenInput()
-
-        # 🔥 FILTER COURSES BASED ON TEACHER DEPARTMENT
+        # Course queryset restriction
         if user and not user.is_superuser:
-            try:
-                teacher_dept = user.teacher.department
-                self.fields["course_ref"].queryset = Course.objects.filter(
-                    department=teacher_dept
-                )
-            except:
-                self.fields["course_ref"].queryset = Course.objects.none()
+            self.fields["course_ref"].queryset = Course.objects.filter(
+                department=user.teacher.department
+            )
         else:
             self.fields["course_ref"].queryset = Course.objects.all()
 
-        # Default syllabus empty
+        # Initially empty syllabus
         self.fields["syllabus"].queryset = Syllabus.objects.none()
 
+        # If course selected in POST
         if "course_ref" in self.data:
             try:
-                course_ref_id = int(self.data.get("course_ref"))
-                course_obj = Course.objects.get(id=course_ref_id)
-
+                course_id = int(self.data.get("course_ref"))
                 self.fields["syllabus"].queryset = Syllabus.objects.filter(
-                    course=course_obj.name
+                    course_id=course_id
                 )
-            except:
+            except (ValueError, TypeError):
                 pass
+
+        # If editing existing student
+        elif self.instance.pk and self.instance.course_ref:
+            self.fields["syllabus"].queryset = Syllabus.objects.filter(
+                course=self.instance.course_ref
+            )
 
     def clean(self):
         cleaned = super().clean()
-        course_ref = cleaned.get("course_ref")
 
+        course_ref = cleaned.get("course_ref")
         if course_ref:
-            cleaned["course"] = course_ref.name
+            cleaned["course"] = course_ref.name  # Sync old string field
 
         return cleaned
 
@@ -119,11 +121,8 @@ class MarksEntryForm(forms.Form):
                     widget=forms.NumberInput(attrs={'step': '0.5'})
                 )
 
-
-
-
-
 class SubjectForm(forms.ModelForm):
+
     class Meta:
         model = Subject
         fields = [
@@ -132,29 +131,25 @@ class SubjectForm(forms.ModelForm):
             "semester_number",
             "credits",
             "max_marks",
+            "subject_type",
+            "elective_group",
         ]
+
         widgets = {
-            "name": forms.TextInput(attrs={
-                "class": "form-control",
-                "placeholder": "Enter subject name"
-            }),
-            "code": forms.TextInput(attrs={
-                "class": "form-control",
-                "placeholder": "Enter subject code"
-            }),
-            "semester_number": forms.NumberInput(attrs={
-                "class": "form-control",
-                "min": 1
-            }),
-            "credits": forms.NumberInput(attrs={
-                "class": "form-control",
-                "step": "0.5",
-                "min": 0
-            }),
-            "max_marks": forms.NumberInput(attrs={
-                "class": "form-control",
-                "min": 0
-            }),
+            "subject_type": forms.RadioSelect,
         }
+
+    def clean(self):
+        cleaned = super().clean()
+
+        if cleaned.get("subject_type") == "ELECTIVE":
+            if not cleaned.get("elective_group"):
+                raise forms.ValidationError(
+                    "Elective subjects must have an elective group."
+                )
+        else:
+            cleaned["elective_group"] = None
+
+        return cleaned
 
 

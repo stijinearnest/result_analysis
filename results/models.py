@@ -47,8 +47,13 @@ class Teacher(models.Model):
 
 
 class Syllabus(models.Model):
-    course = models.CharField(max_length=50)
-    year = models.IntegerField()  # e.g. 2019, 2022, 2024
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="syllabi"
+    )
+    year = models.IntegerField()
+
 
     class Meta:
         unique_together = ("course", "year")
@@ -196,22 +201,24 @@ class Semester(models.Model):
 
 
 class Subject(models.Model):
-    COURSE_CHOICES = [
-        ("Computer Science", "Computer Science"),
-        ("Business Administration", "Business Administration"),
-        ("Engineering", "Engineering"),
-        ("Medicine", "Medicine"),
-        ("Law", "Law"),
+
+    TYPE_CHOICES = [
+        ("CORE", "Core"),
+        ("ELECTIVE", "Elective"),
     ]
 
-    course = models.CharField(max_length=50, choices=COURSE_CHOICES)
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=20)
     semester_number = models.IntegerField(default=1)
     credits = models.FloatField(default=3.0)
     max_marks = models.PositiveIntegerField(default=50)
-    syllabus = models.ForeignKey(Syllabus, on_delete=models.CASCADE,null=True,blank=True)
-    course = models.CharField(max_length=50, choices=COURSE_CHOICES)
+
+    syllabus = models.ForeignKey(
+        Syllabus,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
 
     course_ref = models.ForeignKey(
         Course,
@@ -221,8 +228,22 @@ class Subject(models.Model):
         related_name="subjects"
     )
 
+    subject_type = models.CharField(
+    max_length=10,
+    choices=[("CORE", "Core"), ("ELECTIVE", "Elective")],
+    default="CORE"
+)
+
+    elective_group = models.CharField(
+    max_length=50,
+    blank=True,
+    null=True
+)
+
+
     def __str__(self):
-        return f"{self.course} | Sem {self.semester_number} | {self.code} - {self.name}"
+        return f"{self.course_ref.name if self.course_ref else ''} | Sem {self.semester_number} | {self.code} - {self.name}"
+
 
 
 class Mark(models.Model):

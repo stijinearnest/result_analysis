@@ -15,6 +15,12 @@
         {{ form.semester_number.label_tag }} {{ form.semester_number }}
         {{ form.credits.label_tag }} {{ form.credits }}
         <button type="submit"><i class="fas fa-save"></i> Save Changes</button>
+        {% if form.errors %}
+<div style="color:red;">
+    {{ form.errors }}
+</div>
+{% endif %}
+
     </form>
 </div>
 

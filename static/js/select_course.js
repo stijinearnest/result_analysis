@@ -93,6 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         window.location.href =
-            `/teacher/manage-subjects/${encodeURIComponent(course)}/?syllabus=${syllabus}`;
+    `/teacher/manage-subjects/${course}/?syllabus=${syllabus}`;
+
     });
 });

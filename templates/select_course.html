@@ -2,6 +2,10 @@
 {% load static %}
 
 {% block content %}
+<a href="{% url 'teacher_dashboard' %}" class="btn-back-dashboard">
+    <i class="fas fa-arrow-left"></i> Back to Dashboard
+</a>
+
 <div class="container">
     <div class="selection-card">
         <div class="card-header">
@@ -24,7 +28,8 @@
         <select id="course" class="form-control" required>
             <option value="">-- Select Course --</option>
             {% for course in courses %}
-  <option value="{{ course.name }}">{{ course.name }}</option>
+ <option value="{{ course.id }}">{{ course.name }}</option>
+
 {% endfor %}
 
         </select>

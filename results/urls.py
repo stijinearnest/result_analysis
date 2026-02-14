@@ -40,7 +40,10 @@ urlpatterns = [
 path("teacher/select-course/", views.select_course, name="select_course"),
 
 
-path("teacher/manage-subjects/<str:course>/", views.manage_subjects_by_course, name="manage_subjects_by_course"),
+path("teacher/manage-subjects/<int:course_id>/",
+     views.manage_subjects_by_course,
+     name="manage_subjects_by_course"),
+
 
 path("teacher/student-search/", views.student_search, name="student_search"),
 path("teacher/student-detail/<int:student_id>/", views.student_detail, name="student_detail"),

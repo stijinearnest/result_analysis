@@ -75,10 +75,15 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label" for="course">Course<span class="required">*</span></label>
-          <div class="form-group">
-  <label class="form-label">Course<span class="required">*</span></label>
-  {{ form.course_ref }}
+          
+  <select name="course_ref" id="course" class="form-control" required>
+  <option value="">Select Course</option>
+  {% for c in form.course_ref.field.queryset %}
+    <option value="{{ c.id }}">{{ c.name }}</option>
+  {% endfor %}
+</select>
+
+
 </div>
 
           <div class="input-icon"><i class="fas fa-graduation-cap"></i></div>
@@ -191,6 +196,13 @@
     </div>
   </div>
 </form>
+{% if form.errors %}
+<div style="background:#ffe5e5; padding:10px; margin-bottom:15px; border-radius:8px;">
+    <strong>Form Errors:</strong>
+    {{ form.errors }}
+</div>
+{% endif %}
+
 
 
 <link href="{% static 'css/add_student.css' %}" rel="stylesheet">

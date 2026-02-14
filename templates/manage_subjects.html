@@ -75,6 +75,15 @@
 
                 </div>
                 
+<div class="form-group">
+    <label>Subject Type</label>
+    {{ form.subject_type }}
+</div>
+
+<div class="form-group" id="electiveGroupBox">
+    <label>Elective Group</label>
+    {{ form.elective_group }}
+</div>
 
 
                 <div class="form-group">
@@ -101,12 +110,7 @@
                 </div>
 
                 <!-- OPTIONAL: if your form has elective_group -->
-                {% if form.elective_group %}
-                <div class="form-group">
-                    <label for="id_elective_group">Elective Group (optional)</label>
-                    {{ form.elective_group }}
-                </div>
-                {% endif %}
+                
             </div>
             <button type="submit" class="submit-btn">
                 <i class="fas fa-plus"></i> Add Subject
@@ -114,6 +118,28 @@
         </form>
     </div>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const typeRadios = document.querySelectorAll("input[name='subject_type']");
+    const electiveBox = document.getElementById("electiveGroupBox");
+
+    function toggleElectiveBox() {
+        const selected = document.querySelector("input[name='subject_type']:checked");
+        if (selected && selected.value === "ELECTIVE") {
+            electiveBox.style.display = "block";
+        } else {
+            electiveBox.style.display = "none";
+        }
+    }
+
+    toggleElectiveBox();
+
+    typeRadios.forEach(radio => {
+        radio.addEventListener("change", toggleElectiveBox);
+    });
+});
+</script>
+
 
 <script src="{% static 'js/manage_subjects.js' %}"></script>
 {% endblock %}
