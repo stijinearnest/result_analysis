@@ -11,22 +11,7 @@
         </a>
     </div>
 
-    {% if messages %}
-      {% for msg in messages %}
-        <div class="alert">{{ msg }}</div>
-      {% endfor %}
-    {% endif %}
-
-    {% if form.errors %}
-      <div class="alert alert-danger">
-        <strong>Fix the errors below:</strong>
-        <ul>
-          {% for field, errs in form.errors.items %}
-            <li>{{ field }}: {{ errs|join:", " }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
+    
 
     <!-- Existing Subjects Table -->
     <div class="table-container">
@@ -82,8 +67,12 @@
             {% csrf_token %}
             <div class="form-grid">
                 <div class="form-group">
-                    <label for="id_course">Course</label>
-                    {{ form.course }}
+                    <label>Course</label>
+<input type="text"
+       class="form-control"
+       value="{{ selected_course.name }}"
+       readonly>
+
                 </div>
                 
 

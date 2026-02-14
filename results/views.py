@@ -205,29 +205,31 @@ def get_syllabus_by_course(request):
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_student(request):
+
     if request.method == "POST":
-        form = StudentForm(request.POST, request.FILES)
+        form = StudentForm(request.POST, request.FILES, user=request.user)
+
         if form.is_valid():
             student = form.save(commit=False)
 
-# semester calculation stays the same
+            # Semester calculation
             start_year = int(student.academic_year.split("-")[0])
             current_year = date.today().year
             years_passed = current_year - start_year
             student.semester = (years_passed * 2) + 1
-            # 🔐 Restrict teacher to own department
+
+            # Restrict department automatically
             if not request.user.is_superuser:
                 student.department = request.user.teacher.department
 
-# syllabus already chosen via form
             student.save()
- 
-
-            
             return redirect("student_success", student_name=student.name)
+
     else:
-        form = StudentForm()
+        form = StudentForm(user=request.user)
+
     return render(request, "add_student.html", {"form": form})
+
 
 
 
@@ -605,13 +607,14 @@ def select_course(request):
 
 @login_required(login_url="teacher_login")
 @user_passes_test(lambda u: u.is_superuser or is_hod(u))
-
 def manage_subjects_by_course(request, course):
+
+    # Get actual Course object
+    course_obj = get_object_or_404(Course, name__iexact=course)
+
+    # HOD safety check
     if is_hod(request.user):
-        if not Course.objects.filter(
-        name__iexact=course,
-        department=request.user.teacher.department
-    ).exists():
+        if course_obj.department != request.user.teacher.department:
             return redirect("teacher_dashboard")
 
     syllabus_id = request.GET.get("syllabus")
@@ -621,30 +624,37 @@ def manage_subjects_by_course(request, course):
         return redirect("select_course")
 
     subjects = Subject.objects.filter(
-        course=course,
-        syllabus_id=syllabus_id
-    ).order_by("semester_number", "code")
+    course_ref=course_obj,
+    syllabus_id=syllabus_id
+).order_by("semester_number", "code")
 
     if request.method == "POST":
         form = SubjectForm(request.POST)
         if form.is_valid():
             subject = form.save(commit=False)
-            subject.course = course
+
+            # 🔥 FORCE COURSE FK
+            subject.course_ref = course_obj
+            subject.course = course_obj.name  # keep string field in sync
             subject.syllabus_id = syllabus_id
+
             subject.save()
 
             return redirect(
-                f"/teacher/manage-subjects/{course}/?syllabus={syllabus_id}"
+                f"/teacher/manage-subjects/{course_obj.name}/?syllabus={syllabus_id}"
             )
     else:
-        form = SubjectForm()
+        form = SubjectForm(initial={
+            "course_ref": course_obj
+        })
 
     return render(request, "manage_subjects.html", {
         "subjects": subjects,
         "form": form,
-        "course": course,
+        "selected_course": course_obj,
         "syllabus_id": syllabus_id,
     })
+
 
 
 

@@ -76,15 +76,11 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label" for="course">Course<span class="required">*</span></label>
-          <select class="form-control" id="course" name="course" required>
-            <option value="">Select Course</option>
-            <option value="B.Sc Computer Science" {% if request.POST.course == "B.Sc Computer Science" %}selected{% endif %}>B.Sc Computer Science</option>
-            <option value="Computer Science" {% if request.POST.course == "Computer Science" %}selected{% endif %}>Computer Science</option>
-            <option value="Business Administration" {% if request.POST.course == "Business Administration" %}selected{% endif %}>Business Administration</option>
-            <option value="Engineering" {% if request.POST.course == "Engineering" %}selected{% endif %}>Engineering</option>
-            <option value="Medicine" {% if request.POST.course == "Medicine" %}selected{% endif %}>Medicine</option>
-            <option value="Law" {% if request.POST.course == "Law" %}selected{% endif %}>Law</option>
-          </select>
+          <div class="form-group">
+  <label class="form-label">Course<span class="required">*</span></label>
+  {{ form.course_ref }}
+</div>
+
           <div class="input-icon"><i class="fas fa-graduation-cap"></i></div>
         </div>
 

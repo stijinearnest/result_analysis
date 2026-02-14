@@ -28,18 +28,13 @@ class TeacherEditForm(forms.Form):
     department = forms.ModelChoiceField(queryset=Teacher._meta.get_field("department").remote_field.model.objects.all())
 
 class StudentForm(forms.ModelForm):
-    course_ref = forms.ModelChoiceField(
-        queryset=Course.objects.all(),
-        required=False,
-        label="Course"
-    )
 
     class Meta:
         model = Student
         fields = [
             "reg_no", "name", "dob",
-            "course_ref",   # ✅ new FK field (shown to user)
-            "course",       # ⚠️ old string field (hidden later)
+            "course_ref",
+            "course",
             "syllabus",
             "academic_year",
             "gender", "caste", "religion",
@@ -47,38 +42,42 @@ class StudentForm(forms.ModelForm):
         ]
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-        # Hide old course field from UI
+        # Hide old string field
         self.fields["course"].widget = forms.HiddenInput()
 
-        # default: no syllabus until course is selected
+        # 🔥 FILTER COURSES BASED ON TEACHER DEPARTMENT
+        if user and not user.is_superuser:
+            try:
+                teacher_dept = user.teacher.department
+                self.fields["course_ref"].queryset = Course.objects.filter(
+                    department=teacher_dept
+                )
+            except:
+                self.fields["course_ref"].queryset = Course.objects.none()
+        else:
+            self.fields["course_ref"].queryset = Course.objects.all()
+
+        # Default syllabus empty
         self.fields["syllabus"].queryset = Syllabus.objects.none()
 
-        # When form is submitted
         if "course_ref" in self.data:
             try:
                 course_ref_id = int(self.data.get("course_ref"))
                 course_obj = Course.objects.get(id=course_ref_id)
 
-                # 🔁 sync old string field
                 self.fields["syllabus"].queryset = Syllabus.objects.filter(
                     course=course_obj.name
                 )
-            except (ValueError, Course.DoesNotExist):
+            except:
                 pass
-
-        # When editing existing student
-        elif self.instance.pk and self.instance.course:
-            self.fields["syllabus"].queryset = Syllabus.objects.filter(
-                course=self.instance.course
-            )
 
     def clean(self):
         cleaned = super().clean()
         course_ref = cleaned.get("course_ref")
 
-        # 🔁 keep string course in sync
         if course_ref:
             cleaned["course"] = course_ref.name
 
@@ -125,53 +124,37 @@ class MarksEntryForm(forms.Form):
 
 
 class SubjectForm(forms.ModelForm):
-    course_ref = forms.ModelChoiceField(
-        queryset=Course.objects.all(),
-        required=False,
-        label="Course"
-    )
-
     class Meta:
         model = Subject
         fields = [
-            "course_ref",   # ✅ shown to user
-            "course",       # ⚠️ hidden string
-            "syllabus",
             "name",
             "code",
             "semester_number",
             "credits",
             "max_marks",
         ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.fields["course"].widget = forms.HiddenInput()
-        self.fields["syllabus"].queryset = Syllabus.objects.none()
-
-        if "course_ref" in self.data:
-            try:
-                course_ref_id = int(self.data.get("course_ref"))
-                course_obj = Course.objects.get(id=course_ref_id)
-                self.fields["syllabus"].queryset = Syllabus.objects.filter(
-                    course=course_obj.name
-                )
-            except (ValueError, Course.DoesNotExist):
-                pass
-
-        elif self.instance.pk and self.instance.course:
-            self.fields["syllabus"].queryset = Syllabus.objects.filter(
-                course=self.instance.course
-            )
-
-    def clean(self):
-        cleaned = super().clean()
-        course_ref = cleaned.get("course_ref")
-
-        if course_ref:
-            cleaned["course"] = course_ref.name
-
-        return cleaned
+        widgets = {
+            "name": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Enter subject name"
+            }),
+            "code": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Enter subject code"
+            }),
+            "semester_number": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 1
+            }),
+            "credits": forms.NumberInput(attrs={
+                "class": "form-control",
+                "step": "0.5",
+                "min": 0
+            }),
+            "max_marks": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 0
+            }),
+        }
 
 
