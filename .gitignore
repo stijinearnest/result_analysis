@@ -10,10 +10,7 @@ __pycache__/
 venv/
 env/
 
-# Django / SQLite
-db.sqlite3
-*.db
-*.sqlite3
+
 
 # Media & static
 /media/
@@ -27,10 +24,6 @@ staticfiles/
 .DS_Store
 Thumbs.db
 
-# Migrations (optional but recommended when early in dev)
-# Comment out if you want migrations tracked
-*/migrations/*
-!*/migrations/__init__.py
 
 # Cache
 *.log
