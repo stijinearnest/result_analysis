@@ -112,6 +112,6 @@ path(
     name="delete_course"
 ),
 
-
+path("marks-success/<str:student_name>/", views.marks_success, name="marks_success"),
 
 ]

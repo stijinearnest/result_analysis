@@ -1,9 +1,3 @@
-:root {
-    --primary: #4e73df;
-    --success: #1cc88a;
-    --light-bg: #f8f9fc;
-    --dark-text: #5a6a7d;
-}
 
 body {
     background-color: var(--light-bg);
@@ -15,10 +9,9 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    padding: 20px;
+    padding: 60px 20px;
+    height: 100%;
 }
-
 .success-card {
     background: white;
     border-radius: 16px;

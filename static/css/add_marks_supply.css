@@ -4,26 +4,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
 
 :root{
-  --bg: #f5f8fb;
+  --bg: #f4f6fb;
   --card-bg: #ffffff;
   --muted: #6b7280;
   --text: #0f1724;
-  --accent: #3b66f0;       /* header gradient start */
-  --accent-2: #5b4de0;     /* header gradient end */
-  --success: #10b981;
   --border: #e6edf7;
-  --shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  --shadow: 0 20px 50px rgba(15, 28, 63, 0.08);
 }
 
 /* page */
 html,body{
   height:100%;
   margin:0;
-  font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
 }
 
 /* center container */
@@ -34,25 +30,20 @@ html,body{
 }
 
 /* card */
-.form-header,
-.form-card {
-  border-radius: 8px;
+.form-header {
+  border-radius: 12px 12px 0 0;
   overflow: hidden;
-  background: var(--card-bg);
-  box-shadow: var(--shadow);
-}
-
-/* header bar */
-.form-header{
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background: linear-gradient(
+      135deg,
+      var(--primary),
+      var(--primary-dark)
+  );
   color: #fff;
-  padding: 22px 26px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  padding: 24px 28px;
   display:flex;
   flex-direction:column;
   gap:6px;
-  margin-bottom: 12px;
+  box-shadow: var(--shadow);
 }
 .form-header h2{
   margin:0;
@@ -62,21 +53,22 @@ html,body{
   align-items:center;
   gap:12px;
 }
-.form-header h2 i{ font-size:18px; opacity:0.95; transform:translateY(-1px); }
+.form-header h2 i{ font-size:18px; opacity:0.9; }
 .form-header p{
   margin:0;
-  color: rgba(255,255,255,0.92);
+  color: rgba(255,255,255,0.9);
   font-weight:500;
-  opacity:0.95;
   font-size:14px;
 }
 
-/* card body */
+/* form body */
 form {
   background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 18px;
+  border: 1px solid rgba(15, 28, 63, 0.06);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  padding: 20px;
+  box-shadow: var(--shadow);
 }
 
 /* table */
@@ -84,44 +76,49 @@ form {
   width: 100%;
   border-collapse: collapse;
   font-size: 15px;
-  margin-bottom: 18px;
-  background: transparent;
+  margin-bottom: 20px;
 }
 .marks-table thead th {
   text-align:left;
   font-weight:700;
   padding: 14px 18px;
-  border-bottom: 1px solid #eef4fb;
-  color: #374151;
-  background: linear-gradient(180deg, rgba(245,248,255,0.6), rgba(250,251,255,0.4));
+  border-bottom: 1px solid #eef3f9;
+  color: #1e293b;
+  background: #f8faff;
 }
 .marks-table tbody td{
   padding: 16px 18px;
   vertical-align: middle;
-  border-bottom: 1px solid #f3f6fb;
-  color: #283044;
+  border-bottom: 1px solid #f1f5fb;
+  color: #334155;
 }
 
-/* lighten first and last columns optionally */
-.marks-table td:first-child { color: #374151; width: 18%; font-weight:600; }
-.marks-table td:nth-child(2) { color: #4b5563; width: 40%; }
-.marks-table td:nth-child(3), .marks-table td:nth-child(4), .marks-table td:nth-child(5) { text-align:center; color: #374151; }
+.marks-table tr:hover td {
+  background: #f9fbff;
+}
 
-/* input styling (number input) */
+/* column balance */
+.marks-table td:first-child { font-weight:600; width: 18%; }
+.marks-table td:nth-child(2) { width: 40%; }
+.marks-table td:nth-child(3),
+.marks-table td:nth-child(4),
+.marks-table td:nth-child(5) { text-align:center; }
+
+/* number input */
 input[type="number"]{
   font-family: inherit;
   font-size: 14px;
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid #dce9fb;
+  border: 1px solid #dce6f5;
   min-width: 120px;
   outline: none;
-  transition: box-shadow .12s ease, border-color .12s ease, transform .12s ease;
-  background: linear-gradient(180deg,#fff,#fbfdff);
+  transition: 0.2s ease;
+  background: #f9fbff;
   -moz-appearance:textfield;
 }
 
-/* hide default spin buttons for number on webkit */
+/* remove spinners */
 input[type=number]::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -130,92 +127,97 @@ input[type=number]::-webkit-inner-spin-button {
 
 /* focus */
 input[type="number"]:focus{
-  border-color: #8fb4ff;
-  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.12);
+  border-color: var(--primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(15, 28, 63, 0.08);
   transform: translateY(-1px);
 }
 
-/* placeholder / empty marks */
-.marks-table td:empty { color: var(--muted); }
-
-/* form actions */
+/* actions */
 .form-actions {
   display:flex;
   justify-content:center;
   padding: 12px 6px 6px;
 }
+
 .btn-submit{
   display:inline-flex;
   align-items:center;
   gap:10px;
-  background: linear-gradient(180deg, #3b66f0, #2f4ae0);
+  background: linear-gradient(
+      135deg,
+      var(--primary),
+      var(--primary-dark)
+  );
   color: #fff;
   border:none;
-  padding: 10px 18px;
-  border-radius: 8px;
+  padding: 12px 20px;
+  border-radius: 10px;
   font-weight:700;
   cursor:pointer;
-  box-shadow: 0 6px 20px rgba(46, 106, 236, 0.18);
-  transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
-}
-.btn-submit i{ font-size:14px; }
-.btn-submit:hover{ transform: translateY(-3px); opacity:0.98; }
-
-/* small footer note under form if necessary */
-.form-note{
-  text-align:center;
-  color: var(--muted);
-  font-size:13px;
-  margin-top:8px;
-}
-/* ensure input sits nicely inside its cell */
-.input-with-icon { display:flex; align-items:center; justify-content:center; gap:8px; }
-.input-with-icon input[type="number"] {
-  padding:8px 10px;
-  min-width:110px;
-  max-width:160px;
-  border-radius:6px;
-  border:1px solid #e6edf7;
-  background:#fff;
+  box-shadow: 0 12px 30px rgba(15, 28, 63, 0.25);
+  transition: 0.2s ease;
 }
 
-/* style for max marks label + icon */
-.max-marks { display:flex; align-items:center; justify-content:center; gap:8px; }
+.btn-submit:hover{
+  transform: translateY(-3px);
+  box-shadow: 0 16px 35px rgba(15, 28, 63, 0.35);
+}
+
+/* input layout */
+.input-with-icon {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+.max-marks {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
 .max-marks .max-value {
-  display:inline-block;
   padding:6px 10px;
   border-radius:6px;
-  background:#fbfdff;
-  border:1px solid #f1f5fb;
+  background:#f3f6fb;
+  border:1px solid #e6edf7;
   font-weight:600;
   min-width:52px;
   text-align:center;
 }
-.max-marks i { color: #6b7280; font-size:14px; }
 
+.max-marks i { color: #64748b; }
 
-/* responsive tweaks */
+/* responsive */
 @media (max-width: 820px){
   .container { padding: 0 16px; margin: 30px auto; }
-  .marks-table thead th, .marks-table tbody td { padding: 10px 12px; font-size:14px; }
-  input[type="number"]{ min-width: 100px; width: 100%; max-width:160px; }
-  .form-header { padding: 18px 16px; }
-  form { padding: 12px; }
+  .marks-table thead th,
+  .marks-table tbody td {
+      padding: 10px 12px;
+      font-size:14px;
+  }
+  input[type="number"]{ min-width: 100px; width: 100%; }
 }
 
-/* very small devices - stack label-like */
 @media (max-width: 420px){
   .marks-table thead { display:none; }
-  .marks-table, .marks-table tbody, .marks-table tr, .marks-table td { display:block; width:100%; }
-  .marks-table tr { margin-bottom: 12px; border-radius:8px; background: #fff; box-shadow: 0 6px 20px rgba(15,23,42,0.03); border: 1px solid #f1f6fb; }
-  .marks-table td { text-align:left; padding:12px; }
-  .marks-table td:first-child { font-weight:700; color:#111827; }
-  .marks-table td:nth-child(n+2):before { display:block; color:var(--muted); font-size:13px; margin-bottom:6px; }
-  /* provide labels for the stacked layout (match header order) */
-  .marks-table tr td:nth-child(1):before { content: "Subject Code"; font-weight:600; color:#6b7280; }
-  .marks-table tr td:nth-child(2):before { content: "Subject Name"; font-weight:600; color:#6b7280; }
-  .marks-table tr td:nth-child(3):before { content: "Existing Marks"; font-weight:600; color:#6b7280; }
-  .marks-table tr td:nth-child(4):before { content: "New Marks"; font-weight:600; color:#6b7280; }
-  .marks-table tr td:nth-child(5):before { content: "Max Marks"; font-weight:600; color:#6b7280; }
+  .marks-table,
+  .marks-table tbody,
+  .marks-table tr,
+  .marks-table td { display:block; width:100%; }
+
+  .marks-table tr {
+      margin-bottom: 12px;
+      border-radius:8px;
+      background: #fff;
+      box-shadow: 0 6px 20px rgba(15,23,42,0.05);
+      border: 1px solid #f1f6fb;
+  }
+
+  .marks-table td { padding:12px; }
+
   input[type="number"]{ width:100%; }
 }

@@ -379,6 +379,31 @@ def add_marks_single_page(request):
         semester_number=semester.number
     ).order_by("code")
 
+    # ---------------------------------------------------------
+# STEP 1: Supply → Show subject selection page first
+# ---------------------------------------------------------
+    if attempt_type == "Supply/Improvement":
+        selected_subject_ids = request.GET.getlist("subjects")
+
+    # If no subjects selected yet → show selection page
+    if not selected_subject_ids:
+        # Only show subjects that already have marks (attempted before)
+        previous_subject_ids = Mark.objects.filter(
+            semester=semester
+        ).values_list("subject_id", flat=True)
+
+        supply_subjects = all_subjects.filter(id__in=previous_subject_ids)
+
+        return render(request, "select_supply_subjects.html", {
+            "student": student,
+            "semester": sem_num_int,
+            "subjects": supply_subjects
+        })
+
+    # If subjects selected → filter them
+    selected_subject_ids = [int(s) for s in selected_subject_ids]
+    all_subjects = all_subjects.filter(id__in=selected_subject_ids)
+
     if not all_subjects.exists():
         return render(request, "add_marks_no_subjects.html", {
             "student": student,
@@ -496,10 +521,9 @@ def add_marks_single_page(request):
             })
 
         return JsonResponse({
-            "success": True,
-            "message": f"{attempt_type} marks saved successfully for {saved_count} subjects!"
-        })
-
+    "success": True,
+    "redirect_url": reverse("marks_success", args=[student.name])
+})
     # ---------------------------------------------------------
     # PRELOAD EXISTING MARKS
     # ---------------------------------------------------------
@@ -514,16 +538,20 @@ def add_marks_single_page(request):
     template = "add_marks_supply.html" if attempt_type == "Supply/Improvement" else "add_marks_single.html"
 
     return render(request, template, {
-        "student": student,
-        "semester": sem_num_int,
-        "core_subjects": core_subjects,
-        "elective_groups": dict(elective_groups),
-        "existing_marks": existing_marks,
-        "attempt_type": attempt_type
-    })
+    "student": student,
+    "semester": sem_num_int,
+    "subjects": all_subjects,   # ✅ ADD THIS
+    "core_subjects": core_subjects,
+    "elective_groups": dict(elective_groups),
+    "existing_marks": existing_marks,
+    "attempt_type": attempt_type
+})
 
 
-
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def marks_success(request, student_name):
+    return render(request, "marks_success.html", {"student_name": student_name})
 
 
 

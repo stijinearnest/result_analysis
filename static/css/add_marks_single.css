@@ -2,28 +2,13 @@
    Kept functionality intact. Fixes mislocated icons/tds and improves layout.
 */
 
-:root {
-  --primary: #4361ee;
-  --primary-dark: #3a56d4;
-  --secondary: #6c757d;
-  --success: #28a745;
-  --danger: #dc3545;
-  --warning: #ffc107;
-  --light: #f8f9fa;
-  --dark: #343a40;
-  --border: #e6e6e6;
-  --shadow: 0 6px 20px rgba(2,6,23,0.08);
-  --shadow-strong: 0 12px 40px rgba(2,6,23,0.10);
-  --radius: 8px;
-  --transition: all 0.18s ease;
-  --card-max-width: 760px;
-}
+
 
 /* ---------- Base ---------- */
 * { box-sizing: border-box; }
 html,body { height: 100%; margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; background: #f5f7fb; color: #0f1724; }
 
-.main-content { min-height: calc(100vh - 70px); display:flex; justify-content:center; align-items:flex-start; padding: 30px 12px; }
+
 
 /* ---------- container / card ---------- */
 .container { width: 100%; max-width: var(--card-max-width); margin: 0 auto; }

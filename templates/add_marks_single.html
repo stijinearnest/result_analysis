@@ -1,8 +1,9 @@
 {% extends "base.html" %}
+
 {% load static %}
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/add_marks_single.css' %}">
-<main class="main-content py-4">
+
 <div class="container">
 {% if already_exists and not request.GET.success %}
 <div class="message-container error">
@@ -147,10 +148,8 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                showNotification(data.message, 'success');
-                form.querySelectorAll('input').forEach(input => input.disabled = true);
-                submitBtn.innerHTML = 'Saved ✔';
-            } else {
+    window.location.href = data.redirect_url;
+}else {
                 showNotification(data.message || 'Error saving marks', 'error');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;

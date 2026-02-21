@@ -1,17 +1,4 @@
-:root {
-    --primary: #4361ee;
-    --primary-dark: #3a56d4;
-    --secondary: #6c757d;
-    --success: #28a745;
-    --light: #f8f9fa;
-    --dark: #343a40;
-    --border: #dee2e6;
-    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.1);
-    --radius: 12px;
-    --transition: all 0.3s ease;
-  }
-  
+
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f5f7fb;
@@ -19,13 +6,11 @@
     line-height: 1.6;
   }
   
-  .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
-  }
+ .container {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
   
   .registration-card {
     background: white;
@@ -206,7 +191,14 @@
 
 /* invalid highlight */
 .form-control.invalid{ border-color:#e74c3c; box-shadow: 0 6px 18px rgba(231,76,60,0.06); }
+/* Force white title inside registration header */
+.registration-card .header h2 {
+  color: #ffffff !important;
+}
 
+.registration-card .header p {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
 /* small responsive adjustments */
 @media (max-width:768px){
   .step{ width:86px; }
