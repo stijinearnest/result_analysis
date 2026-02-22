@@ -6,9 +6,7 @@
 <div class="container">
     <div class="page-header">
         <h1>Manage Subjects</h1>
-        <a href="{% url 'select_course' %}" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Go Back
-        </a>
+        
     </div>
 
     
@@ -38,9 +36,7 @@
                     <td>{{ subject.credits }}</td>
                     <td>{{ subject.max_marks }}</td>
                     <td class="action-cell">
-                        <a href="{% url 'edit_subject' subject.id %}" class="action-btn edit-btn">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
+                        
                         <a href="{% url 'delete_subject' subject.id %}" class="action-btn delete-btn">
                             <i class="fas fa-trash"></i> Delete
                         </a>

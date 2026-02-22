@@ -1,37 +1,54 @@
-/* -------------------------------
-   Grace Marks – Form Card Design
-   Clean, aesthetic, matches your
-   previous designs.
---------------------------------*/
+/* ---------------------------------
+   Grace Marks – Navy Theme Edition
+----------------------------------*/
 
+:root {
+    --primary: #0f1f3d;
+    --primary-light: #1c2f59;
+    --accent: #2e5bff;
+
+    --bg: #f4f7fc;
+    --card: #ffffff;
+    --border: #dbe3f0;
+
+    --text-dark: #0f172a;
+    --text-muted: #64748b;
+
+    --success: #16a34a;
+    --danger: #dc2626;
+    --warning-bg: #fff6db;
+    --warning-border: #facc15;
+}
+
+/* Page background */
 body {
-    background: #f5f7fb;
+    background: var(--bg);
     font-family: 'Segoe UI', sans-serif;
 }
 
-/* center container */
+/* Center container */
 .grace-container {
     display: flex;
     justify-content: center;
-    padding: 30px 10px;
+    padding: 40px 10px;
 }
 
-/* card */
+/* Card */
 .grace-card {
     width: 100%;
-    max-width: 600px;
-    background: #fff;
-    border-radius: 12px;
+    max-width: 620px;
+    background: var(--card);
+    border-radius: 14px;
     overflow: hidden;
-    box-shadow: 0 12px 40px rgba(2,6,23,0.07);
-    border: 1px solid #eef3fb;
+    box-shadow: 0 15px 40px rgba(15, 23, 42, 0.08);
+    border: 1px solid var(--border);
 }
 
-/* header */
+/* Header */
 .grace-header {
-    background: linear-gradient(135deg, #3b66f0, #4a7bff);
-    padding: 22px 26px;
-    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    padding: 24px 28px;
+    color: #ffffff;
 }
 
 .grace-header h2 {
@@ -45,61 +62,61 @@ body {
 
 .grace-header p {
     margin: 6px 0 0;
-    opacity: .9;
+    opacity: .85;
     font-size: 15px;
 }
 
-/* messages */
+/* Messages */
 .grace-messages {
-    padding: 12px 20px;
+    padding: 14px 22px;
 }
 
 .grace-alert {
-    background: #fff5d9;
-    color: #8d5e0a;
-    border-left: 4px solid #f7c948;
+    background: var(--warning-bg);
+    color: #92400e;
+    border-left: 4px solid var(--warning-border);
     padding: 10px 14px;
     border-radius: 6px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
-/* form */
+/* Form */
 #graceForm {
-    padding: 22px 26px 30px;
+    padding: 24px 28px 32px;
 }
 
 .form-group {
-    margin-bottom: 18px;
+    margin-bottom: 20px;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 6px;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--text-dark);
 }
 
-/* input + select */
+/* Inputs & Select */
 input[type="text"],
 select {
     width: 100%;
-    padding: 11px 12px;
+    padding: 11px 14px;
     font-size: 15px;
     border-radius: 8px;
-    border: 1px solid #dce5f2;
-    background: #ffffff;
-    transition: 0.2s;
+    border: 1px solid var(--border);
+    background: #f9fbff;
+    transition: 0.2s ease;
 }
 
 input[type="text"]:focus,
 select:focus {
-    border-color: #3b66f0;
-    box-shadow: 0 6px 20px rgba(59,102,240,0.15);
+    border-color: var(--accent);
+    box-shadow: 0 6px 20px rgba(46, 91, 255, 0.15);
     outline: none;
     transform: translateY(-1px);
 }
 
-/* registration number + search icon */
+/* Registration input + lookup */
 .input-row {
     display: flex;
     gap: 10px;
@@ -109,64 +126,76 @@ select:focus {
     background: #eef3ff;
     padding: 0 18px;
     border-radius: 8px;
-    border: 1px solid #dce5f2;
+    border: 1px solid var(--border);
     cursor: pointer;
-    color: #3b66f0;
-    transition: 0.2s;
+    color: var(--primary);
+    font-weight: 600;
+    transition: 0.2s ease;
 }
 
 .lookup-btn:hover {
-    background: #dfebff;
+    background: #dde6ff;
     transform: translateY(-2px);
 }
 
-/* note under reg input */
+/* Notes */
 .note {
     display: block;
     font-size: 13px;
     margin-top: 6px;
-    color: #6b7280;
+    color: var(--text-muted);
 }
 
-.note.success { color: #10b981; font-weight: 600; }
-.note.error   { color: #ef4444; font-weight: 600; }
+.note.success { 
+    color: var(--success); 
+    font-weight: 600; 
+}
 
-/* hide row until filled */
-.hidden { display: none; }
+.note.error { 
+    color: var(--danger); 
+    font-weight: 600; 
+}
 
-/* buttons */
+.hidden { 
+    display: none; 
+}
+
+/* Buttons */
 .form-actions {
-    margin-top: 8px;
+    margin-top: 12px;
     display: flex;
-    gap: 12px;
+    gap: 14px;
 }
 
+/* Primary Button */
 .btn-primary {
-    background: #3b66f0;
+    background: var(--primary);
     color: white;
-    padding: 10px 16px;
+    padding: 10px 18px;
     border: none;
     border-radius: 8px;
     font-weight: 700;
     cursor: pointer;
-    transition: 0.2s;
+    transition: 0.2s ease;
 }
 
 .btn-primary:hover {
-    background: #2f54d4;
+    background: var(--primary-light);
     transform: translateY(-2px);
 }
 
+/* Secondary Button */
 .btn-secondary {
-    background: #f5f7fb;
-    border: 1px solid #dce5f2;
-    padding: 10px 16px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    padding: 10px 18px;
     border-radius: 8px;
     text-decoration: none;
-    color: #374151;
+    color: var(--text-dark);
     font-weight: 700;
+    transition: 0.2s ease;
 }
 
 .btn-secondary:hover {
-    background: #eef2ff;
+    background: #f1f5ff;
 }

@@ -4,7 +4,7 @@
 
 :root {
   --admin-bg: #0f172a;
-  --admin-card: #1e293b;
+  --admin-card: #1f2937;
   --admin-border: #334155;
   --admin-text: #f1f5f9;
   --admin-muted: #94a3b8;
@@ -13,23 +13,39 @@
 }
 
 /* =============================
-   LAYOUT
+   FULL ADMIN WORKSPACE
 ============================= */
 
-.admin-container {
-  padding: 40px;
-  min-height: 100vh;
-  background: var(--admin-bg);
-  color: var(--admin-text);
+/* Remove boxed layout */
+.dashboard-container {
+  max-width: none;
+  margin: 0;
 }
+
+/* Dark main content for admin */
+.admin-sidebar ~ .main-content {
+  background: #111827;
+  width: 100%;
+}
+
+.admin-sidebar ~ .main-content .content-area {
+  background: #111827;
+  padding: 40px;
+  width: 100%;
+}
+
+/* =============================
+   HEADER
+============================= */
 
 .admin-header {
   margin-bottom: 40px;
 }
 
 .admin-header h1 {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 600;
+  color: var(--admin-text);
 }
 
 .admin-header i {
@@ -56,12 +72,8 @@
    CARDS
 ============================= */
 
-/* =============================
-   PREMIUM CARDS
-============================= */
-
 .admin-card {
-  background: #1e293b;
+  background: var(--admin-card);
   padding: 40px;
   border-radius: 18px;
   text-align: center;
@@ -72,7 +84,7 @@
   overflow: hidden;
 }
 
-/* subtle gradient shimmer layer */
+/* Subtle emerald glow effect */
 .admin-card::before {
   content: "";
   position: absolute;
@@ -83,39 +95,25 @@
   background: radial-gradient(circle at center, rgba(16,185,129,0.08), transparent 60%);
   opacity: 0;
   transition: opacity 0.4s ease;
-
-  pointer-events: none;   /* 🔥 ADD THIS */
+  pointer-events: none;
 }
 
-/* Hover Animation */
 .admin-card:hover {
-  transform: translateY(-10px) scale(1.02);
-  box-shadow: 0 25px 60px rgba(0,0,0,0.6);
-  border: 1px solid rgba(16,185,129,0.4);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  border: 1px solid rgba(16,185,129,0.35);
 }
 
 .admin-card:hover::before {
   opacity: 1;
 }
 
-/* Title */
 .admin-card h3 {
   margin-top: 12px;
   font-weight: 600;
   font-size: 18px;
   color: white;
 }
-
-/* Highlight special card */
-.admin-card.highlight {
-  border: 1px solid rgba(16,185,129,0.4);
-}
-
-.admin-card.highlight:hover {
-  box-shadow: 0 0 40px rgba(16,185,129,0.35);
-}
-
-
 
 /* =============================
    ICON
@@ -126,7 +124,11 @@
   height: 65px;
   margin: 0 auto 20px;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--admin-accent), var(--admin-accent-dark));
+  background: linear-gradient(
+    135deg,
+    var(--admin-accent),
+    var(--admin-accent-dark)
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,7 +144,11 @@
   display: inline-block;
   margin-top: 18px;
   padding: 11px 26px;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(
+    135deg,
+    var(--admin-accent),
+    var(--admin-accent-dark)
+  );
   color: white;
   border-radius: 8px;
   text-decoration: none;
@@ -155,26 +161,52 @@
   box-shadow: 0 10px 25px rgba(16,185,129,0.4);
 }
 
-.admin-btn.success {
-  background: #3b82f6;
-}
-
-.admin-btn.success:hover {
-  background: #2563eb;
-}
-.dashboard-container {
-    max-width: 1200px;
-    margin: 0 auto;
-}
 /* =============================
-   HEADER TEXT FIX8000
+   SIDEBAR (ADMIN ONLY)
 ============================= */
 
-.admin-header h1 {
-  color: white;
+.admin-sidebar {
+  background: var(--admin-card);
+  border-right: 1px solid rgba(255,255,255,0.05);
 }
 
-.admin-header p {
+.admin-sidebar .sidebar-header {
+  background: var(--admin-card);
+}
+
+.admin-sidebar .nav-item {
   color: #cbd5e1;
 }
 
+.admin-sidebar .nav-item:hover {
+  background: rgba(16,185,129,0.12);
+  color: #ffffff;
+}
+
+.admin-sidebar .nav-item.active {
+  background: rgba(16,185,129,0.18);
+  border-left: 3px solid var(--admin-accent);
+  box-shadow: inset 3px 0 0 var(--admin-accent);
+  color: #ffffff;
+}
+
+.admin-sidebar .logout-btn {
+  color: #34d399;
+}
+
+.admin-sidebar .logout-btn:hover {
+  background: rgba(16,185,129,0.12);
+}
+
+/* =============================
+   TOPBAR (ADMIN ONLY)
+============================= */
+
+.admin-sidebar ~ .main-content .topbar {
+  background: #0b1220;
+  border-bottom: 1px solid rgba(16,185,129,0.15);
+}
+
+.admin-sidebar ~ .main-content .user-info i {
+  color: var(--admin-accent);
+}

@@ -1,34 +1,27 @@
 :root {
-    --primary: #4a6fc7;
-    --primary-dark: #3b5cad;
-    --secondary: #6a11cb;
-    --accent: #f39c12;
+    --primary: #0f1c3f;
+    --primary-dark: #0a142e;
+    --accent: #1b2a5a;
     --danger: #e74c3c;
-    --light-bg: #f8f9fa;
-    --border: #e1e5eb;
-    --text: #333;
-    --text-light: #6c757d;
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --radius: 10px;
+    --light-bg: #f4f6fb;
+    --border: #e6edf7;
+    --text: #1e293b;
+    --text-light: #6b7280;
+    --shadow: 0 20px 50px rgba(15, 28, 63, 0.08);
+    --radius: 12px;
 }
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    color: var(--text);
-    line-height: 1.6;
-    padding: 20px;
-    min-height: 100vh;
+    background: var(--light-bg);
+margin: 0;
+padding: 0;
 }
-
 /* Container */
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    background: white;
-    padding: 30px;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 20px;
 }
 
 /* Page header */
@@ -81,10 +74,13 @@ h1 {
 }
 
 .subjects-table th {
-    background: var(--primary);
+    background: linear-gradient(
+        135deg,
+        var(--primary),
+        var(--primary-dark)
+    );
     color: white;
     padding: 16px;
-    text-align: left;
     font-weight: 600;
 }
 
@@ -246,4 +242,34 @@ h1 {
         display: block;
         overflow-x: auto;
     }
+}
+/* =========================
+   FORCE NAVY UNIFORM THEME
+========================= */
+
+/* Sidebar */
+.sidebar {
+    background: #0a142e !important;  /* deep navy */
+}
+
+/* Sidebar header */
+.sidebar-header {
+    background: #0a142e !important;
+}
+
+/* Active nav item */
+.nav-item.active {
+    background: rgba(255,255,255,0.08) !important;
+    border-left: 3px solid #1b2a5a !important;
+    color: #ffffff !important;
+}
+
+/* Hover */
+.nav-item:hover {
+    background: rgba(255,255,255,0.06) !important;
+}
+
+/* Topbar */
+.topbar {
+    background: #0f1c3f !important; /* primary navy */
 }
