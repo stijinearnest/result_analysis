@@ -1,0 +1,113 @@
+/* =============================
+   ADMIN DARK BACKGROUND
+============================= */
+
+.dashboard-container,
+.main-content,
+.content-area {
+    background: #111827 !important;
+}
+
+body {
+    background: #111827 !important;
+    color: #f1f5f9;
+}
+
+/* =============================
+   PAGE HEADER
+============================= */
+
+.container h2 {
+    color: #10b981;
+    font-weight: 600;
+    margin-bottom: 25px;
+}
+
+/* =============================
+   TABLE CARD STYLE
+============================= */
+
+.table {
+    background: #1f2937 !important;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.05);
+    color: #f1f5f9;
+    margin-top: 20px;
+}
+
+/* Remove default borders */
+.table th,
+.table td {
+    border: none !important;
+    padding: 18px 20px;
+}
+
+/* Header */
+.table thead {
+    background: rgba(16,185,129,0.15) !important;
+}
+
+.table th {
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+/* Row styling */
+.table tbody tr {
+    border-top: 1px solid rgba(255,255,255,0.05);
+    transition: background 0.3s ease;
+}
+
+.table tbody tr:hover {
+    background: rgba(16,185,129,0.08);
+}
+
+/* Links inside table */
+.table a {
+    color: #10b981;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.table a:hover {
+    text-decoration: underline;
+}
+
+/* =============================
+   ADMIN SIDEBAR OVERRIDE
+============================= */
+
+.admin-sidebar {
+    background: #1f2937 !important;
+}
+
+.admin-sidebar .nav-item.active {
+    background: rgba(16,185,129,0.18) !important;
+    border-left: 3px solid #10b981 !important;
+}
+
+.admin-sidebar .nav-item:hover {
+    background: rgba(16,185,129,0.12) !important;
+}
+
+/* =============================
+   ADMIN TOPBAR OVERRIDE
+============================= */
+
+.admin-sidebar ~ .main-content .topbar {
+    background: #0b1220 !important;
+    border-bottom: 1px solid rgba(16,185,129,0.15) !important;
+}
+
+.admin-sidebar ~ .main-content .user-info i {
+    color: #10b981 !important;
+}
+.admin-sidebar .nav-item.active {
+    background: rgba(16,185,129,0.18) !important;
+    border-left: 3px solid #10b981 !important;
+    color: #10b981 !important;  /* ← ADD THIS */
+}
+.admin-sidebar .nav-item:hover {
+    color: #10b981 !important;
+}

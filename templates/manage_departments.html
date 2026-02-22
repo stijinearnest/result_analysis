@@ -1,4 +1,10 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/manage_departments.css' %}">
+{% endblock %}
+
 {% block content %}
 
 <div class="container mt-4">

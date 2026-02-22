@@ -23,7 +23,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body>
+<body class="
+{% if user.is_superuser %}admin-mode
+{% elif user.is_staff %}teacher-mode
+{% endif %}
+">
 
 <div class="dashboard-container">
 

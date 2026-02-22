@@ -1,34 +1,43 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/department_performance.css' %}">
+{% endblock %}
+
 {% block content %}
 
 <div class="container mt-4">
   <h2>📊 Department Performance</h2>
 
-  <table class="table table-bordered mt-3">
-    <thead>
-      <tr>
-        <th>Department</th>
-        <th>Total Students</th>
-        <th>Average %</th>
-        <th>Pass Rate (%)</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in data %}
-      <tr>
-        <td>
-  <a href="{% url 'admin_department_students' row.department_id %}">
-    {{ row.department }}
-  </a>
-</td>
-
-        <td>{{ row.students }}</td>
-        <td>{{ row.avg_percent }}</td>
-        <td>{{ row.pass_rate }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="analytics-card">
+    <div class="table-responsive">
+      <table class="table admin-table">
+        <thead>
+          <tr>
+            <th>Department</th>
+            <th>Total Students</th>
+            <th>Average %</th>
+            <th>Pass Rate (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in data %}
+          <tr>
+            <td>
+              <a href="{% url 'admin_department_students' row.department_id %}">
+                {{ row.department }}
+              </a>
+            </td>
+            <td>{{ row.students }}</td>
+            <td>{{ row.avg_percent }}</td>
+            <td>{{ row.pass_rate }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 {% endblock %}

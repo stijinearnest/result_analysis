@@ -185,7 +185,116 @@ h1 {
     font-size: 14px;
     text-align: center;
 }
+/* =====================================
+   ADMIN EMERALD MODE OVERRIDE
+===================================== */
 
+body.admin-mode {
+    background: #111827 !important;
+    color: #f1f5f9;
+}
+
+/* Container */
+body.admin-mode .container {
+    max-width: 900px;
+}
+
+/* Header */
+body.admin-mode .logo {
+    color: #10b981;
+}
+
+body.admin-mode h1 {
+    color: #10b981;
+}
+
+body.admin-mode .subtitle {
+    color: #94a3b8;
+}
+
+/* Search Box */
+body.admin-mode .search-container {
+    background: #1f2937;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+
+/* Search Input */
+body.admin-mode .search-input {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #f1f5f9;
+}
+
+body.admin-mode .search-input:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.2);
+}
+
+/* Search Button */
+body.admin-mode .search-button {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 10px 30px rgba(16,185,129,0.3);
+}
+
+body.admin-mode .search-button:hover {
+    box-shadow: 0 15px 35px rgba(16,185,129,0.4);
+}
+
+/* Results */
+body.admin-mode .results-container {
+    background: #1f2937;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+
+/* Student Items */
+body.admin-mode .student-item {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+body.admin-mode .student-name {
+    color: #f1f5f9;
+}
+
+body.admin-mode .student-reg {
+    color: #94a3b8;
+}
+
+/* View Button */
+body.admin-mode .view-button {
+    background: rgba(16,185,129,0.15);
+    color: #10b981;
+}
+
+body.admin-mode .view-button:hover {
+    background: #10b981;
+    color: white;
+}
+
+/* Sidebar Emerald */
+body.admin-mode .sidebar {
+    background: #1f2937 !important;
+}
+
+body.admin-mode .nav-item.active {
+    background: rgba(16,185,129,0.18) !important;
+    border-left: 3px solid #10b981 !important;
+    color: #10b981 !important;
+}
+
+body.admin-mode .nav-item:hover {
+    color: #10b981 !important;
+}
+
+/* Topbar Emerald */
+body.admin-mode .topbar {
+    background: #0b1220 !important;
+}
+
+body.admin-mode .user-info i {
+    color: #10b981 !important;
+}
 /* Responsive */
 @media (max-width: 600px) {
     .search-form {

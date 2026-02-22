@@ -26,7 +26,7 @@
 
 body {
   font-family: 'Segoe UI', sans-serif;
-  background: var(--bg-light);
+  background: #111827;
 }
 
 /* =====================================
@@ -240,6 +240,24 @@ body {
 
 .sidebar.collapsed .nav-item {
   justify-content: center;
+}
+/* =============================
+   ADMIN DARK MODE OVERRIDE
+============================= */
+
+body.admin-dark {
+  background: #111827 !important;
+}
+
+body.admin-dark .dashboard-container,
+body.admin-dark .main-content,
+body.admin-dark .content-area {
+  background: #111827 !important;
+}
+
+/* Kill any white headers */
+body.admin-dark .header {
+  background: transparent !important;
 }
 
 /* =====================================
