@@ -1,3 +1,12 @@
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import Table
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
+from django.http import HttpResponse
 
 from collections import defaultdict
 from django.db.models import Max
@@ -1574,3 +1583,56 @@ def delete_course(request, course_id):
         "course": course
     })
 
+
+
+@student_required
+def download_student_report(request):
+    student_id = request.session.get("student_id")
+    student = get_object_or_404(Student, id=student_id)
+
+    marks = Mark.objects.filter(semester__student=student).order_by("semester__number")
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{student.name}_Marks_Report.pdf"'
+
+    doc = SimpleDocTemplate(response)
+    elements = []
+
+    styles = getSampleStyleSheet()
+    title_style = styles["Heading1"]
+
+    elements.append(Paragraph("Student Marks Report", title_style))
+    elements.append(Spacer(1, 0.3 * inch))
+
+    elements.append(Paragraph(f"Name: {student.name}", styles["Normal"]))
+    elements.append(Paragraph(f"Registration No: {student.reg_no}", styles["Normal"]))
+    elements.append(Paragraph(f"Course: {student.course}", styles["Normal"]))
+    elements.append(Spacer(1, 0.3 * inch))
+
+    # Table data
+    data = [["Semester", "Subject", "Marks Obtained", "Max Marks", "Status"]]
+
+    for m in marks:
+        passed = "Pass" if m.marks_obtained >= (0.4 * m.max_marks) else "Fail"
+        data.append([
+            m.semester.number,
+            m.subject.name,
+            m.marks_obtained,
+            m.max_marks,
+            passed
+        ])
+
+    table = Table(data, repeatRows=1)
+
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.grey),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+        ('ALIGN', (2,1), (-2,-1), 'CENTER'),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+        ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+    ]))
+
+    elements.append(table)
+
+    doc.build(elements)
+    return response
