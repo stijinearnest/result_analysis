@@ -135,7 +135,9 @@
                             <th>Status</th>
                             <th>No. of Attempts</th>
                             <th>Attempt History</th>
+                            {% if not user.is_superuser %}
                             <th>Actions</th>
+                            {% endif %}
                         </tr>
                     </thead>
 
@@ -176,10 +178,13 @@
                             </td>
 
                             <td>
-                                <a href="{% url 'edit_marks' m.id %}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-edit me-1"></i>
-                                    Edit
+                                {% if not user.is_superuser %}
+<a href="{% url 'edit_marks' m.id %}"
+   class="btn btn-sm btn-outline-primary">
+    <i class="fas fa-edit me-1"></i>
+    Edit
+</a>
+{% endif %}
                                 </a>
                             </td>
                         </tr>

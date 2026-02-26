@@ -111,3 +111,63 @@ body {
 .admin-sidebar .nav-item:hover {
     color: #10b981 !important;
 }
+
+/* =============================
+   CLEAN DARK ANALYTICS TABLE
+============================= */
+
+.table {
+    background: #1e293b !important;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(16,185,129,0.15);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.45);
+    color: #f1f5f9;
+    margin-top: 20px;
+}
+
+/* VERY IMPORTANT — Override Bootstrap cell background */
+.table > :not(caption) > * > * {
+    background-color: transparent !important;
+}
+
+/* Header */
+.table thead {
+    background: rgba(16,185,129,0.15) !important;
+}
+
+.table thead th {
+    color: #10b981;
+    font-weight: 600;
+    padding: 18px 22px;
+    border: none !important;
+}
+
+/* Body cells */
+.table tbody td {
+    padding: 18px 22px;
+    border: none !important;
+    color: #e2e8f0;
+}
+
+/* Row separator */
+.table tbody tr {
+    border-top: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.25s ease;
+}
+
+/* Hover */
+.table tbody tr:hover {
+    background: rgba(16,185,129,0.08);
+}
+
+/* Links */
+.table a {
+    color: #10b981;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.table a:hover {
+    text-decoration: underline;
+}

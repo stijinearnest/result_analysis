@@ -117,7 +117,101 @@
     background: #f0f4ff;
     transform: translateY(-1px);
 }
+/* =====================================
+   ADMIN EMERALD MODE OVERRIDE
+===================================== */
 
+body.admin-mode {
+    background: #111827 !important;
+    color: #f1f5f9;
+}
+
+/* Center container spacing fix */
+body.admin-mode .container {
+    background: transparent !important;
+}
+
+/* Card */
+body.admin-mode .form-card {
+    background: #1f2937;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 20px 45px rgba(0,0,0,0.6);
+}
+
+/* Header */
+body.admin-mode .form-header {
+    background: linear-gradient(135deg, #0f172a, #0b1220);
+    border-bottom: 1px solid rgba(16,185,129,0.15);
+}
+
+body.admin-mode .form-header p {
+    color: #cbd5e1;
+}
+
+/* Labels */
+body.admin-mode .form-fields label {
+    color: #cbd5e1;
+}
+
+/* Inputs */
+body.admin-mode .form-fields input,
+body.admin-mode .form-fields select,
+body.admin-mode .form-fields textarea {
+    background: #111827;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #f1f5f9;
+}
+
+body.admin-mode .form-fields input:focus,
+body.admin-mode .form-fields select:focus,
+body.admin-mode .form-fields textarea:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+}
+
+/* Buttons */
+body.admin-mode .btn-primary {
+    background: #10b981;
+    box-shadow: 0 8px 25px rgba(16,185,129,0.25);
+}
+
+body.admin-mode .btn-primary:hover {
+    background: #059669;
+}
+
+body.admin-mode .btn-outline {
+    background: transparent;
+    border: 1px solid #10b981;
+    color: #10b981;
+}
+
+body.admin-mode .btn-outline:hover {
+    background: rgba(16,185,129,0.12);
+}
+
+/* Sidebar consistency */
+body.admin-mode .sidebar {
+    background: #1f2937 !important;
+}
+
+body.admin-mode .nav-item.active {
+    background: rgba(16,185,129,0.18) !important;
+    border-left: 3px solid #10b981 !important;
+    color: #10b981 !important;
+}
+
+body.admin-mode .nav-item:hover {
+    color: #10b981 !important;
+}
+
+/* Topbar */
+body.admin-mode .topbar {
+    background: #0b1220 !important;
+}
+
+body.admin-mode .user-info i {
+    color: #10b981 !important;
+}
 @media (max-width: 576px) {
     .form-card {
         width: 100%;

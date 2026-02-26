@@ -291,7 +291,15 @@ body.admin-mode .nav-item:hover {
 body.admin-mode .topbar {
     background: #0b1220 !important;
 }
+body.admin-mode .results-title{
+    
+    font-size: 20px;
+    color: #ffffff;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
 
+}
 body.admin-mode .user-info i {
     color: #10b981 !important;
 }
