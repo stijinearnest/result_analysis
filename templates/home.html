@@ -4,266 +4,552 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher's Portal · modern login</title>
+    <title>Academic Portal</title>
 
-    <!-- Fonts & Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        /* === YOUR ORIGINAL DESIGN (UNCHANGED) === */
+        :root {
+            --ink: #0d1b2a;
+            --ink-2: #3b4f63;
+            --ink-3: #8097ae;
+            --surface: #f7f5f0;
+            --surface-2: #eeeae2;
+            --white: #ffffff;
+            --gold: #c8a96e;
+            --gold-light: #e8d9bb;
+            --gold-dark: #a88340;
+            --blue: #1a3a5c;
+            --blue-mid: #2a5480;
+            --accent: #4c7fa8;
+            --line: rgba(13, 27, 42, 0.1);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: linear-gradient(145deg, #f0f4fa 0%, #e9edf5 100%);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: "DM Sans", sans-serif;
             min-height: 100vh;
+            background: var(--surface);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1.5rem;
+            padding: 2rem 1.5rem;
+            overflow: hidden;
+            position: relative;
         }
 
-        @supports (font-variation-settings: normal) {
-            body { font-family: 'Inter var', -apple-system, BlinkMacSystemFont, sans-serif; }
+        /* Background texture */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(ellipse 80% 60% at 10% 0%, rgba(200, 169, 110, 0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 80% at 90% 100%, rgba(26, 58, 92, 0.1) 0%, transparent 55%);
+            pointer-events: none;
+            z-index: 0;
         }
 
-        .portal-card {
-            max-width: 880px;
+        /* Decorative grid lines */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(13,27,42,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(13,27,42,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrapper {
+            position: relative;
+            z-index: 1;
             width: 100%;
-            background: #ffffff;
-            border-radius: 36px;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 1.45fr;
+            gap: 0;
+            min-height: 580px;
+            border-radius: 6px;
+            overflow: hidden;
             box-shadow:
-                0 20px 40px -12px rgba(0, 20, 40, 0.25),
-                0 8px 24px -6px rgba(0, 32, 64, 0.1),
-                inset 0 1px 1px rgba(255, 255, 255, 0.6);
-            padding: 3rem 2.8rem;
-            border: 1px solid rgba(255, 255, 255, 0.6);
+                0 2px 0 0 var(--gold),
+                0 40px 80px -20px rgba(13, 27, 42, 0.28),
+                0 0 0 1px rgba(13,27,42,0.08);
+            animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
 
-        .header-section { margin-bottom: 2.5rem; }
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
 
-        .header-section h2 {
-            font-weight: 600;
-            font-size: 2.2rem;
-            letter-spacing: -0.02em;
-            color: #1a2e3f;
-            margin-bottom: 0.3rem;
+        /* LEFT PANEL */
+        .left-panel {
+            background: var(--blue);
+            padding: 3rem 2.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left-panel::before {
+            content: "";
+            position: absolute;
+            bottom: -60px;
+            left: -60px;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(200,169,110,0.15), transparent 70%);
+            pointer-events: none;
+        }
+
+        .left-panel::after {
+            content: "";
+            position: absolute;
+            top: 40px;
+            right: -80px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            border: 1px solid rgba(200, 169, 110, 0.2);
+            pointer-events: none;
+        }
+
+        .brand {
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-seal {
+            width: 48px;
+            height: 48px;
+            border: 1.5px solid var(--gold);
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 8px;
-        }
-
-        .header-section h2 i {
-            color: #2d4b71;
-            font-size: 2rem;
-            background: #eef3fc;
-            padding: 8px 12px;
-            border-radius: 60px;
-        }
-
-        .greeting {
-            font-size: 1rem;
-            color: #4e627a;
-            background: #f2f6fe;
-            display: inline-block;
-            padding: 0.4rem 1.2rem;
-            border-radius: 40px;
-            font-weight: 450;
-            margin-top: 8px;
-        }
-
-        .role-options {
-            display: flex;
-            gap: 2rem;
-            flex-wrap: wrap;
             justify-content: center;
-            margin: 2.2rem 0 2rem;
+            color: var(--gold);
+            font-size: 1.1rem;
+            margin-bottom: 1.8rem;
+            position: relative;
+        }
+
+        .brand-seal::before {
+            content: "";
+            position: absolute;
+            inset: 3px;
+            border-radius: 50%;
+            border: 1px solid rgba(200,169,110,0.35);
+        }
+
+        .left-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .left-heading {
+            font-family: "DM Serif Display", serif;
+            font-size: 2.55rem;
+            line-height: 1.12;
+            color: var(--white);
+            letter-spacing: -0.02em;
+            margin-bottom: 1.4rem;
+        }
+
+        .left-heading em {
+            font-style: italic;
+            color: var(--gold-light);
+        }
+
+        .left-desc {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.52);
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
+        .left-footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        .divider-line {
+            height: 1px;
+            background: linear-gradient(90deg, var(--gold), transparent);
+            opacity: 0.3;
+            margin-bottom: 1.4rem;
+        }
+
+        .session-tag {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.38);
+            font-weight: 400;
+        }
+
+        .session-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 6px #4ade80;
+            flex-shrink: 0;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* RIGHT PANEL */
+        .right-panel {
+            background: var(--white);
+            padding: 3rem 3rem 2.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2.4rem;
+        }
+
+        .section-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--ink-3);
+        }
+
+        .access-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: #f0faf4;
+            color: #2d7a4a;
+            border: 1px solid #c3e6d0;
+            border-radius: 3px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.3rem 0.65rem;
+            letter-spacing: 0.04em;
+        }
+
+        .access-badge i { font-size: 0.65rem; }
+
+        .choose-heading {
+            font-family: "DM Serif Display", serif;
+            font-size: 1.8rem;
+            color: var(--ink);
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            line-height: 1.15;
+        }
+
+        .choose-sub {
+            font-size: 0.88rem;
+            color: var(--ink-3);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        /* ROLE CARDS */
+        .role-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.85rem;
+            margin-bottom: 2rem;
         }
 
         .role-card {
-            flex: 1 1 240px;
-            min-width: 230px;
-            background: #ffffff;
-            border-radius: 28px;
-            padding: 2.5rem 1.5rem 2rem;
             text-decoration: none;
-            color: #1e2f40;
-            border: 1px solid rgba(211, 222, 235, 0.5);
-            box-shadow: 0 5px 18px rgba(0, 20, 40, 0.04);
-            transition: all 0.3s ease;
+            color: var(--ink);
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            padding: 1.4rem 1.2rem;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            text-align: center;
+            gap: 0.9rem;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+            background: var(--white);
+        }
+
+        .role-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gold), transparent);
+            opacity: 0;
+            transition: opacity 0.25s;
         }
 
         .role-card:hover {
-            transform: translateY(-8px);
-            border-color: rgba(45, 110, 200, 0.3);
-            box-shadow:
-                0 28px 40px -18px rgba(15, 45, 80, 0.25),
-                0 10px 20px -10px rgba(0, 35, 70, 0.15);
+            border-color: var(--gold-light);
+            box-shadow: 0 8px 24px -10px rgba(13,27,42,0.14);
+            transform: translateY(-2px);
+        }
+
+        .role-card:hover::before { opacity: 1; }
+
+        .role-card.active {
+            border-color: var(--gold);
+            background: #fdfbf7;
+        }
+
+        .role-card.active::before { opacity: 1; }
+
+        .card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
         }
 
         .card-icon {
-            font-size: 3.8rem;
-            width: 100px;
-            height: 100px;
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            background: var(--surface-2);
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #f0f6ff;
-            border-radius: 50%;
-            margin-bottom: 1.5rem;
-            color: #1f3b5c;
+            color: var(--blue);
+            font-size: 1rem;
+            transition: background 0.2s, color 0.2s;
         }
 
-        .role-card h4 {
-            font-weight: 620;
-            font-size: 1.8rem;
-            letter-spacing: -0.02em;
-            margin-bottom: 0.4rem;
-            color: #102331;
+        .role-card:hover .card-icon,
+        .role-card.active .card-icon {
+            background: var(--blue);
+            color: var(--gold-light);
         }
 
-        .role-desc {
-            font-size: 0.95rem;
-            color: #4b5e74;
-            line-height: 1.5;
-            max-width: 210px;
-        }
-
-        .badge-role {
+        .card-arrow {
+            color: var(--ink-3);
             font-size: 0.75rem;
-            background: #ecf3fb;
-            color: #244b71;
-            border-radius: 30px;
-            padding: 0.25rem 1rem;
-            margin-top: 0.8rem;
-            border: 1px solid #d1e0f0;
+            margin-top: 3px;
+            transition: transform 0.2s, color 0.2s;
         }
 
-        .action-footer {
+        .role-card:hover .card-arrow {
+            transform: translate(2px, -2px);
+            color: var(--gold-dark);
+        }
+
+        .card-body h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 0.3rem;
+            letter-spacing: -0.01em;
+        }
+
+        .card-body p {
+            font-size: 0.82rem;
+            color: var(--ink-3);
+            line-height: 1.55;
+            font-weight: 300;
+        }
+
+        .card-tag {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--blue-mid);
+            opacity: 0.7;
+        }
+
+        /* CTA */
+        .cta-row {
+            margin-top: auto;
             display: flex;
-            justify-content: center;
-            margin-top: 2rem;
+            flex-direction: column;
+            gap: 0.9rem;
         }
 
         .proceed-btn {
-    background: linear-gradient(135deg, #0f2f4f, #163b63);
-    border: none;
-    font-size: 1.05rem;
-    font-weight: 600;
-    padding: 0.9rem 3.2rem;
-    border-radius: 60px;
-    color: #ffffff;
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.25s ease;
-    text-decoration: none;
-    box-shadow:
-        0 10px 25px rgba(15, 47, 79, 0.25),
-        0 4px 10px rgba(15, 47, 79, 0.15);
-    letter-spacing: 0.3px;
-}
-
-.proceed-btn i {
-    transition: transform 0.25s ease;
-}
-
-.proceed-btn:hover {
-    transform: translateY(-3px);
-    box-shadow:
-        0 16px 32px rgba(15, 47, 79, 0.35),
-        0 6px 14px rgba(15, 47, 79, 0.2);
-    background: linear-gradient(135deg, #0c2742, #1b4b7a);
-}
-
-.proceed-btn:hover i {
-    transform: translateX(6px);
-}
-
-.proceed-btn:active {
-    transform: translateY(0);
-    box-shadow:
-        0 6px 14px rgba(15, 47, 79, 0.25);
-}
-
-        .meta-hint {
-            text-align: center;
-            margin-top: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            background: var(--blue);
+            color: var(--white);
+            text-decoration: none;
             font-size: 0.9rem;
-            color: #647b95;
-            border-top: 1px solid rgba(150, 175, 200, 0.2);
-            padding-top: 1.4rem;
+            font-weight: 600;
+            padding: 0.9rem 1.5rem;
+            border-radius: 4px;
+            letter-spacing: 0.02em;
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
         }
 
-        @media (max-width: 600px) {
-            .portal-card { padding: 2rem 1.5rem; }
-            .role-options { gap: 1rem; }
-            .role-card { min-width: 180px; padding: 1.8rem 1rem; }
+        .proceed-btn::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(200,169,110,0.12), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
+        }
+
+        .proceed-btn:hover {
+            background: var(--blue-mid);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px -8px rgba(26,58,92,0.5);
+        }
+
+        .proceed-btn:hover::before {
+            transform: translateX(100%);
+        }
+
+        .proceed-btn i { font-size: 0.8rem; transition: transform 0.2s; }
+        .proceed-btn:hover i { transform: translateX(3px); }
+
+        .footer-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            font-size: 0.78rem;
+            color: var(--ink-3);
+            font-weight: 300;
+        }
+
+        .footer-note i { font-size: 0.7rem; }
+
+        /* RESPONSIVE */
+        @media (max-width: 780px) {
+            .wrapper {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .left-panel { padding: 2.2rem 2rem; }
+
+            .left-heading { font-size: 2rem; }
+
+            .right-panel { padding: 2rem 1.6rem 1.8rem; }
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 1rem; }
+
+            .role-grid { grid-template-columns: 1fr; }
+
+            .left-panel { padding: 1.8rem 1.4rem; }
+
+            .right-panel { padding: 1.6rem 1.4rem; }
+
+            .left-heading { font-size: 1.75rem; }
         }
     </style>
 </head>
 <body>
 
-<div class="portal-card">
+<div class="wrapper">
 
-    <div class="header-section">
-        <h2>
-            <i class="fas fa-chalkboard-teacher"></i>
-            Teacher's Portal
-        </h2>
-        <div class="greeting">
-            <i class="fas fa-calendar-check"></i>
-            Manage classes, results & academic insights
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+        <div class="brand">
+            <div class="brand-seal">
+                <i class="fas fa-landmark"></i>
+            </div>
+            <div class="left-label">Academic Portal</div>
+            <h1 class="left-heading">Where <em>learning</em> meets clarity.</h1>
+            <p class="left-desc">
+                One unified portal for educators and students — grades, insights, and performance analytics in a single flow.
+            </p>
+        </div>
+
+        <div class="left-footer">
+            <div class="divider-line"></div>
+            <div class="session-tag">
+                <span class="session-dot"></span>
+                Secure session · Staff access protected
+            </div>
         </div>
     </div>
 
-    <div class="role-options">
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+        <div class="top-row">
+            <span class="section-label">Sign In</span>
+            <div class="access-badge">
+                <i class="fas fa-shield-alt"></i>
+                Verified Access
+            </div>
+        </div>
 
-        <!-- TEACHER LOGIN -->
-        <a href="{% url 'teacher_login' %}" class="role-card">
-            <div class="card-icon">
-                <i class="fas fa-user-tie"></i>
-            </div>
-            <h4>Teacher</h4>
-            <div class="role-desc">
-                Record grades, track performance, manage classroom data.
-            </div>
-            <div class="badge-role">
-                <i class="fas fa-edit"></i> full educator access
-            </div>
-        </a>
+        <h2 class="choose-heading">Choose your role</h2>
+        <p class="choose-sub">Select how you'd like to continue. You can switch roles after sign-in.</p>
 
-        <!-- STUDENT LOGIN -->
-        <a href="{% url 'student_login' %}" class="role-card">
-            <div class="card-icon">
-                <i class="fas fa-user-graduate"></i>
-            </div>
-            <h4>Student</h4>
-            <div class="role-desc">
-                View results, progress reports, and personal analytics.
-            </div>
-            <div class="badge-role" style="background:#f5f7fb; color:#426282;">
-                <i class="fas fa-chart-line"></i> learner dashboard
-            </div>
-        </a>
+        <div class="role-grid">
+            <a href="{% url 'teacher_login' %}" class="role-card active">
+                <div class="card-top">
+                    <div class="card-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <i class="fas fa-arrow-up-right card-arrow"></i>
+                </div>
+                <div class="card-body">
+                    <h4>Teacher</h4>
+                    <p>Record grades, track performance, manage classroom data.</p>
+                </div>
+                <span class="card-tag">Educator Access</span>
+            </a>
 
-    </div>
+            <a href="{% url 'student_login' %}" class="role-card">
+                <div class="card-top">
+                    <div class="card-icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <i class="fas fa-arrow-up-right card-arrow"></i>
+                </div>
+                <div class="card-body">
+                    <h4>Student</h4>
+                    <p>View results, monitor progress, access personal analytics.</p>
+                </div>
+                <span class="card-tag">Learner Dashboard</span>
+            </a>
+        </div>
 
-    <div class="action-footer">
-        <a href="{% url 'teacher_login' %}" class="proceed-btn">
-            <span>Continue to login</span>
-            <i class="fas fa-arrow-right"></i>
-        </a>
-    </div>
-
-    <div class="meta-hint">
-        <i class="far fa-clock"></i>
-        Role can be switched after sign-in · secure staff access
+        <div class="cta-row">
+            <a href="{% url 'teacher_login' %}" class="proceed-btn">
+                Continue to Login
+                <i class="fas fa-arrow-right"></i>
+            </a>
+            <div class="footer-note">
+                <i class="far fa-clock"></i>
+                Role can be switched after sign-in
+            </div>
+        </div>
     </div>
 
 </div>

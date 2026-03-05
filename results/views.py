@@ -1278,7 +1278,7 @@ def apply_grace_marks(request, student_id, sem_number):
         "total_sem_max": total_sem_max,
     })
 
-# views.py
+
 
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
