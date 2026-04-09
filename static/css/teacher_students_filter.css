@@ -11,12 +11,17 @@
   --danger: #dc2626;
   --gray: #6b7280;
 }
-
+.content-area {
+  background-color: #e5eaf3;
+  min-height: 100vh;
+}
 .filter-top-layout {
   max-width: 1200px;
   margin: 30px auto;
   padding: 0 20px;
+  
 }
+
 
 /* FILTER CARD */
 .filter-top-layout aside {

@@ -1,6 +1,8 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/add_marks_single.css' %}">
 <div class="container mt-3">
   <h3>Apply Grace Marks — {{ student.name }} (Sem {{ semester.number }})</h3>
 

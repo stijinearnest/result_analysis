@@ -1,558 +1,360 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Academic Portal</title>
-
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Academic Portal | Navy Access</title>
+    <!-- Font Awesome 6 (minimal icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Google Fonts: clean sans-serif for modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --ink: #0d1b2a;
-            --ink-2: #3b4f63;
-            --ink-3: #8097ae;
-            --surface: #f7f5f0;
-            --surface-2: #eeeae2;
-            --white: #ffffff;
-            --gold: #c8a96e;
-            --gold-light: #e8d9bb;
-            --gold-dark: #a88340;
-            --blue: #1a3a5c;
-            --blue-mid: #2a5480;
-            --accent: #4c7fa8;
-            --line: rgba(13, 27, 42, 0.1);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --navy-deep: #0A1C2F;      /* primary deep navy */
+            --navy-primary: #0F2B3F;
+            --navy-mid: #1E3A5F;
+            --slate-blue: #3A6B92;     /* calm blue that complements navy */
+            --slate-light: #5B8FB9;
+            --mist-blue: #EFF3F8;       /* very light background blue */
+            --white: #FFFFFF;
+            --card-white: #FFFFFF;
+            --border-soft: #DAE3ED;
+            --text-dark: #0F2C3F;
+            --text-soft: #2C4C6E;
+            --text-muted: #5B6F82;
+            --shadow-sm: 0 4px 10px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.03);
+            --shadow-md: 0 20px 30px -12px rgba(10, 28, 47, 0.12);
+        }
 
         body {
-            font-family: "DM Sans", sans-serif;
+            font-family: 'Inter', sans-serif;
+            background: var(--mist-blue);
             min-height: 100vh;
-            background: var(--surface);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem 1.5rem;
-            overflow: hidden;
-            position: relative;
+            padding: 1.5rem;
         }
 
-        /* Background texture */
-        body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            background-image:
-                radial-gradient(ellipse 80% 60% at 10% 0%, rgba(200, 169, 110, 0.12) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 80% at 90% 100%, rgba(26, 58, 92, 0.1) 0%, transparent 55%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* Decorative grid lines */
-        body::after {
-            content: "";
-            position: fixed;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(13,27,42,0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(13,27,42,0.04) 1px, transparent 1px);
-            background-size: 60px 60px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .wrapper {
-            position: relative;
-            z-index: 1;
+        /* main container - clean & minimal */
+        .portal-container {
+            max-width: 880px;
             width: 100%;
-            max-width: 980px;
-            display: grid;
-            grid-template-columns: 1fr 1.45fr;
-            gap: 0;
-            min-height: 580px;
-            border-radius: 6px;
+            background: var(--card-white);
+            border-radius: 28px;
+            box-shadow: var(--shadow-md), 0 1px 2px rgba(0, 0, 0, 0.02);
             overflow: hidden;
-            box-shadow:
-                0 2px 0 0 var(--gold),
-                0 40px 80px -20px rgba(13, 27, 42, 0.28),
-                0 0 0 1px rgba(13,27,42,0.08);
-            animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+            transition: transform 0.2s ease;
         }
 
-        @keyframes rise {
-            from { opacity: 0; transform: translateY(28px); }
-            to   { opacity: 1; transform: translateY(0); }
+        /* navy header - simplified */
+        .navy-header {
+            background: var(--navy-deep);
+            padding: 2rem 2rem 1.8rem;
+            text-align: center;
         }
 
-        /* LEFT PANEL */
-        .left-panel {
-            background: var(--blue);
-            padding: 3rem 2.5rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .left-panel::before {
-            content: "";
-            position: absolute;
-            bottom: -60px;
-            left: -60px;
-            width: 260px;
-            height: 260px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(200,169,110,0.15), transparent 70%);
-            pointer-events: none;
-        }
-
-        .left-panel::after {
-            content: "";
-            position: absolute;
-            top: 40px;
-            right: -80px;
-            width: 220px;
-            height: 220px;
-            border-radius: 50%;
-            border: 1px solid rgba(200, 169, 110, 0.2);
-            pointer-events: none;
-        }
-
-        .brand {
-            position: relative;
-            z-index: 1;
-        }
-
-        .brand-seal {
-            width: 48px;
-            height: 48px;
-            border: 1.5px solid var(--gold);
-            border-radius: 50%;
-            display: flex;
+        .icon-circle {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            color: var(--gold);
-            font-size: 1.1rem;
-            margin-bottom: 1.8rem;
-            position: relative;
+            background: rgba(59, 107, 146, 0.18);
+            width: 56px;
+            height: 56px;
+            border-radius: 60px;
+            margin-bottom: 1rem;
+            color: var(--slate-light);
+            font-size: 1.6rem;
+            backdrop-filter: blur(2px);
         }
 
-        .brand-seal::before {
-            content: "";
-            position: absolute;
-            inset: 3px;
-            border-radius: 50%;
-            border: 1px solid rgba(200,169,110,0.35);
-        }
-
-        .left-label {
-            font-size: 0.72rem;
+        .navy-header h1 {
+            font-size: 1.85rem;
             font-weight: 600;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 0.9rem;
-            opacity: 0.9;
+            color: white;
+            letter-spacing: -0.3px;
+            margin-bottom: 0.4rem;
         }
 
-        .left-heading {
-            font-family: "DM Serif Display", serif;
-            font-size: 2.55rem;
-            line-height: 1.12;
-            color: var(--white);
-            letter-spacing: -0.02em;
-            margin-bottom: 1.4rem;
-        }
-
-        .left-heading em {
-            font-style: italic;
-            color: var(--gold-light);
-        }
-
-        .left-desc {
-            font-size: 0.9rem;
-            color: rgba(255,255,255,0.52);
-            line-height: 1.7;
-            font-weight: 300;
-        }
-
-        .left-footer {
-            position: relative;
-            z-index: 1;
-        }
-
-        .divider-line {
-            height: 1px;
-            background: linear-gradient(90deg, var(--gold), transparent);
-            opacity: 0.3;
-            margin-bottom: 1.4rem;
-        }
-
-        .session-tag {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            font-size: 0.78rem;
-            color: rgba(255,255,255,0.38);
+        .navy-header p {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.68);
             font-weight: 400;
         }
 
-        .session-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #4ade80;
-            box-shadow: 0 0 6px #4ade80;
-            flex-shrink: 0;
-            animation: pulse 2s ease-in-out infinite;
+        /* main content */
+        .main-content {
+            padding: 2rem 2rem 2.2rem;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
-        /* RIGHT PANEL */
-        .right-panel {
-            background: var(--white);
-            padding: 3rem 3rem 2.5rem;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .top-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 2.4rem;
-        }
-
-        .section-label {
-            font-size: 0.72rem;
+        .section-title {
+            font-size: 1.35rem;
             font-weight: 600;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--ink-3);
+            color: var(--text-dark);
+            margin-bottom: 0.3rem;
         }
 
-        .access-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-            background: #f0faf4;
-            color: #2d7a4a;
-            border: 1px solid #c3e6d0;
-            border-radius: 3px;
-            font-size: 0.72rem;
-            font-weight: 600;
-            padding: 0.3rem 0.65rem;
-            letter-spacing: 0.04em;
+        .section-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1.8rem;
+            border-left: 3px solid var(--slate-blue);
+            padding-left: 0.8rem;
         }
 
-        .access-badge i { font-size: 0.65rem; }
-
-        .choose-heading {
-            font-family: "DM Serif Display", serif;
-            font-size: 1.8rem;
-            color: var(--ink);
-            letter-spacing: -0.02em;
-            margin-bottom: 0.5rem;
-            line-height: 1.15;
-        }
-
-        .choose-sub {
-            font-size: 0.88rem;
-            color: var(--ink-3);
-            margin-bottom: 2rem;
-            line-height: 1.6;
-            font-weight: 300;
-        }
-
-        /* ROLE CARDS */
+        /* role buttons - using slate blue accent instead of gold */
         .role-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.85rem;
+            display: flex;
+            gap: 1rem;
             margin-bottom: 2rem;
+            flex-wrap: wrap;
         }
 
         .role-card {
-            text-decoration: none;
-            color: var(--ink);
-            border: 1px solid var(--line);
-            border-radius: 4px;
-            padding: 1.4rem 1.2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.9rem;
-            position: relative;
-            overflow: hidden;
-            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+            flex: 1;
             background: var(--white);
+            border: 1px solid var(--border-soft);
+            border-radius: 20px;
+            padding: 1.3rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: block;
         }
 
-        .role-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, var(--gold), transparent);
-            opacity: 0;
-            transition: opacity 0.25s;
+        .role-card i {
+            font-size: 1.8rem;
+            color: var(--navy-mid);
+            margin-bottom: 0.7rem;
+            display: inline-block;
+            transition: color 0.2s;
+        }
+
+        .role-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.3rem;
+        }
+
+        .role-card p {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* active state with slate blue (matching navy primary) */
+        .role-card.active {
+            border-color: var(--slate-blue);
+            background: #F6FAFE;
+            box-shadow: 0 6px 14px rgba(26, 58, 92, 0.06);
+        }
+
+        .role-card.active i {
+            color: var(--slate-blue);
         }
 
         .role-card:hover {
-            border-color: var(--gold-light);
-            box-shadow: 0 8px 24px -10px rgba(13,27,42,0.14);
+            border-color: var(--slate-blue);
             transform: translateY(-2px);
+            background: #FBFDFF;
         }
 
-        .role-card:hover::before { opacity: 1; }
-
-        .role-card.active {
-            border-color: var(--gold);
-            background: #fdfbf7;
-        }
-
-        .role-card.active::before { opacity: 1; }
-
-        .card-top {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-        }
-
-        .card-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 4px;
-            background: var(--surface-2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--blue);
-            font-size: 1rem;
-            transition: background 0.2s, color 0.2s;
-        }
-
-        .role-card:hover .card-icon,
-        .role-card.active .card-icon {
-            background: var(--blue);
-            color: var(--gold-light);
-        }
-
-        .card-arrow {
-            color: var(--ink-3);
-            font-size: 0.75rem;
-            margin-top: 3px;
-            transition: transform 0.2s, color 0.2s;
-        }
-
-        .role-card:hover .card-arrow {
-            transform: translate(2px, -2px);
-            color: var(--gold-dark);
-        }
-
-        .card-body h4 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--ink);
-            margin-bottom: 0.3rem;
-            letter-spacing: -0.01em;
-        }
-
-        .card-body p {
-            font-size: 0.82rem;
-            color: var(--ink-3);
-            line-height: 1.55;
-            font-weight: 300;
-        }
-
-        .card-tag {
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--blue-mid);
-            opacity: 0.7;
-        }
-
-        /* CTA */
-        .cta-row {
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 0.9rem;
-        }
-
-        .proceed-btn {
+        /* primary CTA button - navy with subtle blue accent */
+        .login-cta {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.6rem;
-            background: var(--blue);
-            color: var(--white);
+            background: var(--navy-deep);
+            color: white;
             text-decoration: none;
-            font-size: 0.9rem;
             font-weight: 600;
-            padding: 0.9rem 1.5rem;
-            border-radius: 4px;
-            letter-spacing: 0.02em;
-            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-            position: relative;
-            overflow: hidden;
+            font-size: 0.9rem;
+            padding: 0.9rem;
+            border-radius: 60px;
+            transition: all 0.2s ease;
+            margin-top: 0.3rem;
+            width: 100%;
+            border: none;
+            cursor: pointer;
         }
 
-        .proceed-btn::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(90deg, transparent, rgba(200,169,110,0.12), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.5s ease;
+        .login-cta i {
+            font-size: 0.8rem;
+            transition: transform 0.2s;
         }
 
-        .proceed-btn:hover {
-            background: var(--blue-mid);
-            transform: translateY(-1px);
-            box-shadow: 0 8px 20px -8px rgba(26,58,92,0.5);
+        .login-cta:hover {
+            background: var(--navy-primary);
         }
 
-        .proceed-btn:hover::before {
-            transform: translateX(100%);
+        .login-cta:hover i {
+            transform: translateX(4px);
         }
 
-        .proceed-btn i { font-size: 0.8rem; transition: transform 0.2s; }
-        .proceed-btn:hover i { transform: translateX(3px); }
-
+        /* footer notes */
         .footer-note {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 1.4rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.45rem;
-            font-size: 0.78rem;
-            color: var(--ink-3);
-            font-weight: 300;
+            gap: 0.6rem;
+            flex-wrap: wrap;
         }
 
-        .footer-note i { font-size: 0.7rem; }
+        hr {
+            margin: 1rem 0 0.2rem;
+            border: none;
+            border-top: 1px solid var(--border-soft);
+        }
 
-        /* RESPONSIVE */
-        @media (max-width: 780px) {
-            .wrapper {
-                grid-template-columns: 1fr;
-                min-height: auto;
+        /* responsive */
+        @media (max-width: 600px) {
+            .portal-container {
+                border-radius: 24px;
             }
-
-            .left-panel { padding: 2.2rem 2rem; }
-
-            .left-heading { font-size: 2rem; }
-
-            .right-panel { padding: 2rem 1.6rem 1.8rem; }
+            .navy-header {
+                padding: 1.6rem;
+            }
+            .main-content {
+                padding: 1.6rem;
+            }
+            .role-grid {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+            .navy-header h1 {
+                font-size: 1.55rem;
+            }
+            .section-title {
+                font-size: 1.2rem;
+            }
         }
 
-        @media (max-width: 480px) {
-            body { padding: 1rem; }
-
-            .role-grid { grid-template-columns: 1fr; }
-
-            .left-panel { padding: 1.8rem 1.4rem; }
-
-            .right-panel { padding: 1.6rem 1.4rem; }
-
-            .left-heading { font-size: 1.75rem; }
+        /* subtle additional blue details */
+        .badge-blue {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #EFF4FA;
+            padding: 0.25rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            color: var(--slate-blue);
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
 
-<div class="wrapper">
-
-    <!-- LEFT PANEL -->
-    <div class="left-panel">
-        <div class="brand">
-            <div class="brand-seal">
-                <i class="fas fa-landmark"></i>
-            </div>
-            <div class="left-label">Academic Portal</div>
-            <h1 class="left-heading">Where <em>learning</em> meets clarity.</h1>
-            <p class="left-desc">
-                One unified portal for educators and students — grades, insights, and performance analytics in a single flow.
-            </p>
+<div class="portal-container">
+    <!-- navy header: no gold, just navy and slate blue accents -->
+    <div class="navy-header">
+        <div class="icon-circle">
+            <i class="fas fa-graduation-cap"></i>
         </div>
-
-        <div class="left-footer">
-            <div class="divider-line"></div>
-            <div class="session-tag">
-                <span class="session-dot"></span>
-                Secure session · Staff access protected
-            </div>
-        </div>
+        <h1>Academic Portal</h1>
+        <p>Unified access for educators & learners</p>
     </div>
 
-    <!-- RIGHT PANEL -->
-    <div class="right-panel">
-        <div class="top-row">
-            <span class="section-label">Sign In</span>
-            <div class="access-badge">
-                <i class="fas fa-shield-alt"></i>
-                Verified Access
-            </div>
-        </div>
+    <div class="main-content">
+        <div class="section-title">Choose your role</div>
+        <div class="section-desc">Select your profile to continue to the dashboard</div>
 
-        <h2 class="choose-heading">Choose your role</h2>
-        <p class="choose-sub">Select how you'd like to continue. You can switch roles after sign-in.</p>
-
+        <!-- role selection: clean buttons with navy / slate palette -->
         <div class="role-grid">
-            <a href="{% url 'teacher_login' %}" class="role-card active">
-                <div class="card-top">
-                    <div class="card-icon">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                    <i class="fas fa-arrow-up-right card-arrow"></i>
-                </div>
-                <div class="card-body">
-                    <h4>Teacher</h4>
-                    <p>Record grades, track performance, manage classroom data.</p>
-                </div>
-                <span class="card-tag">Educator Access</span>
+            <a href="#" data-role="teacher" class="role-card active" id="teacherRole">
+                <i class="fas fa-chalkboard-user"></i>
+                <h3>Teacher</h3>
+                <p>Grade management, analytics & class insights</p>
             </a>
-
-            <a href="{% url 'student_login' %}" class="role-card">
-                <div class="card-top">
-                    <div class="card-icon">
-                        <i class="fas fa-user-graduate"></i>
-                    </div>
-                    <i class="fas fa-arrow-up-right card-arrow"></i>
-                </div>
-                <div class="card-body">
-                    <h4>Student</h4>
-                    <p>View results, monitor progress, access personal analytics.</p>
-                </div>
-                <span class="card-tag">Learner Dashboard</span>
+            <a href="#" data-role="student" class="role-card" id="studentRole">
+                <i class="fas fa-user-graduate"></i>
+                <h3>Student</h3>
+                <p>Results, progress tracking & personal report</p>
             </a>
         </div>
 
-        <div class="cta-row">
-            <a href="{% url 'teacher_login' %}" class="proceed-btn">
-                Continue to Login
-                <i class="fas fa-arrow-right"></i>
-            </a>
-            <div class="footer-note">
-                <i class="far fa-clock"></i>
-                Role can be switched after sign-in
-            </div>
+        <!-- dynamic login button -->
+        <a href="#" id="dynamicLoginBtn" class="login-cta">
+            Continue as Teacher <i class="fas fa-arrow-right"></i>
+        </a>
+
+        <div class="footer-note">
+            <i class="fas fa-shield-alt"></i>
+            <span>Secure access · Role-based dashboard</span>
+            <span class="badge-blue"><i class="fas fa-sync-alt"></i> Switch roles after login</span>
+        </div>
+        <hr />
+        <div class="footer-note" style="margin-top: 0.7rem;">
+            <i class="fas fa-database"></i> Real-time sync · Institutional security
         </div>
     </div>
-
 </div>
 
+<script>
+    // simple role toggle with navy-blue color scheme (no gold)
+    // Django template URLs - will be replaced by backend
+    let teacherLoginUrl = "{% url 'teacher_login' %}";
+    let studentLoginUrl = "{% url 'student_login' %}";
+
+    // fallback for static preview / if template not rendered (ensures functionality)
+    if (teacherLoginUrl.includes("{%")) {
+        teacherLoginUrl = "/teacher/login/";
+        studentLoginUrl = "/student/login/";
+    }
+
+    const teacherElem = document.getElementById('teacherRole');
+    const studentElem = document.getElementById('studentRole');
+    const loginBtn = document.getElementById('dynamicLoginBtn');
+
+    function setActiveRole(role) {
+        if (role === 'teacher') {
+            teacherElem.classList.add('active');
+            studentElem.classList.remove('active');
+            loginBtn.innerHTML = `Continue as Teacher <i class="fas fa-arrow-right"></i>`;
+            loginBtn.href = teacherLoginUrl;
+        } else {
+            studentElem.classList.add('active');
+            teacherElem.classList.remove('active');
+            loginBtn.innerHTML = `Continue as Student <i class="fas fa-arrow-right"></i>`;
+            loginBtn.href = studentLoginUrl;
+        }
+    }
+
+    teacherElem.addEventListener('click', (e) => {
+        e.preventDefault();
+        setActiveRole('teacher');
+    });
+
+    studentElem.addEventListener('click', (e) => {
+        e.preventDefault();
+        setActiveRole('student');
+    });
+
+    // initial set: teacher active by default
+    setActiveRole('teacher');
+</script>
+
+<!-- 
+    DESIGN NOTES:
+    - Gold color completely removed, replaced by slate blue (#3A6B92) and navy shades.
+    - Primary navy (#0A1C2F) used for header and CTA, creating a monochromatic blue elegance.
+    - Slate blue acts as the accent for active states, hover effects, and subtle highlights.
+    - Clean, minimal, and fully professional: no extra ornaments or gradients.
+    - Fully responsive, maintains Django URL integration.
+    - All interactive states use cool blue tones that harmonize with the navy primary theme.
+-->
 </body>
 </html>

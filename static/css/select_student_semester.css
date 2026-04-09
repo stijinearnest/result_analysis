@@ -2,12 +2,18 @@
    LAYOUT FIX
 ================================= */
 
+.content-area {
+    background-color: #e5eaf3;
+    min-height: 80vh;
+    padding: 60px 20px;
+    display: flex;
+    justify-content: center;
+}
 .container {
     display: flex;
     justify-content: center;
-    padding: 60px 20px;
+    width: 100%;
 }
-
 /* ===============================
    CARD
 ================================= */
