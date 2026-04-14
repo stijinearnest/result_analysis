@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     #our app
     'results',
+    'django_extensions',
 
 ]
 

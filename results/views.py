@@ -391,27 +391,28 @@ def add_marks_single_page(request):
     # ---------------------------------------------------------
 # STEP 1: Supply → Show subject selection page first
 # ---------------------------------------------------------
+    selected_subject_ids = []
+
     if attempt_type == "Supply/Improvement":
         selected_subject_ids = request.GET.getlist("subjects")
 
-    # If no subjects selected yet → show selection page
-    if not selected_subject_ids:
-        # Only show subjects that already have marks (attempted before)
-        previous_subject_ids = Mark.objects.filter(
-            semester=semester
+    # ONLY for Supply
+        if not selected_subject_ids:
+            previous_subject_ids = Mark.objects.filter(
+                semester=semester
         ).values_list("subject_id", flat=True)
 
-        supply_subjects = all_subjects.filter(id__in=previous_subject_ids)
+            supply_subjects = all_subjects.filter(id__in=previous_subject_ids)
 
-        return render(request, "select_supply_subjects.html", {
+            return render(request, "select_supply_subjects.html", {
             "student": student,
             "semester": sem_num_int,
             "subjects": supply_subjects
         })
 
-    # If subjects selected → filter them
-    selected_subject_ids = [int(s) for s in selected_subject_ids]
-    all_subjects = all_subjects.filter(id__in=selected_subject_ids)
+    # Filter selected subjects
+        selected_subject_ids = [int(s) for s in selected_subject_ids]
+        all_subjects = all_subjects.filter(id__in=selected_subject_ids)
 
     if not all_subjects.exists():
         return render(request, "add_marks_no_subjects.html", {
