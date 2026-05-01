@@ -12,7 +12,7 @@ const centerText = {
   
       ctx.save();
       ctx.font = 'bold 14px Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial';
-      ctx.fillStyle = '#1A1A1A';
+      ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(options.text, x, y);

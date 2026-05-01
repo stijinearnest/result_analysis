@@ -23,13 +23,7 @@
             <form method="post">
                 {% csrf_token %}
 
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="error-message">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
+                
 
                 <div class="form-group">
                     <label>Username</label>

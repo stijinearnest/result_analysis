@@ -11,7 +11,10 @@
 </head>
 
 <body>
-
+     <a href="{% url 'download_student_report' %}" 
+   class="btn btn-success mt-3">
+    <i class="fas fa-download"></i> Download Full Report
+</a>
 <div class="dash-wrap">
   <div class="grid">
     <!-- LEFT COLUMN -->
@@ -36,7 +39,7 @@
         <div class="student-details">
           <div class="meta-row">
             <div class="meta-item">
-              <div class="meta-label">Course Enrolled:</div>
+              <div class="meta-label">Programme Enrolled:</div>
               <div class="meta-value">{{ student.course }}</div>
             </div>
             <div class="meta-item">
@@ -114,10 +117,7 @@
           </div>
         </div>
       </section>
-      <a href="{% url 'download_student_report' %}" 
-   class="btn btn-success mt-3">
-    <i class="fas fa-download"></i> Download Full Report
-</a>
+ 
     </div>
   </div>
 </div>

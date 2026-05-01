@@ -65,6 +65,26 @@ body {
     background: rgba(255,255,255,0.25);
     transform: translateY(-2px);
 }
+.report-btn-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.report-btn {
+    background: #2563eb;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.2s ease;
+}
+
+.report-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+}
 
 /* ================= STUDENT CARD ================= */
 

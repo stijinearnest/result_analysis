@@ -9,8 +9,11 @@
 
 {% block content %}
 
-<div class="container py-4">
-
+<div class="report-btn-container">
+    <a href="{% url 'download_student_report' %}" class="report-btn">
+        <i class="fas fa-download"></i> Download Full Report
+    </a>
+</div>
     <!-- ================= STUDENT PROFILE ================= -->
 
     <div class="student-card">
@@ -26,9 +29,7 @@
             <div class="student-info">
                 <h2>{{ student.name }}</h2>
                 <p class="mb-1">Registration No: {{ student.reg_no }}</p>
-                <p class="mb-0">
-                    {{ student.course }} | Semester {{ student.semester }} | {{ student.academic_year }}
-                </p>
+                
             </div>
         </div>
 
@@ -37,12 +38,9 @@
                 <span class="detail-label">Course</span>
                 <span class="detail-value">{{ student.course }}</span>
             </div>
+            
             <div>
-                <span class="detail-label">Current Semester</span>
-                <span class="detail-value">{{ student.semester }}</span>
-            </div>
-            <div>
-                <span class="detail-label">Academic Year</span>
+                <span class="detail-label">Admission Year</span>
                 <span class="detail-value">{{ student.academic_year }}</span>
             </div>
             <div>

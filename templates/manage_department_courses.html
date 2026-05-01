@@ -6,7 +6,7 @@
 {% block content %}
 
 <div class="container mt-4">
-  <h2>📚 Courses in {{ department.name }}</h2>
+  <h2>📚 Programmes in {{ department.name }}</h2>
 
   <!-- Add course form -->
   <form method="post" class="mb-4">
@@ -20,7 +20,7 @@
         required
       >
       <button class="btn btn-success" type="submit">
-        ➕ Add Course
+        ➕ Add Programme
       </button>
     </div>
   </form>
@@ -29,7 +29,7 @@
 <table class="table table-striped">
   <thead>
     <tr>
-      <th>Course Name</th>
+      <th>Programme Name</th>
       <th>Actions</th>
     </tr>
   </thead>
@@ -52,7 +52,7 @@
     {% empty %}
       <tr>
         <td colspan="2" class="text-center text-muted">
-          No courses added for this department yet.
+          No Programmes added for this department yet.
         </td>
       </tr>
     {% endfor %}
