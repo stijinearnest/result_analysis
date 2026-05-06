@@ -113,6 +113,6 @@ path(
 ),
 
 path("marks-success/<str:student_name>/", views.marks_success, name="marks_success"),
-path('student/download-report/', views.download_student_report, name='download_student_report'),
+path('download-report/<int:student_id>/', views.download_student_report, name='download_report'),
 
 ]

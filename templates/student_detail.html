@@ -10,7 +10,7 @@
 {% block content %}
 
 <div class="report-btn-container">
-    <a href="{% url 'download_student_report' %}" class="report-btn">
+    <a href="{% url 'download_report' student.id %}" class="report-btn">
         <i class="fas fa-download"></i> Download Full Report
     </a>
 </div>
@@ -55,10 +55,7 @@
                 <span class="detail-label">Religion</span>
                 <span class="detail-value">{{ student.religion }}</span>
             </div>
-            <div>
-                <span class="detail-label">Caste</span>
-                <span class="detail-value">{{ student.caste }}</span>
-            </div>
+            
         </div>
     </div>
 

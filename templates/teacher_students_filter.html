@@ -27,7 +27,7 @@
         </select>
       </div>
 
-      <div class="form-group">
+     <!-- <div class="form-group">
         <label>Subject</label>
         <select name="subject" id="subject-select">
           <option value="">-- Any --</option>
@@ -47,14 +47,14 @@
           <option value="passed" {% if filter_values.subject_status == 'passed' %}selected{% endif %}>Passed</option>
           <option value="failed" {% if filter_values.subject_status == 'failed' %}selected{% endif %}>Failed</option>
         </select>
-      </div>
+      </div>-->
 
       <!-- Divider -->
-      <div class="divider"></div>
+      
 
       <!-- Row 2 -->
       <div class="form-group">
-        <label>Academic Year</label>
+        <label>Admission Year</label>
         <select name="academic_year">
           <option value="">-- Any --</option>
           {% for ay in academic_years %}

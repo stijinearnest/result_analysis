@@ -1586,9 +1586,7 @@ def delete_course(request, course_id):
 
 
 
-@student_required
-def download_student_report(request):
-    student_id = request.session.get("student_id")
+def download_student_report(request, student_id):
     student = get_object_or_404(Student, id=student_id)
 
     marks = Mark.objects.filter(semester__student=student).order_by("semester__number")
@@ -1610,7 +1608,6 @@ def download_student_report(request):
     elements.append(Paragraph(f"Course: {student.course}", styles["Normal"]))
     elements.append(Spacer(1, 0.3 * inch))
 
-    # Table data
     data = [["Semester", "Subject", "Marks Obtained", "Max Marks", "Status"]]
 
     for m in marks:
