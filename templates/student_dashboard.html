@@ -1,13 +1,20 @@
-{% extends "base.html" %}
-{% load static %}
-{% block content %}
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="{% static 'css/student_dashboard.css' %}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
 
-<!-- External CSS -->
-<link rel="stylesheet" href="{% static 'css/student_dashboard.css' %}">
-
+<body>
+     <a href="{% url 'download_report' student.id %}"
+   class="btn btn-success mt-3">
+    <i class="fas fa-download"></i> Download Full Report
+</a>
 <div class="dash-wrap">
   <div class="grid">
     <!-- LEFT COLUMN -->
@@ -25,18 +32,18 @@
           <div class="student-meta">
             <h2 class="hello">Hello {{ student.name }}!</h2>
             <div class="subtext">Reg No: <strong>{{ student.reg_no }}</strong></div>
-            <div class="subtext">{{ student.course }}</div>
+            
           </div>
         </div>
 
         <div class="student-details">
           <div class="meta-row">
             <div class="meta-item">
-              <div class="meta-label">Current Semester:</div>
-              <div class="meta-value">{{ student.semester }}</div>
+              <div class="meta-label">Programme Enrolled:</div>
+              <div class="meta-value">{{ student.course }}</div>
             </div>
             <div class="meta-item">
-              <div class="meta-label">Academic Year</div>
+              <div class="meta-label">Admission Year</div>
               <div class="meta-value">{{ student.academic_year }}</div>
             </div>
           </div>
@@ -110,6 +117,7 @@
           </div>
         </div>
       </section>
+ 
     </div>
   </div>
 </div>
@@ -122,9 +130,6 @@
     {% endfor %}
   ];
 </script>
-
 <script src="{% static 'js/student_dashboard.js' %}"></script>
-
-
-
-{% endblock %}
+</body>
+</html>

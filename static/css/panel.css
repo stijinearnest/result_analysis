@@ -1,0 +1,290 @@
+/* =====================================
+   ROOT VARIABLES
+===================================== */
+
+:root {
+  --primary: #0f1c3f;
+  --primary-dark: #0a142e;
+  --primary-light: #1b2a5a;
+  --accent: #3da9fc;
+  --bg-light: #f4f6fb;
+  --text-dark: #1e293b;
+  --text-light: #94a3b8;
+  --border: #e2e8f0;
+  --transition: all 0.3s ease;
+}
+
+/* =====================================
+   GLOBAL RESET
+===================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #111827;
+}
+
+/* =====================================
+   MAIN LAYOUT
+===================================== */
+
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* =====================================
+   SIDEBAR
+===================================== */
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 260px;
+  background: var(--primary-dark);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  transition: var(--transition);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.25);
+  overflow-y: auto;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+}
+
+.sidebar-header {
+  padding: 22px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.sidebar-toggle:hover {
+  color: var(--accent);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 24px;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  transition: var(--transition);
+  font-size: 14px;
+  border-left: 3px solid transparent;
+}
+
+.nav-item i {
+  font-size: 16px;
+  width: 22px;
+}
+
+.nav-item:hover {
+  background: rgba(61, 169, 252, 0.15);
+  color: white;
+}
+
+.nav-item.active {
+  background: rgba(61, 169, 252, 0.2);
+  color: var(--accent);
+  border-left-color: var(--accent);
+}
+
+.sidebar-footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: #ff6b6b;
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.logout-btn:hover {
+  color: #ff4b4b;
+}
+
+/* =====================================
+   MAIN CONTENT
+===================================== */
+
+.main-content {
+  flex: 1;
+  margin-left: 260px;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content.sidebar-collapsed {
+  margin-left: 80px;
+}
+
+/* =====================================
+   TOPBAR
+===================================== */
+
+.topbar {
+  height: 60px;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 30px;
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.user-info i {
+  color: var(--accent);
+}
+
+/* =====================================
+   HEADER
+===================================== */
+
+.header {
+  padding: 22px 40px;
+  background: white;
+  border-bottom: 1px solid var(--border);
+}
+
+.header h2 {
+  font-size: 22px;
+  color: var(--text-dark);
+}
+
+/* =====================================
+   CONTENT AREA
+===================================== */
+
+.content-area {
+  padding: 40px;
+  flex: 1;
+}
+/* =========================
+   SIDEBAR SMOOTH TOGGLE
+========================= */
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 256px;
+  height: 100vh;
+  background: var(--primary-dark);
+  transition: width 0.3s ease;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+}
+
+/* Main content stays full width */
+.main-content {
+  margin-left: 256px;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.sidebar-collapsed {
+  margin-left: 80px;
+}
+.sidebar .nav-item span {
+  transition: opacity 0.2s ease;
+}
+
+.sidebar.collapsed .nav-item span {
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+}
+/* =============================
+   ADMIN DARK MODE OVERRIDE
+============================= */
+
+body.admin-dark {
+  background: #111827 !important;
+}
+
+body.admin-dark .dashboard-container,
+body.admin-dark .main-content,
+body.admin-dark .content-area {
+  background: #111827 !important;
+}
+
+/* Kill any white headers */
+body.admin-dark .header {
+  background: transparent !important;
+}
+
+/* =====================================
+   RESPONSIVE (Mobile)
+===================================== */
+
+@media (max-width: 900px) {
+
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.collapsed {
+    transform: translateX(0);
+    width: 260px;
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .main-content.sidebar-collapsed {
+    margin-left: 0;
+  }
+
+  .content-area {
+    padding: 24px;
+  }
+
+}

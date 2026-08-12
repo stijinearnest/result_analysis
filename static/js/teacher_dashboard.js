@@ -1,12 +1,12 @@
-document.addEventListener('DOMContentLoaded', () => { 
-  const menuItems = document.querySelectorAll('.menu-item'); 
-  menuItems.forEach((item, index) => { 
-    item.style.opacity = '0'; 
-    item.style.transform = 'translateY(20px)'; 
-    setTimeout(() => { 
-      item.style.transition = 'all 0.5s ease'; 
-      item.style.opacity = '1'; 
-      item.style.transform = 'translateY(0)'; }
-      , index * 150);
-       // stagger effect 
-      }); });
+document.addEventListener("DOMContentLoaded", function () {
+
+  const sidebar = document.getElementById("sidebar");
+  const toggleBtn = document.getElementById("sidebarToggle");
+  const mainContent = document.querySelector(".main-content");
+
+  toggleBtn.addEventListener("click", function () {
+    sidebar.classList.toggle("collapsed");
+    mainContent.classList.toggle("sidebar-collapsed");
+  });
+
+});

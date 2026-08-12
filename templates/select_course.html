@@ -2,6 +2,8 @@
 {% load static %}
 
 {% block content %}
+
+
 <div class="container">
     <div class="selection-card">
         <div class="card-header">
@@ -13,33 +15,62 @@
         </div>
         
         <div class="form-body">
-            <form method="POST">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label class="form-label" for="course">
-                        Course <span class="required">*</span>
-                    </label>
-                    <div class="input-with-icon">
-                        <select name="course" id="course" class="form-control" required>
-                            <option value="">-- Select Course --</option>
-                            {% for c in courses %}
-                                <option value="{{ c }}">{{ c }}</option>
-                            {% endfor %}
-                        </select>
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="submit" class="btn-submit">
-                        <i class="fas fa-arrow-right"></i> Proceed
-                    </button>
-                </div>
-            </form>
+ <form id="selectCourseForm">
+    {% csrf_token %}
+
+    <!-- Course -->
+    <div class="form-group">
+        <label class="form-label">
+            Course <span class="required">*</span>
+        </label>
+        <select id="course" class="form-control" required>
+            <option value="">-- Select Course --</option>
+            {% for course in courses %}
+ <option value="{{ course.id }}">{{ course.name }}</option>
+
+{% endfor %}
+
+        </select>
+    </div>
+
+    <!-- Syllabus -->
+    <div class="form-group" id="syllabusBox" style="display:none;">
+        <label class="form-label">
+            Syllabus Year <span class="required">*</span>
+        </label>
+        <select id="syllabus" class="form-control">
+            <option value="">-- Select Syllabus Year --</option>
+        </select>
+    </div>
+
+    <!-- Add syllabus -->
+    <div id="addSyllabusBox" style="display:none;">
+        <input
+            type="number"
+            id="new_syllabus_year"
+            class="form-control"
+            placeholder="Enter syllabus year (e.g. 2025)"
+            min="2000"
+        />
+        <button type="button" id="saveSyllabusBtn" class="btn-submit">
+            Add Syllabus
+        </button>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn-submit">
+            Proceed
+        </button>
+    </div>
+</form>
+
+
         </div>
     </div>
 </div>
 
 <!-- External CSS -->
 <link rel="stylesheet" href="{% static 'css/select_course.css' %}">
+<script src="{% static 'js/select_course.js' %}"></script>
+
 {% endblock %}

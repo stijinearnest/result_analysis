@@ -1,0 +1,125 @@
+/* =============================
+   ADMIN DARK BACKGROUND
+============================= */
+
+.dashboard-container,
+.main-content,
+.content-area {
+    background: #111827 !important;
+}
+
+body {
+    background: #111827 !important;
+    color: #f1f5f9;
+}
+
+/* =============================
+   FORM CARD
+============================= */
+
+.container {
+    max-width: 600px;
+}
+
+form {
+    background: #1f2937;
+    padding: 35px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    margin-top: 20px;
+}
+
+/* =============================
+   HEADER
+============================= */
+
+.container h2 {
+    color: #10b981;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+/* =============================
+   LABELS & INPUTS
+============================= */
+
+label {
+    color: #cbd5e1;
+    margin-bottom: 8px;
+    display: block;
+    font-weight: 500;
+}
+
+.form-control {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #f1f5f9;
+    border-radius: 10px;
+    padding: 12px;
+    transition: 0.3s ease;
+}
+
+.form-control:focus {
+    background: #0f172a;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.2);
+    color: #ffffff;
+}
+
+/* =============================
+   BUTTONS
+============================= */
+
+.btn-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16,185,129,0.4);
+}
+
+.btn-secondary {
+    background: #334155;
+    border: none;
+    border-radius: 8px;
+}
+
+.btn-secondary:hover {
+    background: #475569;
+}
+
+/* =============================
+   ADMIN SIDEBAR OVERRIDE
+============================= */
+
+.admin-sidebar {
+    background: #1f2937 !important;
+}
+
+.admin-sidebar .nav-item.active {
+    background: rgba(16,185,129,0.18) !important;
+    border-left: 3px solid #10b981 !important;
+}
+
+.admin-sidebar .nav-item:hover {
+    background: rgba(16,185,129,0.12) !important;
+}
+
+/* =============================
+   ADMIN TOPBAR OVERRIDE
+============================= */
+
+.admin-sidebar ~ .main-content .topbar {
+    background: #0b1220 !important;
+    border-bottom: 1px solid rgba(16,185,129,0.15) !important;
+}
+
+.admin-sidebar ~ .main-content .user-info i {
+    color: #10b981 !important;
+}

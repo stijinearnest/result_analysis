@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/manage_departments.css' %}">
+{% endblock %}
+{% block content %}
+
+<div class="container mt-4">
+  <h3>✏️ Edit Course</h3>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Course Name</label>
+      <input
+        type="text"
+        name="name"
+        class="form-control"
+        value="{{ course.name }}"
+        required
+      >
+    </div>
+
+    <button class="btn btn-success">Save</button>
+    <a href="{% url 'manage_department_courses' course.department.id %}"
+       class="btn btn-secondary ms-2">
+      Cancel
+    </a>
+  </form>
+</div>
+
+{% endblock %}

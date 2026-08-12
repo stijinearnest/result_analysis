@@ -5,18 +5,21 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Base */
 body {
-    background-color: #f5f7fa;
-    color: #333;
+    background-color: #f4f6fb;
+    color: #1e293b;
     line-height: 1.6;
 }
 
+/* Container */
 .container {
     max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
+    margin: 40px auto;
+    padding: 0 20px;
 }
 
+/* Header */
 header {
     text-align: center;
     margin-bottom: 30px;
@@ -26,86 +29,100 @@ header {
 .logo {
     font-size: 24px;
     font-weight: bold;
-    color: #4a6cf7;
+    color: var(--primary);
     margin-bottom: 10px;
 }
 
 h1 {
-    color: #2d3748;
+    color: #0f172a;
     font-size: 28px;
     margin-bottom: 10px;
 }
 
 .subtitle {
-    color: #718096;
+    color: #64748b;
     font-size: 16px;
 }
 
+/* Search Box */
 .search-container {
     background: white;
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 30px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 20px 50px rgba(15, 28, 63, 0.08);
     margin-bottom: 30px;
+    border: 1px solid rgba(15, 28, 63, 0.05);
 }
 
 .search-form {
     display: flex;
-    gap: 10px;
+    gap: 12px;
 }
 
 .search-input {
     flex: 1;
     padding: 14px 20px;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 16px;
-    transition: all 0.3s ease;
+    transition: 0.2s ease;
+    background: #f9fbff;
 }
 
 .search-input:focus {
     outline: none;
-    border-color: #4a6cf7;
-    box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
+    border-color: var(--primary);
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(15, 28, 63, 0.08);
 }
 
+/* Search Button */
 .search-button {
-    background: #4a6cf7;
+    background: linear-gradient(
+        135deg,
+        var(--primary),
+        var(--primary-dark)
+    );
     color: white;
     border: none;
-    border-radius: 8px;
-    padding: 0 25px;
+    border-radius: 10px;
+    padding: 0 28px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: 0.2s ease;
+    box-shadow: 0 10px 30px rgba(15, 28, 63, 0.2);
 }
 
 .search-button:hover {
-    background: #3850c7;
+    transform: translateY(-2px);
+    box-shadow: 0 14px 35px rgba(15, 28, 63, 0.3);
 }
 
+/* Results */
 .results-container {
     background: white;
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 30px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 20px 50px rgba(15, 28, 63, 0.08);
+    border: 1px solid rgba(15, 28, 63, 0.05);
 }
 
 .results-title {
     font-size: 20px;
-    color: #2d3748;
+    color: #0f172a;
     margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 1px solid #e2e8f0;
 }
 
+/* Student List */
 .student-list {
     list-style: none;
 }
 
 .student-item {
-    padding: 15px 0;
+    padding: 18px 0;
     border-bottom: 1px solid #edf2f7;
     display: flex;
     justify-content: space-between;
@@ -122,50 +139,171 @@ h1 {
 
 .student-name {
     font-weight: 600;
-    color: #2d3748;
+    color: #0f172a;
     font-size: 18px;
 }
 
 .student-reg {
-    color: #718096;
+    color: #64748b;
     font-size: 14px;
     margin-top: 4px;
 }
 
+/* View Button */
 .view-button {
-    background: #edf2f7;
-    color: #4a6cf7;
+    background: #eef2ff;
+    color: var(--primary);
     text-decoration: none;
-    padding: 8px 16px;
-    border-radius: 6px;
+    padding: 9px 18px;
+    border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
-    transition: all 0.2s ease;
+    transition: 0.2s ease;
 }
 
 .view-button:hover {
-    background: #e2e8f0;
+    background: var(--primary);
+    color: white;
 }
 
+/* No Results */
 .no-results {
     text-align: center;
     padding: 30px;
-    color: #718096;
+    color: #64748b;
 }
 
 .no-results i {
     font-size: 40px;
     margin-bottom: 15px;
-    color: #cbd5e0;
+    color: #cbd5e1;
 }
 
 .search-hint {
     margin-top: 15px;
-    color: #718096;
+    color: #64748b;
     font-size: 14px;
     text-align: center;
 }
+/* =====================================
+   ADMIN EMERALD MODE OVERRIDE
+===================================== */
 
+body.admin-mode {
+    background: #111827 !important;
+    color: #f1f5f9;
+}
+
+/* Container */
+body.admin-mode .container {
+    max-width: 900px;
+}
+
+/* Header */
+body.admin-mode .logo {
+    color: #10b981;
+}
+
+body.admin-mode h1 {
+    color: #10b981;
+}
+
+body.admin-mode .subtitle {
+    color: #94a3b8;
+}
+
+/* Search Box */
+body.admin-mode .search-container {
+    background: #1f2937;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+
+/* Search Input */
+body.admin-mode .search-input {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #f1f5f9;
+}
+
+body.admin-mode .search-input:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.2);
+}
+
+/* Search Button */
+body.admin-mode .search-button {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 10px 30px rgba(16,185,129,0.3);
+}
+
+body.admin-mode .search-button:hover {
+    box-shadow: 0 15px 35px rgba(16,185,129,0.4);
+}
+
+/* Results */
+body.admin-mode .results-container {
+    background: #1f2937;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+
+/* Student Items */
+body.admin-mode .student-item {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+body.admin-mode .student-name {
+    color: #f1f5f9;
+}
+
+body.admin-mode .student-reg {
+    color: #94a3b8;
+}
+
+/* View Button */
+body.admin-mode .view-button {
+    background: rgba(16,185,129,0.15);
+    color: #10b981;
+}
+
+body.admin-mode .view-button:hover {
+    background: #10b981;
+    color: white;
+}
+
+/* Sidebar Emerald */
+body.admin-mode .sidebar {
+    background: #1f2937 !important;
+}
+
+body.admin-mode .nav-item.active {
+    background: rgba(16,185,129,0.18) !important;
+    border-left: 3px solid #10b981 !important;
+    color: #10b981 !important;
+}
+
+body.admin-mode .nav-item:hover {
+    color: #10b981 !important;
+}
+
+/* Topbar Emerald */
+body.admin-mode .topbar {
+    background: #0b1220 !important;
+}
+body.admin-mode .results-title{
+    
+    font-size: 20px;
+    color: #ffffff;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+
+}
+body.admin-mode .user-info i {
+    color: #10b981 !important;
+}
+/* Responsive */
 @media (max-width: 600px) {
     .search-form {
         flex-direction: column;

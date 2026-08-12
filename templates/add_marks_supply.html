@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% load static %}
 {% load custom_filters %}
 {% block content %}
@@ -97,8 +98,7 @@ document.getElementById("supplyForm").addEventListener("submit", function(e){
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
-            window.location.href = "{% url 'teacher_dashboard' %}";
+            window.location.href = data.redirect_url;
         } else {
             alert("Error: " + JSON.stringify(data.errors));
         }

@@ -1,0 +1,253 @@
+/* =====================================================
+   DARK EMERALD ADMIN THEME
+===================================================== */
+
+/* =============================
+   GLOBAL BACKGROUND
+============================= */
+
+body,
+.dashboard-container,
+.main-content,
+.content-area {
+    background: #111827 !important;
+    color: #f1f5f9;
+}
+
+/* Remove Bootstrap white panels */
+.container,
+.table-responsive {
+    background: transparent !important;
+}
+
+/* =============================
+   PAGE TITLE
+============================= */
+
+.container h2 {
+    color: #10b981;
+    font-weight: 700;
+    margin-bottom: 25px;
+    letter-spacing: 0.5px;
+}
+
+/* =============================
+   BUTTONS
+============================= */
+
+.btn {
+    border-radius: 8px;
+    transition: all 0.25s ease;
+}
+
+/* Add Department */
+.btn-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    font-weight: 600;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+}
+
+/* Edit */
+.btn-primary {
+    background: #0ea5e9;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: #0284c7;
+    transform: translateY(-1px);
+}
+
+/* Manage Courses */
+.btn-warning {
+    background: #f59e0b;
+    border: none;
+    color: #111827;
+}
+
+.btn-warning:hover {
+    background: #d97706;
+    transform: translateY(-1px);
+}
+
+/* Back Button */
+.btn-secondary {
+    background: #334155;
+    border: none;
+}
+
+.btn-secondary:hover {
+    background: #475569;
+}
+
+/* =============================
+   DARK TABLE CARD
+============================= */
+
+.table {
+    background: #1e293b !important;
+    color: #f1f5f9;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(16,185,129,0.15);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+}
+
+/* Table Header */
+.table thead {
+    background: linear-gradient(
+        to right,
+        rgba(16,185,129,0.18),
+        rgba(16,185,129,0.05)
+    ) !important;
+}
+
+.table thead th {
+    color: #10b981;
+    font-weight: 600;
+    padding: 16px 20px;
+    border: none !important;
+}
+
+/* Table Body */
+.table td {
+    padding: 18px 20px;
+    border: none !important;
+}
+
+.table tbody tr {
+    border-top: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.25s ease;
+}
+
+.table tbody tr:hover {
+    background: rgba(16,185,129,0.08);
+    transform: scale(1.01);
+}
+
+/* =============================
+   SIDEBAR
+============================= */
+
+.admin-sidebar {
+    background: #1f2937 !important;
+    border-right: 1px solid rgba(255,255,255,0.05) !important;
+}
+
+.admin-sidebar .sidebar-header {
+    background: #1f2937 !important;
+}
+
+.admin-sidebar .nav-item {
+    color: #cbd5e1 !important;
+    transition: all 0.2s ease;
+}
+
+.admin-sidebar .nav-item:hover {
+    background: rgba(16,185,129,0.12) !important;
+    color: #ffffff !important;
+}
+
+.admin-sidebar .nav-item.active {
+    background: rgba(16,185,129,0.18) !important;
+    border-left: 3px solid #10b981 !important;
+    box-shadow: inset 3px 0 0 #10b981 !important;
+    color: #ffffff !important;
+}
+
+.admin-sidebar .logout-btn {
+    color: #34d399 !important;
+}
+
+.admin-sidebar .logout-btn:hover {
+    background: rgba(16,185,129,0.12) !important;
+}
+
+/* =============================
+   TOPBAR
+============================= */
+
+.admin-sidebar ~ .main-content .topbar {
+    background: #0b1220 !important;
+    border-bottom: 1px solid rgba(16,185,129,0.15) !important;
+}
+
+.admin-sidebar ~ .main-content .user-info i {
+    color: #10b981 !important;
+}
+
+/* FORCE REMOVE BOOTSTRAP TABLE WHITE */
+.table > :not(caption) > * > * {
+    background-color: transparent !important;
+}
+
+.table {
+    background-color: #1e293b !important;
+}
+
+.table thead {
+    background: rgba(16,185,129,0.15) !important;
+}
+/* =============================
+   PREMIUM DARK TABLE
+============================= */
+
+.table {
+    background: #162032 !important;   /* slightly richer dark */
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(16,185,129,0.12);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.45);
+}
+
+/* Remove Bootstrap cell background */
+.table > :not(caption) > * > * {
+    background: transparent !important;
+}
+
+/* Header */
+.table thead {
+    background: rgba(16,185,129,0.12) !important;
+}
+
+.table thead th {
+    color: #34d399;        /* softer emerald */
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 18px 24px;
+    border: none !important;
+}
+
+/* Body rows */
+.table td {
+    padding: 20px 24px;
+    border: none !important;
+    color: #e2e8f0;
+}
+
+/* Row separators */
+.table tbody tr {
+    border-top: 1px solid rgba(255,255,255,0.04);
+    transition: all 0.2s ease;
+}
+
+/* Subtle hover */
+.table tbody tr:hover {
+    background: rgba(16,185,129,0.06);
+}
+
+/* Rounded bottom edges */
+.table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 18px;
+}
+
+.table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 18px;
+}

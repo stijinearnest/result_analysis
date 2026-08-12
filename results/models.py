@@ -1,14 +1,65 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-
-class Teacher(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    full_name = models.CharField(max_length=100)
+class Department(models.Model):
+    name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
-        return self.full_name
+        return self.name
+    
+class Course(models.Model):
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.CASCADE,
+        related_name="courses"
+    )
+    name = models.CharField(max_length=100)
 
+    class Meta:
+        unique_together = ("department", "name")
+
+    def __str__(self):
+        return f"{self.name} ({self.department.name})"
+
+
+class Teacher(models.Model):
+    ROLE_CHOICES = [
+        ("TEACHER", "Teacher"),
+        ("HOD", "HOD"),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=100)
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    role = models.CharField(
+        max_length=10,
+        choices=ROLE_CHOICES,
+        default="TEACHER"
+    )
+
+
+    
+
+
+class Syllabus(models.Model):
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="syllabi"
+    )
+    year = models.IntegerField()
+
+
+    class Meta:
+        unique_together = ("course", "year")
+
+    def __str__(self):
+        return f"{self.course} - {self.year}"
 
 class Student(models.Model):
     GENDER_CHOICES = [
@@ -42,11 +93,25 @@ class Student(models.Model):
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     caste = models.CharField(max_length=10, choices=CASTE_CHOICES)
     religion = models.CharField(max_length=20, choices=RELIGION_CHOICES)
-
+    syllabus = models.ForeignKey(Syllabus, on_delete=models.PROTECT, null=True, blank=True)
     address = models.TextField()
     pin_code = models.CharField(max_length=6)
     academic_year = models.CharField(max_length=20, default="2024-25")
     photo = models.ImageField(upload_to="students/", blank=True, null=True)
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True)
+    course = models.CharField(max_length=100, default="B.Sc Computer Science")
+
+    course_ref = models.ForeignKey(
+        Course,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="students"
+    )
 
     def __str__(self):
         return f"{self.reg_no} - {self.name}"
@@ -136,23 +201,49 @@ class Semester(models.Model):
 
 
 class Subject(models.Model):
-    COURSE_CHOICES = [
-        ("Computer Science", "Computer Science"),
-        ("Business Administration", "Business Administration"),
-        ("Engineering", "Engineering"),
-        ("Medicine", "Medicine"),
-        ("Law", "Law"),
+
+    TYPE_CHOICES = [
+        ("CORE", "Core"),
+        ("ELECTIVE", "Elective"),
     ]
 
-    course = models.CharField(max_length=50, choices=COURSE_CHOICES)
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=20)
     semester_number = models.IntegerField(default=1)
     credits = models.FloatField(default=3.0)
     max_marks = models.PositiveIntegerField(default=50)
 
+    syllabus = models.ForeignKey(
+        Syllabus,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
+    course_ref = models.ForeignKey(
+        Course,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="subjects"
+    )
+
+    subject_type = models.CharField(
+    max_length=10,
+    choices=[("CORE", "Core"), ("ELECTIVE", "Elective")],
+    default="CORE"
+)
+
+    elective_group = models.CharField(
+    max_length=50,
+    blank=True,
+    null=True
+)
+
+
     def __str__(self):
-        return f"{self.course} | Sem {self.semester_number} | {self.code} - {self.name}"
+        return f"{self.course_ref.name if self.course_ref else ''} | Sem {self.semester_number} | {self.code} - {self.name}"
+
 
 
 class Mark(models.Model):

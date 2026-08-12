@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+  <h3>🗑️ Delete Course</h3>
+
+  <p>
+    Are you sure you want to delete
+    <strong>{{ course.name }}</strong>?
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger">Yes, Delete</button>
+    <a href="{% url 'manage_department_courses' course.department.id %}"
+       class="btn btn-secondary ms-2">
+      Cancel
+    </a>
+  </form>
+</div>
+
+{% endblock %}

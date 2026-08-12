@@ -16,6 +16,8 @@ urlpatterns = [
    
     path("teacher/dashboard/", views.teacher_dashboard, name="teacher_dashboard"),
     path("student/dashboard/", views.student_dashboard, name="student_dashboard"),
+    path("control/dashboard/", views.admin_dashboard, name="admin_dashboard"),
+
 
   
     path("teacher/add-student/", views.add_student, name="add_student"),
@@ -38,7 +40,10 @@ urlpatterns = [
 path("teacher/select-course/", views.select_course, name="select_course"),
 
 
-path("teacher/manage-subjects/<str:course>/", views.manage_subjects_by_course, name="manage_subjects_by_course"),
+path("teacher/manage-subjects/<int:course_id>/",
+     views.manage_subjects_by_course,
+     name="manage_subjects_by_course"),
+
 
 path("teacher/student-search/", views.student_search, name="student_search"),
 path("teacher/student-detail/<int:student_id>/", views.student_detail, name="student_detail"),
@@ -68,5 +73,46 @@ path('teacher/grace/', views.grace_marks, name='grace_marks'),
 path('teacher/grace/<int:student_id>/<int:sem_number>/', views.apply_grace_marks, name='apply_grace_marks'),
 
  path('ajax/get-student/', views.ajax_get_student, name='ajax_get_student'),
+ path("ajax/get-syllabus/", views.get_syllabus_by_course, name="get_syllabus_by_course"),
+path("ajax/create-syllabus/", views.ajax_create_syllabus, name="ajax_create_syllabus"),
+
+ path(
+  "control/department-analysis/",
+  views.admin_department_analysis,
+  name="admin_department_analysis"
+),
+
+path(
+    "control/departments/<int:department_id>/students/",
+    views.admin_department_students,
+    name="admin_department_students"
+),
+
+path("control/teachers/add/", views.add_teacher, name="add_teacher"),
+path("control/teachers/<int:teacher_id>/edit/", views.edit_teacher, name="edit_teacher"),
+
+
+path("control/departments/", views.manage_departments, name="manage_departments"),
+path("control/departments/add/", views.add_department, name="add_department"),
+path("control/departments/<int:department_id>/edit/", views.edit_department, name="edit_department"),
+path(
+    "control/departments/<int:department_id>/courses/",
+    views.manage_department_courses,
+    name="manage_department_courses"
+),
+
+path(
+    "control/courses/<int:course_id>/edit/",
+    views.edit_course,
+    name="edit_course"
+),
+path(
+    "control/courses/<int:course_id>/delete/",
+    views.delete_course,
+    name="delete_course"
+),
+
+path("marks-success/<str:student_name>/", views.marks_success, name="marks_success"),
+path('download-report/<int:student_id>/', views.download_student_report, name='download_report'),
 
 ]

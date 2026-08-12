@@ -1,3 +1,12 @@
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import Table
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
+from django.http import HttpResponse
 
 from collections import defaultdict
 from django.db.models import Max
@@ -8,11 +17,20 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Avg,Q
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from .models import Student, Mark,Teacher,Subject,Semester
-from .forms import StudentForm, MarkForm,MarksEntryForm,SubjectForm
+from .models import Department, Student, Mark,Teacher,Subject,Semester,Syllabus,Course
+from .forms import StudentForm, MarkForm,MarksEntryForm,SubjectForm,TeacherCreateForm,TeacherEditForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from collections import defaultdict
+from django.contrib.auth.models import User
+from django.urls import reverse
+from django.http import HttpResponseRedirect
 
+
+def is_hod(user):
+    return (
+        hasattr(user, "teacher") and
+        user.teacher.role == "HOD"
+    )
 
 
 def home(request):
@@ -26,7 +44,11 @@ def teacher_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None and (user.is_staff or user.is_superuser):
             login(request, user)
-            return redirect("teacher_dashboard")
+            if user.is_superuser:
+                return redirect("admin_dashboard")
+            else:
+                return redirect("teacher_dashboard")
+
         else:
             messages.error(request, "Invalid username or password or unauthorized access")
     return render(request, "teacher_login.html")
@@ -49,8 +71,23 @@ def student_login(request):
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def teacher_dashboard(request):
     teacher_name = request.user.first_name or request.user.username
-    return render(request, "teacher_dashboard.html",{"teacher_name": teacher_name})
 
+    is_hod_user = (
+        request.user.is_superuser or
+        (hasattr(request.user, "teacher") and request.user.teacher.role == "HOD")
+    )
+
+    return render(request, "teacher_dashboard.html", {
+        "teacher_name": teacher_name,
+        "is_hod_user": is_hod_user
+    })
+
+
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_superuser)
+def admin_dashboard(request):
+    return render(request, "admin_dashboard.html")
 
 def student_required(view_func):
     
@@ -161,60 +198,65 @@ def user_logout(request):
     logout(request)
     return redirect("home")
 
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def get_syllabus_by_course(request):
+
+    course_id = request.GET.get("course")
+
+    if not course_id:
+        return JsonResponse({"syllabi": []})
+
+    try:
+        course_id = int(course_id)
+    except ValueError:
+        return JsonResponse({"syllabi": []})
+
+    syllabi = Syllabus.objects.filter(
+        course_id=course_id
+    ).order_by("year")
+
+    return JsonResponse({
+        "syllabi": [
+            {"id": s.id, "year": s.year}
+            for s in syllabi
+        ]
+    })
 
 
 
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_student(request):
+
     if request.method == "POST":
-        form = StudentForm(request.POST, request.FILES)
+        form = StudentForm(request.POST, request.FILES, user=request.user)
+
         if form.is_valid():
             student = form.save(commit=False)
+            student.course = student.course_ref.name
 
-          
+
+            # Semester calculation
             start_year = int(student.academic_year.split("-")[0])
             current_year = date.today().year
             years_passed = current_year - start_year
-            student.semester = (years_passed * 2) + 1 
+            student.semester = (years_passed * 2) + 1
 
-            student.save() 
+            # Restrict department automatically
+            if not request.user.is_superuser:
+                student.department = request.user.teacher.department
 
-            
+            student.save()
             return redirect("student_success", student_name=student.name)
+
     else:
-        form = StudentForm()
+        form = StudentForm(user=request.user)
+
     return render(request, "add_student.html", {"form": form})
 
 
 
-
-@login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
-def select_student_semester(request):
-    students = Student.objects.all()
-    filtered_students = students
-
-   
-    course = request.GET.get('course')
-    reg_no = request.GET.get('reg_no')
-    academic_year = request.GET.get('academic_year')
-
-    if course:
-        filtered_students = filtered_students.filter(course=course)
-    if reg_no:
-        filtered_students = filtered_students.filter(reg_no__icontains=reg_no)
-    if academic_year:
-        filtered_students = filtered_students.filter(academic_year=academic_year)
-
-    if request.method == "POST":
-        student_id = request.POST.get('student')
-        semester_number = request.POST.get('semester')
-        return redirect('add_marks', student_id=student_id, sem_number=semester_number)
-
-    return render(request, "select_student_semester.html", {
-        "students": filtered_students
-    })
 
 
 
@@ -243,7 +285,14 @@ def select_student_semester(request):
 
         if reg_no and semester_number and attempt_type:
             try:
-                student = Student.objects.get(reg_no__iexact=reg_no)
+                if request.user.is_superuser:
+                    student = Student.objects.get(reg_no__iexact=reg_no)
+                else:
+                    student = Student.objects.get(
+        reg_no__iexact=reg_no,
+        department=request.user.teacher.department
+    )
+
 
                 
                 if attempt_type == "Regular":
@@ -283,7 +332,14 @@ def get_student_name_by_regno(request):
     reg_no = request.GET.get('reg_no')
     if reg_no:
         try:
-            student = Student.objects.get(reg_no__iexact=reg_no)
+            if request.user.is_superuser:
+                student = Student.objects.get(reg_no__iexact=reg_no)
+            else:
+                student = Student.objects.get(
+        reg_no__iexact=reg_no,
+        department=request.user.teacher.department
+    )
+
             data = {
                 "name": student.name,
                 "id": student.id  
@@ -295,20 +351,12 @@ def get_student_name_by_regno(request):
     return JsonResponse(data)
 
 
-@login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+
 
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def add_marks_single_page(request):
-    """
-    Full view supporting:
-     - Regular attempts (prevent duplicate entries)
-     - Supply/Improvement attempts with a subject-selection step (GET -> select_supply_subjects.html)
-     - Robust subject lookup (course fk or string), and semester-only fallback
-     - AJAX POST handler returning JSON
-     - Uses subject.max_marks (no max_<id> from POST)
-    """
+
     student_id = request.GET.get("student_id")
     sem_number = request.GET.get("semester")
     attempt_type = request.GET.get("attempt_type", "Regular")
@@ -318,71 +366,84 @@ def add_marks_single_page(request):
 
     student = get_object_or_404(Student, id=student_id)
 
-    # Normalize semester number to int if possible (keeps behavior consistent)
+    if not request.user.is_superuser:
+        if student.department != request.user.teacher.department:
+            return redirect("teacher_dashboard")
+
     try:
         sem_num_int = int(sem_number)
     except (TypeError, ValueError):
         sem_num_int = sem_number
 
-    semester, _ = Semester.objects.get_or_create(student=student, number=sem_num_int)
+    semester, _ = Semester.objects.get_or_create(
+        student=student,
+        number=sem_num_int
+    )
 
-    # ---------- Supply/Improvement selection step (GET) ----------
-    # If teacher is attempting Supply/Improvement and no subjects are provided in querystring,
-    # show the selection page so they can pick which subjects to attempt.
-    if attempt_type == "Supply/Improvement" and request.method != "POST":
+    # ---------------------------------------------------------
+    # GET ALL SUBJECTS FOR THIS SYLLABUS + SEMESTER
+    # ---------------------------------------------------------
+    all_subjects = Subject.objects.filter(
+        syllabus=student.syllabus,
+        semester_number=semester.number
+    ).order_by("code")
+
+    # ---------------------------------------------------------
+# STEP 1: Supply → Show subject selection page first
+# ---------------------------------------------------------
+    selected_subject_ids = []
+
+    if attempt_type == "Supply/Improvement":
         selected_subject_ids = request.GET.getlist("subjects")
-        if not selected_subject_ids:
-            # Build candidate list using same robust logic as below
-            candidate_qs = Subject.objects.none()
-            student_course = getattr(student, "course", None)
-            if student_course is not None:
-                if hasattr(student_course, "id"):
-                    candidate_qs = Subject.objects.filter(course__id=student_course.id, semester_number=semester.number)
-                else:
-                    candidate_qs = Subject.objects.filter(course__iexact=str(student_course), semester_number=semester.number)
 
-            if not candidate_qs.exists():
-                candidate_qs = Subject.objects.filter(semester_number=semester.number)
+    # ONLY for Supply
+        if not selected_subject_ids:
+            previous_subject_ids = Mark.objects.filter(
+                semester=semester
+        ).values_list("subject_id", flat=True)
+
+            supply_subjects = all_subjects.filter(id__in=previous_subject_ids)
 
             return render(request, "select_supply_subjects.html", {
-                "student": student,
-                "semester": sem_num_int,
-                "subjects": candidate_qs,
-                "attempt_type": attempt_type,
-            })
+            "student": student,
+            "semester": sem_num_int,
+            "subjects": supply_subjects
+        })
 
-    # ---------- Determine selected subjects (GET or POST) ----------
-    selected_subject_ids = request.GET.getlist("subjects") or request.POST.getlist("selected_subjects")
+    # Filter selected subjects
+        selected_subject_ids = [int(s) for s in selected_subject_ids]
+        all_subjects = all_subjects.filter(id__in=selected_subject_ids)
 
-    # If specific subjects were selected, use them (preserves teacher choice)
-    if selected_subject_ids:
-        subjects_qs = Subject.objects.filter(id__in=selected_subject_ids).order_by('id')
-    else:
-        # Robust subject lookup: try course FK -> course string (iexact) -> fallback to semester-only
-        student_course = getattr(student, "course", None)
-        subjects_qs = Subject.objects.none()
-
-        if student_course is not None:
-            if hasattr(student_course, "id"):
-                subjects_qs = Subject.objects.filter(course__id=student_course.id, semester_number=semester.number)
-            else:
-                subjects_qs = Subject.objects.filter(course__iexact=str(student_course), semester_number=semester.number)
-
-        if not subjects_qs.exists():
-            subjects_qs = Subject.objects.filter(semester_number=semester.number)
-
-    # Debug print (optional) - replace with logger.debug in production
-    print(f"[add_marks_single_page] student={student.id} course={repr(getattr(student, 'course', None))} sem={semester.number} subjects_count={subjects_qs.count()}")
-
-    # If still no subjects, show a friendly page explaining next steps
-    if not subjects_qs.exists():
+    if not all_subjects.exists():
         return render(request, "add_marks_no_subjects.html", {
             "student": student,
             "semester": sem_num_int,
-            "message": "No subjects found for this student & semester. Ensure student's course is set and subjects are created for that course/semester."
+            "message": "No subjects found for this syllabus and semester."
         })
 
-    # ---------- Prevent duplicate entries for Regular attempt ----------
+    # ---------------------------------------------------------
+    # SPLIT CORE & ELECTIVES
+    # ---------------------------------------------------------
+    core_subjects = all_subjects.filter(
+        elective_group__isnull=True
+    ) | all_subjects.filter(
+        elective_group=""
+    )
+
+    elective_subjects = all_subjects.exclude(
+        elective_group__isnull=True
+    ).exclude(
+        elective_group=""
+    )
+
+    elective_groups = defaultdict(list)
+
+    for subject in elective_subjects:
+        elective_groups[subject.elective_group].append(subject)
+
+    # ---------------------------------------------------------
+    # PREVENT DUPLICATE REGULAR ENTRY
+    # ---------------------------------------------------------
     if attempt_type == "Regular":
         existing = Mark.objects.filter(semester=semester).exists()
         if existing:
@@ -392,27 +453,45 @@ def add_marks_single_page(request):
                 "attempt_type": attempt_type
             })
 
-    # ---------- Handle AJAX POST submission ----------
+    # ---------------------------------------------------------
+    # HANDLE AJAX POST
+    # ---------------------------------------------------------
     if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
+
         errors = {}
         saved_count = 0
 
-        for subject in subjects_qs:
+        # Subjects that will actually be saved
+        subjects_to_save = list(core_subjects)
+
+        # Add selected electives
+        for group in elective_groups.keys():
+            selected_subject_id = request.POST.get(f"elective_{group}")
+            if selected_subject_id:
+                try:
+                    selected_subject = Subject.objects.get(id=int(selected_subject_id))
+                    subjects_to_save.append(selected_subject)
+                except Subject.DoesNotExist:
+                    pass
+
+        for subject in subjects_to_save:
             try:
-                # Accept either marks_<id> (add form) or new_marks_<id> (alternate naming)
                 marks_str = request.POST.get(f"marks_{subject.id}") or request.POST.get(f"new_marks_{subject.id}")
+
                 if marks_str is None:
-                    raise ValueError("Missing marks input")
+                    continue
 
                 new_mark = float(marks_str)
-
-                # ✨ NEW — use subject.max_marks instead of reading max_<id> from POST
                 max_marks = float(getattr(subject, "max_marks", 0) or 0)
 
                 if attempt_type == "Supply/Improvement":
-                    # Always create a new record for supply/improvement with incremented attempt_no
-                    last_attempt = Mark.objects.filter(semester=semester, subject=subject).order_by("-attempt_no").first()
+                    last_attempt = Mark.objects.filter(
+                        semester=semester,
+                        subject=subject
+                    ).order_by("-attempt_no").first()
+
                     attempt_no = (last_attempt.attempt_no + 1) if last_attempt else 1
+
                     Mark.objects.create(
                         semester=semester,
                         subject=subject,
@@ -421,9 +500,7 @@ def add_marks_single_page(request):
                         attempt_type=attempt_type,
                         attempt_no=attempt_no,
                     )
-                    saved_count += 1
                 else:
-                    # Regular: create or update existing single record
                     mark, created = Mark.objects.get_or_create(
                         semester=semester,
                         subject=subject,
@@ -434,42 +511,57 @@ def add_marks_single_page(request):
                             "attempt_no": 1
                         }
                     )
+
                     if not created:
                         mark.marks_obtained = new_mark
                         mark.max_marks = max_marks
                         mark.attempt_type = attempt_type
                         mark.save()
-                    saved_count += 1
+
+                saved_count += 1
 
             except Exception as e:
                 errors[subject.name] = str(e)
 
-        # Return JSON response matching prior behavior
         if errors:
             return JsonResponse({
                 "success": False,
                 "message": "Some marks failed to save.",
                 "errors": errors
             })
-        else:
-            return JsonResponse({
-                "success": True,
-                "message": f"{attempt_type} marks saved successfully for {saved_count} subjects!"
-            })
 
-    # Preload existing marks for display (if any) so template can show them
-    existing_marks = {m.subject.id: m for m in Mark.objects.filter(semester=semester, subject__in=subjects_qs)}
+        return JsonResponse({
+    "success": True,
+    "redirect_url": reverse("marks_success", args=[student.name])
+})
+    # ---------------------------------------------------------
+    # PRELOAD EXISTING MARKS
+    # ---------------------------------------------------------
+    existing_marks = {
+        m.subject.id: m
+        for m in Mark.objects.filter(
+            semester=semester,
+            subject__in=all_subjects
+        )
+    }
 
     template = "add_marks_supply.html" if attempt_type == "Supply/Improvement" else "add_marks_single.html"
+
     return render(request, template, {
-        "student": student,
-        "semester": sem_num_int,
-        "subjects": subjects_qs,
-        "existing_marks": existing_marks,
-        "attempt_type": attempt_type
-    })
+    "student": student,
+    "semester": sem_num_int,
+    "subjects": all_subjects,   # ✅ ADD THIS
+    "core_subjects": core_subjects,
+    "elective_groups": dict(elective_groups),
+    "existing_marks": existing_marks,
+    "attempt_type": attempt_type
+})
 
 
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def marks_success(request, student_name):
+    return render(request, "marks_success.html", {"student_name": student_name})
 
 
 
@@ -496,10 +588,20 @@ def get_subjects_for_semester(request):
 
 
 
-@login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser or is_hod(u))
+
 def manage_subjects(request):
-    subjects = Subject.objects.all().order_by("course", "semester_number")
+    subjects = Subject.objects.select_related("syllabus")
+
+    if is_hod(request.user):
+        subjects = subjects.filter(
+        course_ref__department=request.user.teacher.department
+    )
+
+    subjects = subjects.order_by("course", "syllabus__year", "semester_number")
+
+
 
     if request.method == "POST":
         form = SubjectForm(request.POST)
@@ -514,63 +616,143 @@ def manage_subjects(request):
 
 
 @login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser or is_hod(u))
 def edit_subject(request, subject_id):
+
     subject = get_object_or_404(Subject, id=subject_id)
+
+    if not request.user.is_superuser:
+        if subject.course_ref.department != request.user.teacher.department:
+            return redirect("teacher_dashboard")
+
     if request.method == "POST":
         form = SubjectForm(request.POST, instance=subject)
         if form.is_valid():
             form.save()
-            return redirect("manage_subjects")
+
+            url = reverse("manage_subjects_by_course",
+                          args=[subject.course_ref.name])
+            return HttpResponseRedirect(
+                f"{url}?syllabus={subject.syllabus_id}"
+            )
     else:
         form = SubjectForm(instance=subject)
-    return render(request, "edit_subject.html", {"form": form, "subject": subject})
+
+    return render(request, "edit_subject.html", {
+        "form": form,
+        "subject": subject
+    })
 
 
 
 
 @login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser or is_hod(u))
 def delete_subject(request, subject_id):
+
     subject = get_object_or_404(Subject, id=subject_id)
+
+    if not request.user.is_superuser:
+        if subject.course_ref.department != request.user.teacher.department:
+            return redirect("teacher_dashboard")
+
+    course_name = subject.course_ref.name
+    syllabus_id = subject.syllabus_id
+
     subject.delete()
-    return redirect("manage_subjects")
+
+    url = reverse("manage_subjects_by_course",
+                  args=[course_name])
+
+    return HttpResponseRedirect(
+        f"{url}?syllabus={syllabus_id}"
+    )
 
 
-@login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser or is_hod(u))
 def select_course(request):
-    COURSES = [
-        "Computer Science",
-        "Business Administration",
-        "Engineering",
-        "Medicine",
-        "Law",
-    ]
+    # Admin → all courses
+    if request.user.is_superuser:
+        courses = Course.objects.all().order_by("name")
+
+    # HOD → only own department courses
+    else:
+        courses = Course.objects.filter(
+            department=request.user.teacher.department
+        ).order_by("name")
+
     if request.method == "POST":
         selected_course = request.POST.get("course")
         if selected_course:
-            return redirect('manage_subjects_by_course', course=selected_course)
-    return render(request, "select_course.html", {"courses": COURSES})
+            return redirect(
+                "manage_subjects_by_course",
+                course=selected_course
+            )
+
+    return render(request, "select_course.html", {
+        "courses": courses
+    })
 
 
 
-@login_required(login_url='teacher_login')
-@user_passes_test(lambda u: u.is_staff or u.is_superuser)
-def manage_subjects_by_course(request, course):
-    subjects = Subject.objects.filter(course=course).order_by('semester_number')
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser or is_hod(u))
+def manage_subjects_by_course(request, course_id):
+
+
+    # Get actual Course object
+    course_obj = get_object_or_404(Course, id=course_id)
+
+    # HOD safety check
+    if is_hod(request.user):
+        if course_obj.department != request.user.teacher.department:
+            return redirect("teacher_dashboard")
+
+    syllabus_id = request.GET.get("syllabus")
+
+    if not syllabus_id:
+        messages.error(request, "Please select syllabus year")
+        return redirect("select_course")
+
+    subjects = Subject.objects.filter(
+    course_ref=course_obj,
+    syllabus_id=syllabus_id
+).order_by("semester_number", "code")
+
     if request.method == "POST":
         form = SubjectForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('manage_subjects_by_course', course=course)
+            subject = form.save(commit=False)
+
+            # 🔥 FORCE COURSE FK
+            subject.course_ref = course_obj
+            subject.course = course_obj.name  # keep string field in sync
+            subject.syllabus_id = syllabus_id
+
+            subject.save()
+
+        return redirect(
+    reverse("manage_subjects_by_course", args=[course_obj.id]) +
+    f"?syllabus={syllabus_id}"
+)
+
     else:
-        form = SubjectForm(initial={"course": course})
+        form = SubjectForm(initial={
+            "course_ref": course_obj
+        })
+
     return render(request, "manage_subjects.html", {
         "subjects": subjects,
         "form": form,
-        "course": course
+        "selected_course": course_obj,
+        "syllabus_id": syllabus_id,
     })
+
+
 
 
 
@@ -580,7 +762,14 @@ def student_search(request):
     students = []
     query = request.GET.get("q")
     if query:
-        students = Student.objects.filter(reg_no__icontains=query)
+        if request.user.is_superuser:
+            students = Student.objects.filter(reg_no__icontains=query)
+        else:
+            students = Student.objects.filter(
+        reg_no__icontains=query,
+        department=request.user.teacher.department
+    )
+
     return render(request, "student_search.html", {"students": students})
     
 
@@ -588,6 +777,10 @@ def student_search(request):
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def student_detail(request, student_id):
     student = get_object_or_404(Student, id=student_id)
+    if not request.user.is_superuser:
+        if student.department != request.user.teacher.department:
+            return redirect("teacher_dashboard")
+
 
     # ✅ Get all marks for the student
     all_marks = Mark.objects.filter(semester__student=student).select_related("subject", "semester")
@@ -680,6 +873,10 @@ def student_success(request, student_name):
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def view_all_attempts(request, student_id):
     student = get_object_or_404(Student, id=student_id)
+    if not request.user.is_superuser:
+        if student.department != request.user.teacher.department:
+            return redirect("teacher_dashboard")
+
 
     # Get all marks for that student, ordered by subject then attempt_no
     all_marks = (
@@ -716,6 +913,11 @@ def subject_attempt_history(request, student_id, subject_id):
     student = get_object_or_404(Student, id=student_id)
     subject = get_object_or_404(Subject, id=subject_id)
 
+    if not request.user.is_superuser:
+        if student.department != request.user.teacher.department:
+            return redirect("teacher_dashboard")
+
+
     # Get all attempts for that student and subject
     attempts = (
         Mark.objects.filter(semester__student=student, subject=subject)
@@ -743,184 +945,242 @@ def subject_attempt_history(request, student_id, subject_id):
 def teacher_students_filter(request):
     """
     Teacher dashboard — student filtering:
-      - by semester (select semester)
-      - subjects shown change to only those for selected semester
-      - filter students by pass/fail in a specific subject of that semester
-      - plus other student-level filters (academic_year, gender, caste, religion, course, reg_no)
+      - by syllabus year (NEW)
+      - by semester
+      - subjects shown change to only those for selected syllabus + semester
+      - filter students by pass/fail in a specific subject
+      - plus other student-level filters
     """
-    # Filter option data for form selects
-    semesters_numbers = Semester.objects.values_list('number', flat=True).distinct().order_by('number')
-    academic_years = Student.objects.values_list('academic_year', flat=True).distinct().order_by('academic_year')
-    genders = Student.objects.values_list('gender', flat=True).distinct()
-    castes = Student.objects.values_list('caste', flat=True).distinct()
-    religions = Student.objects.values_list('religion', flat=True).distinct()
-    courses = Student.objects.values_list('course', flat=True).distinct()
 
-    # GET params
-    semester_number = request.GET.get('semester')         # expected as string or None
-    subject_id = request.GET.get('subject')               # subject id (from selected semester)
-    subject_status = request.GET.get('subject_status')    # 'passed', 'failed', or None
-    academic_year = request.GET.get('academic_year')
-    gender = request.GET.get('gender')
-    caste = request.GET.get('caste')
-    religion = request.GET.get('religion')
-    course = request.GET.get('course')
-    reg_no = request.GET.get('reg_no')
-    pass_status = request.GET.get('pass_status')          # existing overall pass/fail for all papers (optional)
+    # ==========================
+    # Dropdown / filter options
+    # ==========================
+    semesters_numbers = (
+        Semester.objects.values_list("number", flat=True)
+        .distinct()
+        .order_by("number")
+    )
 
+    academic_years = Student.objects.values_list(
+        "academic_year", flat=True
+    ).distinct().order_by("academic_year")
+
+    genders = Student.objects.values_list("gender", flat=True).distinct()
+    castes = Student.objects.values_list("caste", flat=True).distinct()
+    religions = Student.objects.values_list("religion", flat=True).distinct()
+    courses = Student.objects.values_list("course", flat=True).distinct()
+
+    syllabi = Syllabus.objects.all().order_by("course", "year")
+
+    # ==========================
+    # GET parameters
+    # ==========================
+    semester_number = request.GET.get("semester")
+    subject_id = request.GET.get("subject")
+    subject_status = request.GET.get("subject_status")
+    academic_year = request.GET.get("academic_year")
+    gender = request.GET.get("gender")
+    caste = request.GET.get("caste")
+    religion = request.GET.get("religion")
+    course = request.GET.get("course")
+    syllabus_id = request.GET.get("syllabus")
+    reg_no = request.GET.get("reg_no")
+    pass_status = request.GET.get("pass_status")
+
+    # ==========================
     # Base student queryset
-    students_qs = Student.objects.all().order_by('name')
+    # ==========================
+    students_qs = Student.objects.select_related("syllabus")
 
-    # apply simple student-level filters
+    if not request.user.is_superuser:
+        students_qs = students_qs.filter(
+        department=request.user.teacher.department
+    )
+
+    students_qs = students_qs.order_by("name")
+
+    
+
+    # ==========================
+    # Student-level filters
+    # ==========================
+    if syllabus_id:
+        students_qs = students_qs.filter(syllabus_id=syllabus_id)
+
     if academic_year:
         students_qs = students_qs.filter(academic_year=academic_year)
+
     if gender:
         students_qs = students_qs.filter(gender__iexact=gender)
+
     if caste:
         students_qs = students_qs.filter(caste__iexact=caste)
+
     if religion:
         students_qs = students_qs.filter(religion__iexact=religion)
+
     if course:
-        students_qs = students_qs.filter(course__iexact=course)
+        students_qs = students_qs.filter(
+        Q(course__iexact=course) |
+        Q(course_ref__name__iexact=course)
+    )
+
+
     if reg_no:
         students_qs = students_qs.filter(reg_no__icontains=reg_no)
 
-    # Prepare subjects list for the selected semester (for the template)
-    if semester_number:
+    # ==========================
+    # Subject dropdown (syllabus-safe)
+    # ==========================
+    subjects_for_sem = Subject.objects.none()
+
+    if semester_number and syllabus_id:
         try:
             sem_int = int(semester_number)
-            if course:
-                subjects_for_sem = Subject.objects.filter(semester_number=sem_int, course__iexact=course).order_by('name')
-            else:
-                subjects_for_sem = Subject.objects.filter(semester_number=sem_int).order_by('name')
+            subjects_for_sem = Subject.objects.filter(
+    semester_number=sem_int,
+    syllabus_id=syllabus_id
+).filter(
+    Q(course_ref__isnull=False) | Q(course__isnull=False)
+).order_by("name")
+
         except ValueError:
             subjects_for_sem = Subject.objects.none()
-    else:
-    # if no semester selected, but course selected we can optionally show all subjects for course
-        if course:
-            subjects_for_sem = Subject.objects.filter(course__iexact=course).order_by('semester_number', 'name')
-        else:
-            subjects_for_sem = Subject.objects.none()
 
-    # If subject filter is present, compute pass/fail sets for that subject in that semester
-    # We'll identify student ids to keep depending on subject_status.
-    subject_student_ids_to_keep = None  # None => don't apply subject-level filtering
+    # ==========================
+    # Subject-level pass/fail filter
+    # ==========================
+    subject_student_ids_to_keep = None
+
     if subject_id:
         try:
             subject_id = int(subject_id)
         except ValueError:
             subject_id = None
 
-    if subject_id and semester_number:
-        # marks for that subject in that semester
-        marks_qs = Mark.objects.filter(semester__number=sem_int, subject_id=subject_id)
+    if subject_id and semester_number and syllabus_id:
+        marks_qs = Mark.objects.filter(
+            semester__number=sem_int,
+            semester__student__syllabus_id=syllabus_id,
+            subject_id=subject_id
+        )
 
-        # Build sets of student ids who passed / failed this subject
         passed_ids = set()
         failed_ids = set()
+
         for m in marks_qs:
             try:
-                # treat pass >= 40% of max_marks
-                if m.max_marks and (m.marks_obtained >= 0.4 * m.max_marks):
+                if m.max_marks and m.marks_obtained >= 0.4 * m.max_marks:
                     passed_ids.add(m.semester.student_id)
                 else:
                     failed_ids.add(m.semester.student_id)
             except Exception:
                 failed_ids.add(m.semester.student_id)
 
-        if subject_status == 'passed':
+        if subject_status == "passed":
             subject_student_ids_to_keep = passed_ids
-        elif subject_status == 'failed':
+        elif subject_status == "failed":
             subject_student_ids_to_keep = failed_ids
         else:
-            # If no subject_status requested, keep all students who have marks for that subject
-            subject_student_ids_to_keep = set(m.semester.student_id for m in marks_qs)
+            subject_student_ids_to_keep = set(
+                m.semester.student_id for m in marks_qs
+            )
 
-        # Intersect with current queryset
-        if subject_student_ids_to_keep is not None:
-            students_qs = students_qs.filter(id__in=list(subject_student_ids_to_keep))
+        students_qs = students_qs.filter(
+            id__in=list(subject_student_ids_to_keep)
+        )
 
-    # If subject not specified but semester specified and pass_status (overall) filtering is requested,
-    # we keep the earlier behavior where we compute pass/fail across all marks (optional)
-    # (existing 'pass_status' param applies to whole student result, not subject-specific)
+    # ==========================
+    # Build final student list
+    # ==========================
     students = []
+
     for s in students_qs:
-        # Compute overall stats (useful for display)
-        marks = Mark.objects.filter(semester__student=s)
+        marks = Mark.objects.filter(
+            semester__student=s
+        )
+
         if marks.exists():
             total_max = sum(m.max_marks for m in marks)
             total_obt = sum(m.marks_obtained for m in marks)
-            avg_percent = round((total_obt / total_max * 100), 2) if total_max > 0 else None
-            overall_pass = all(m.marks_obtained >= 0.4 * m.max_marks for m in marks)
+            avg_percent = (
+                round((total_obt / total_max) * 100, 2)
+                if total_max > 0 else None
+            )
+            overall_pass = all(
+                m.marks_obtained >= 0.4 * m.max_marks
+                for m in marks
+            )
         else:
             avg_percent = None
             overall_pass = False
 
-        # Apply overall pass_status filter if provided (this is separate from subject-specific filter)
-        if pass_status == 'passed' and not overall_pass:
+        if pass_status == "passed" and not overall_pass:
             continue
-        if pass_status == 'failed' and overall_pass:
+        if pass_status == "failed" and overall_pass:
             continue
 
-        # For convenience in template show whether the student passed/failed the selected subject (if any)
+        # Subject-specific info (for table display)
         subject_pass_info = None
-        if subject_id and semester_number:
-            # try to get the mark record for this student for that semester & subject
-            subj_mark = Mark.objects.filter(semester__student=s, semester__number=sem_int, subject_id=subject_id).order_by('-id').first()
-            if subj_mark:
-                try:
-                    maxm = subj_mark.max_marks or getattr(subj_mark.subject, "max_marks", None) or 0
-                    got = subj_mark.marks_obtained or 0
-                    subject_pass_info = (got >= 0.4 * maxm) if maxm > 0 else False
-                except Exception:
-                    subject_pass_info = False
 
-                # attach marks for template display
-                try:
-                    s.subject_marks = float(got)
-                except Exception:
-                    s.subject_marks = got
-                try:
-                    s.subject_max = float(maxm)
-                except Exception:
-                    s.subject_max = maxm
+        if subject_id and semester_number and syllabus_id:
+            subj_mark = Mark.objects.filter(
+                semester__student=s,
+                semester__student__syllabus_id=syllabus_id,
+                semester__number=sem_int,
+                subject_id=subject_id
+            ).order_by("-id").first()
+
+            if subj_mark:
+                maxm = subj_mark.max_marks or 0
+                got = subj_mark.marks_obtained or 0
+                subject_pass_info = (
+                    got >= 0.4 * maxm if maxm > 0 else False
+                )
+
+                s.subject_marks = got
+                s.subject_max = maxm
             else:
-                subject_pass_info = None  # no record
                 s.subject_marks = None
                 s.subject_max = None
 
-        # attach safe attributes for template
         s.total_papers = marks.count()
         s.avg_percent = avg_percent
         s.overall_pass = overall_pass
-        s.subject_pass_info = subject_pass_info  # True/False/None
-        
+        s.subject_pass_info = subject_pass_info
 
         students.append(s)
 
+    # ==========================
+    # Context
+    # ==========================
     context = {
-        'students': students,
-        'semesters_numbers': semesters_numbers,
-        'subjects_for_sem': subjects_for_sem,
-        'academic_years': academic_years,
-        'genders': [g for g in genders if g],
-        'castes': [c for c in castes if c],
-        'religions': [r for r in religions if r],
-        'courses': [c for c in courses if c],
-        'filter_values': {
-            'semester': semester_number,
-            'subject': subject_id,
-            'subject_status': subject_status,
-            'academic_year': academic_year,
-            'gender': gender,
-            'caste': caste,
-            'religion': religion,
-            'course': course,
-            'reg_no': reg_no,
-            'pass_status': pass_status,
+        "students": students,
+        "semesters_numbers": semesters_numbers,
+        "subjects_for_sem": subjects_for_sem,
+        "academic_years": academic_years,
+        "genders": [g for g in genders if g],
+        "castes": [c for c in castes if c],
+        "religions": [r for r in religions if r],
+        "courses": [c for c in courses if c],
+        "syllabi": syllabi,
+        "filter_values": {
+            "semester": semester_number,
+            "subject": subject_id,
+            "subject_status": subject_status,
+            "academic_year": academic_year,
+            "gender": gender,
+            "caste": caste,
+            "religion": religion,
+            "course": course,
+            "syllabus": syllabus_id,
+            "reg_no": reg_no,
+            "pass_status": pass_status,
         }
     }
+
     return render(request, "teacher_students_filter.html", context)
+
 
 
 @login_required(login_url='teacher_login')
@@ -939,6 +1199,7 @@ def grace_marks(request):
         return redirect("apply_grace_marks", student_id=student.id, sem_number=sem_number)
 
     return render(request, "grace_marks_select.html")
+
 @login_required(login_url='teacher_login')
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def apply_grace_marks(request, student_id, sem_number):
@@ -1018,19 +1279,358 @@ def apply_grace_marks(request, student_id, sem_number):
         "total_sem_max": total_sem_max,
     })
 
-# views.py
 
 
-
-@require_GET
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def ajax_get_student(request):
     reg_no = request.GET.get('reg_no', '').strip()
+
     if not reg_no:
         return JsonResponse({'success': False, 'message': 'Provide registration number.'})
 
     try:
-        student = Student.objects.get(reg_no__iexact=reg_no)
-        # return minimal safe payload
-        return JsonResponse({'success': True, 'student': {'id': student.id, 'name': student.name}})
+        if request.user.is_superuser:
+            student = Student.objects.get(reg_no__iexact=reg_no)
+        else:
+            student = Student.objects.get(
+                reg_no__iexact=reg_no,
+                department=request.user.teacher.department
+            )
+
+        return JsonResponse({
+            'success': True,
+            'student': {
+                'id': student.id,
+                'name': student.name
+            }
+        })
+
     except Student.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Student not found.'})
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def ajax_create_syllabus(request):
+
+    if request.method != "POST":
+        return JsonResponse({"success": False})
+
+    course_id = request.POST.get("course")  # this must now be ID
+    year = request.POST.get("year")
+
+    if not course_id or not year:
+        return JsonResponse({"success": False, "error": "Missing data"})
+
+    try:
+        course_obj = Course.objects.get(id=int(course_id))
+        year = int(year)
+    except (ValueError, Course.DoesNotExist):
+        return JsonResponse({"success": False, "error": "Invalid data"})
+
+    syllabus, created = Syllabus.objects.get_or_create(
+        course=course_obj,
+        year=year
+    )
+
+    return JsonResponse({
+        "success": True,
+        "id": syllabus.id,
+        "year": syllabus.year,
+        "created": created,
+    })
+
+
+
+@login_required(login_url='teacher_login')
+@user_passes_test(lambda u: u.is_superuser)
+def admin_department_analysis(request):
+    from .models import Department
+
+    departments = Department.objects.all()
+    data = []
+
+    for dept in departments:
+        students = Student.objects.filter(department=dept)
+        marks = Mark.objects.filter(semester__student__department=dept)
+
+        total_students = students.count()
+
+        if marks.exists():
+            avg_percent = round(
+                sum(m.marks_obtained for m in marks) /
+                sum(m.max_marks for m in marks) * 100,
+                2
+            )
+            passed_students = 0
+
+        for student in students:
+            student_marks = Mark.objects.filter(semester__student=student)
+
+            if student_marks.exists() and all(
+                m.marks_obtained >= 0.4 * m.max_marks for m in student_marks
+    ):
+                passed_students += 1
+
+                pass_rate = round(
+    (passed_students / total_students) * 100,
+    2
+) if total_students > 0 else 0
+
+        else:
+            avg_percent = 0
+            pass_rate = 0
+
+        data.append({
+            "department": dept.name,
+             "department_id": dept.id,
+            "students": total_students,
+            "avg_percent": avg_percent,
+            "pass_rate": pass_rate
+        })
+
+    return render(request, "admin_department_analysis.html", {
+        "data": data
+    })
+
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def admin_department_students(request, department_id):
+    department = get_object_or_404(Department, id=department_id)
+
+    students = (
+        Student.objects
+        .filter(department=department)
+        .select_related("syllabus")
+        .order_by("name")
+    )
+
+    student_data = []
+
+    for s in students:
+        marks = Mark.objects.filter(semester__student=s)
+
+        if marks.exists():
+            overall_pass = all(
+                m.marks_obtained >= 0.4 * m.max_marks
+                for m in marks
+            )
+        else:
+            overall_pass = False
+
+        student_data.append({
+            "student": s,
+            "cgpa": s.cgpa(),
+            "overall_pass": overall_pass,
+        })
+
+    return render(request, "admin_department_students.html", {
+        "department": department,
+        "students": student_data
+    })
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def add_teacher(request):
+    if request.method == "POST":
+        form = TeacherCreateForm(request.POST)
+        if form.is_valid():
+            user = User.objects.create_user(
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password"],
+                is_staff=True
+            )
+
+            Teacher.objects.create(
+    user=user,
+    full_name=form.cleaned_data["full_name"],
+    department=form.cleaned_data["department"],
+    role=form.cleaned_data["role"]   # ✅ NEW
+)
+
+
+            messages.success(request, "Teacher added successfully")
+            return redirect("admin_dashboard")
+    else:
+        form = TeacherCreateForm()
+
+    return render(request, "add_teacher.html", {"form": form})
+
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def edit_teacher(request, teacher_id):
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+
+    if request.method == "POST":
+        form = TeacherEditForm(request.POST)
+        if form.is_valid():
+            teacher.full_name = form.cleaned_data["full_name"]
+            teacher.department = form.cleaned_data["department"]
+            teacher.save()
+
+            messages.success(request, "Teacher updated successfully")
+            return redirect("admin_dashboard")
+    else:
+        form = TeacherEditForm(initial={
+            "full_name": teacher.full_name,
+            "department": teacher.department
+        })
+
+    return render(request, "edit_teacher.html", {
+        "form": form,
+        "teacher": teacher
+    })
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def manage_departments(request):
+    departments = Department.objects.all().order_by("name")
+    return render(request, "manage_departments.html", {
+        "departments": departments
+    })
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def add_department(request):
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        if name:
+            Department.objects.create(name=name)
+            messages.success(request, "Department added successfully")
+            return redirect("manage_departments")
+        messages.error(request, "Department name is required")
+
+    return render(request, "add_department.html")
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def edit_department(request, department_id):
+    department = get_object_or_404(Department, id=department_id)
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        if name:
+            department.name = name
+            department.save()
+            messages.success(request, "Department updated successfully")
+            return redirect("manage_departments")
+        messages.error(request, "Department name is required")
+
+    return render(request, "edit_department.html", {
+        "department": department
+    })
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def manage_department_courses(request, department_id):
+    department = get_object_or_404(Department, id=department_id)
+    courses = department.courses.all().order_by("name")
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        if name:
+            Course.objects.get_or_create(
+                department=department,
+                name=name
+            )
+            messages.success(request, "Course added successfully")
+            return redirect("manage_department_courses", department_id=department.id)
+        messages.error(request, "Course name is required")
+
+    return render(request, "manage_department_courses.html", {
+        "department": department,
+        "courses": courses
+    })
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def edit_course(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        if name:
+            course.name = name
+            course.save()
+            messages.success(request, "Course updated successfully")
+            return redirect(
+                "manage_department_courses",
+                department_id=course.department.id
+            )
+        messages.error(request, "Course name is required")
+
+    return render(request, "edit_course.html", {
+        "course": course
+    })
+
+
+@login_required(login_url="teacher_login")
+@user_passes_test(lambda u: u.is_superuser)
+def delete_course(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    department_id = course.department.id
+
+    if request.method == "POST":
+        course.delete()
+        messages.success(request, "Course deleted successfully")
+        return redirect(
+            "manage_department_courses",
+            department_id=department_id
+        )
+
+    return render(request, "delete_course.html", {
+        "course": course
+    })
+
+
+
+def download_student_report(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+
+    marks = Mark.objects.filter(semester__student=student).order_by("semester__number")
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{student.name}_Marks_Report.pdf"'
+
+    doc = SimpleDocTemplate(response)
+    elements = []
+
+    styles = getSampleStyleSheet()
+    title_style = styles["Heading1"]
+
+    elements.append(Paragraph("Student Marks Report", title_style))
+    elements.append(Spacer(1, 0.3 * inch))
+
+    elements.append(Paragraph(f"Name: {student.name}", styles["Normal"]))
+    elements.append(Paragraph(f"Registration No: {student.reg_no}", styles["Normal"]))
+    elements.append(Paragraph(f"Course: {student.course}", styles["Normal"]))
+    elements.append(Spacer(1, 0.3 * inch))
+
+    data = [["Semester", "Subject", "Marks Obtained", "Max Marks", "Status"]]
+
+    for m in marks:
+        passed = "Pass" if m.marks_obtained >= (0.4 * m.max_marks) else "Fail"
+        data.append([
+            m.semester.number,
+            m.subject.name,
+            m.marks_obtained,
+            m.max_marks,
+            passed
+        ])
+
+    table = Table(data, repeatRows=1)
+
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.grey),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+        ('ALIGN', (2,1), (-2,-1), 'CENTER'),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+        ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+    ]))
+
+    elements.append(table)
+
+    doc.build(elements)
+    return response

@@ -1,4 +1,4 @@
-{%load static%}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,41 +9,56 @@
     <link rel="stylesheet" href="{% static 'css/student_login.css' %}">
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-header">
-            <h2>Student Login</h2>
-            <p>Access your academic dashboard</p>
-        </div>
-        
-        <div class="login-form">
-            <!-- Error message placeholder -->
-            <div class="error-message" id="errorMessage">
-                Invalid registration number or date of birth
-            </div>
-            
-            <form method="post" id="loginForm">
+
+<div class="page-wrapper">
+
+    <!-- LEFT SIDE ILLUSTRATION -->
+    <div class="illustration-section">
+        <img src="{% static 'images/student_login0.png' %}" alt="Student Login Illustration">
+    </div>
+
+    <!-- RIGHT SIDE FORM -->
+    <div class="login-section">
+        <div class="login-card">
+            <h2><i class="fas fa-user-graduate"></i> Student Login</h2>
+            <p class="subtitle">Access your academic dashboard</p>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="error-message">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post">
                 {% csrf_token %}
+
                 <div class="form-group">
-                    <label for="reg_no">Registration Number</label>
-                    <div class="input-with-icon">
+                    <label>Registration Number</label>
+                    <div class="input-wrapper">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" id="reg_no" name="reg_no" placeholder="Enter your registration number" required>
+                        <input type="text" name="reg_no" required>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="dob">Date of Birth</label>
-                    <div class="input-with-icon">
+                    <label>Date of Birth</label>
+                    <div class="input-wrapper">
                         <i class="fas fa-calendar-alt"></i>
-                        <input type="text" id="dob" name="dob" placeholder="YYYY-MM-DD" required>
+                        <input type="text" name="dob" placeholder="YYYY-MM-DD" required>
                     </div>
                 </div>
-                
-                <button type="submit" class="btn-login">Login to Dashboard</button>
+
+                <button type="submit" class="login-btn">
+                    Login →
+                </button>
+
             </form>
         </div>
     </div>
 
-    <script src="{% static 'js/student_login.js' %}"></script>
+</div>
+
 </body>
 </html>

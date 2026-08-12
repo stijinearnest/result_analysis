@@ -6,53 +6,37 @@
 <div class="container">
     <div class="page-header">
         <h1>Manage Subjects</h1>
-        <a href="{% url 'select_course' %}" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Go Back
-        </a>
+        
     </div>
 
-    {% if messages %}
-      {% for msg in messages %}
-        <div class="alert">{{ msg }}</div>
-      {% endfor %}
-    {% endif %}
-
-    {% if form.errors %}
-      <div class="alert alert-danger">
-        <strong>Fix the errors below:</strong>
-        <ul>
-          {% for field, errs in form.errors.items %}
-            <li>{{ field }}: {{ errs|join:", " }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
+    
 
     <!-- Existing Subjects Table -->
     <div class="table-container">
         <table class="subjects-table">
             <thead>
-                <tr>
-                    <th>Semester</th>
-                    <th>Code</th>
-                    <th>Name</th>
-                    <th>Credits</th>
-                    <th>Max Marks</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
+  <tr>
+    <th>Syllabus Year</th>   <!-- ✅ NEW -->
+    <th>Semester</th>
+    <th>Code</th>
+    <th>Name</th>
+    <th>Credits</th>
+    <th>Max Marks</th>
+    <th>Actions</th>
+  </tr>
+</thead>
+
             <tbody>
                 {% for subject in subjects %}
                 <tr>
+                    <td>{{ subject.syllabus.year }}</td> 
                     <td>{{ subject.semester_number }}</td>
                     <td>{{ subject.code }}</td>
                     <td>{{ subject.name }}</td>
                     <td>{{ subject.credits }}</td>
                     <td>{{ subject.max_marks }}</td>
                     <td class="action-cell">
-                        <a href="{% url 'edit_subject' subject.id %}" class="action-btn edit-btn">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
+                        
                         <a href="{% url 'delete_subject' subject.id %}" class="action-btn delete-btn">
                             <i class="fas fa-trash"></i> Delete
                         </a>
@@ -79,9 +63,25 @@
             {% csrf_token %}
             <div class="form-grid">
                 <div class="form-group">
-                    <label for="id_course">Course</label>
-                    {{ form.course }}
+                    <label>Course</label>
+<input type="text"
+       class="form-control"
+       value="{{ selected_course.name }}"
+       readonly>
+
                 </div>
+                
+<div class="form-group">
+    <label>Subject Type</label>
+    {{ form.subject_type }}
+</div>
+
+<div class="form-group" id="electiveGroupBox">
+    <label>Elective Group</label>
+    {{ form.elective_group }}
+</div>
+
+
                 <div class="form-group">
                     <label for="id_name">Subject Name</label>
                     {{ form.name }}
@@ -106,12 +106,7 @@
                 </div>
 
                 <!-- OPTIONAL: if your form has elective_group -->
-                {% if form.elective_group %}
-                <div class="form-group">
-                    <label for="id_elective_group">Elective Group (optional)</label>
-                    {{ form.elective_group }}
-                </div>
-                {% endif %}
+                
             </div>
             <button type="submit" class="submit-btn">
                 <i class="fas fa-plus"></i> Add Subject
@@ -119,6 +114,28 @@
         </form>
     </div>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const typeRadios = document.querySelectorAll("input[name='subject_type']");
+    const electiveBox = document.getElementById("electiveGroupBox");
+
+    function toggleElectiveBox() {
+        const selected = document.querySelector("input[name='subject_type']:checked");
+        if (selected && selected.value === "ELECTIVE") {
+            electiveBox.style.display = "block";
+        } else {
+            electiveBox.style.display = "none";
+        }
+    }
+
+    toggleElectiveBox();
+
+    typeRadios.forEach(radio => {
+        radio.addEventListener("change", toggleElectiveBox);
+    });
+});
+</script>
+
 
 <script src="{% static 'js/manage_subjects.js' %}"></script>
 {% endblock %}

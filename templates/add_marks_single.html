@@ -1,8 +1,9 @@
 {% extends "base.html" %}
+
 {% load static %}
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/add_marks_single.css' %}">
-<main class="main-content py-4">
+
 <div class="container">
 {% if already_exists and not request.GET.success %}
 <div class="message-container error">
@@ -37,26 +38,76 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for subject in subjects %}
-                    <tr>
-                        <td>{{ subject.code }}</td>
-                        <td>{{ subject.name }}</td>
-                        <td>
-                            <div class="input-with-icon">
-                                <input type="number" name="marks_{{ subject.id }}" min="0" max="100" step="0.5" required>
-                                <i class="fas fa-pen"></i>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="input-with-icon max-marks">
-                                <span class="max-value">{{ subject.max_marks }}</span>
-                                <i class="fas fa-scale-balanced"></i>
-                            </div>
-                        </td>
-                        
-                    </tr>
-                    {% endfor %}
-                </tbody>
+
+    <!-- CORE SUBJECTS -->
+    {% for subject in core_subjects %}
+    <tr>
+        <td>{{ subject.code }}</td>
+        <td>{{ subject.name }}</td>
+        <td>
+            <div class="input-with-icon">
+                <input type="number"
+                       name="marks_{{ subject.id }}"
+                       min="0"
+                       max="{{ subject.max_marks }}"
+                       step="0.5"
+                       required>
+                <i class="fas fa-pen"></i>
+            </div>
+        </td>
+        <td>
+            <div class="input-with-icon max-marks">
+                <span class="max-value">{{ subject.max_marks }}</span>
+                <i class="fas fa-scale-balanced"></i>
+            </div>
+        </td>
+    </tr>
+    {% endfor %}
+
+
+    <!-- ELECTIVE SUBJECTS -->
+    {% for group, subjects in elective_groups.items %}
+        <tr>
+            <td colspan="4" style="background:#f3f6fa; font-weight:bold;">
+                Select one from {{ group }}
+            </td>
+        </tr>
+
+        {% for subject in subjects %}
+        <tr>
+            <td>{{ subject.code }}</td>
+            <td>
+                <label>
+                    <input type="radio"
+                           name="elective_{{ group }}"
+                           value="{{ subject.id }}"
+                           required>
+                    {{ subject.name }}
+                </label>
+            </td>
+            <td>
+                <div class="input-with-icon">
+                    <input type="number"
+                           name="marks_{{ subject.id }}"
+                           min="0"
+                           max="{{ subject.max_marks }}"
+                           step="0.5"
+                           disabled>
+                    <i class="fas fa-pen"></i>
+                </div>
+            </td>
+            <td>
+                <div class="input-with-icon max-marks">
+                    <span class="max-value">{{ subject.max_marks }}</span>
+                    <i class="fas fa-scale-balanced"></i>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    {% endfor %}
+
+</tbody>
+
             </table>
         </div>
         
@@ -97,10 +148,8 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                showNotification(data.message, 'success');
-                form.querySelectorAll('input').forEach(input => input.disabled = true);
-                submitBtn.innerHTML = 'Saved ✔';
-            } else {
+    window.location.href = data.redirect_url;
+}else {
                 showNotification(data.message || 'Error saving marks', 'error');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
@@ -143,6 +192,31 @@
             }
         });
     });
+
+    // Enable marks only for selected elective
+document.querySelectorAll('input[type="radio"]').forEach(radio => {
+    radio.addEventListener("change", function() {
+
+        const group = this.name;
+
+        // Disable all marks inputs for this group
+        document.querySelectorAll(`input[name^="marks_"]`).forEach(input => {
+            if (input.closest("tr").querySelector(`input[name="${group}"]`)) {
+                input.disabled = true;
+                input.required = false;
+            }
+        });
+
+        // Enable selected one
+        const subjectId = this.value;
+        const marksInput = document.querySelector(`input[name="marks_${subjectId}"]`);
+        if (marksInput) {
+            marksInput.disabled = false;
+            marksInput.required = true;
+        }
+    });
+});
+
 </script>
 
 {% endif %}
